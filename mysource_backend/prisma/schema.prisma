@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  campus        String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  products      Product[]
+  businesses    Business[]
+  telegramId    String?   @unique
+  googleId      String?   @unique
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+  notifyByTelegram Boolean   @default(true)
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  description String   @db.Text
+  price       Float?
+  category    String?
+  campus      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  images      Image[]
+  messages    Message[]
+
+  @@index([campus])
+  @@index([category])
+}
+
+model Business {
+  id          String   @id @default(uuid())
+  name        String
+  description String   @db.Text
+  category    String?
+  campus      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  images      Image[]
+  messages    Message[]
+
+  @@index([campus])
+  @@index([category])
+}
+
+model Image {
+  id          String    @id @default(uuid())
+  url         String
+  thumbnailUrl String
+  productId   String?
+  businessId  String?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  createdAt   DateTime  @default(now())
+  read        Boolean   @default(false)
+  senderId    String
+  receiverId  String
+  productId   String?
+  businessId  String?
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([productId])
+  @@index([businessId])
+}
+
