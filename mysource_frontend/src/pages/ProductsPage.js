@@ -1,62 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
-import ProductCard from '../components/ProductCard';
-import CampusSelector from '../components/CampusSelector';
-import Select from 'react-select';
-import { PRODUCT_CATEGORIES } from '../config';
+"use client"
+
+import { useState, useEffect } from "react"
+import axios from "axios"
+import Cookies from "js-cookie"
+import ProductCard from "../components/ProductCard"
+import { FiFilter } from "react-icons/fi"
+import { useAuth } from "../contexts/AuthContext"
 
 const ProductsPage = () => {
-  const { user } = useAuth();
-  const [products, setProducts] = useState([]);
-  const [campus, setCampus] = useState(user?.campus || '');
-  const [category, setCategory] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, user } = useAuth()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [category, setCategory] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
 
-  const fetchProducts = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get('/api/products', {
-        params: { campus, category },
-      });
-      setProducts(response.data.products);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    }
-    setLoading(false);
-  }, [campus, category]);
+  const categories = [
+    { value: "", label: "All Categories" },
+    { value: "electronics", label: "Electronics" },
+    { value: "books", label: "Books" },
+    { value: "clothing", label: "Clothing" },
+    { value: "furniture", label: "Furniture" },
+    { value: "other", label: "Other" },
+  ]
 
   useEffect(() => {
-    fetchProducts();
-  }, [campus, category]); // Removed fetchProducts from dependency array
+    const fetchProducts = async () => {
+      setLoading(true)
+      try {
+        // Get campus from user if authenticated, otherwise from cookie
+        const campus = isAuthenticated ? user.campus : Cookies.get("userCampus") || ""
+
+        const response = await axios.get("/api/products", {
+          params: {
+            campus,
+            category: category || undefined,
+            page,
+            limit: 12,
+          },
+        })
+
+        setProducts(response.data.products)
+        setTotalPages(response.data.pagination.totalPages)
+      } catch (error) {
+        console.error("Error fetching products:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [page, category, isAuthenticated, user])
+
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value)
+    setPage(1) // Reset to first page when changing category
+  }
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage)
+    window.scrollTo(0, 0)
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
-        <div className="flex space-x-4">
-          {!user && <CampusSelector onChange={setCampus} />}
-          <Select
-            options={PRODUCT_CATEGORIES}
-            onChange={(selectedOption) => setCategory(selectedOption.value)}
-            placeholder="Category"
-            className="w-48"
-            classNamePrefix="react-select"
-          />
+
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center text-secondary-700 hover:text-primary md:hidden"
+        >
+          <FiFilter className="mr-1" /> Filters
+        </button>
+
+        <div className="hidden md:block">
+          <select value={category} onChange={handleCategoryChange} className="input max-w-xs">
+            {categories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center">Loading...</div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+      {/* Mobile Filters */}
+      {showFilters && (
+        <div className="mb-4 p-4 border border-secondary-200 rounded-md bg-white md:hidden">
+          <div className="mb-2">
+            <label htmlFor="category-mobile" className="label">
+              Category
+            </label>
+            <select id="category-mobile" value={category} onChange={handleCategoryChange} className="input">
+              {categories.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       )}
-    </div>
-  );
-};
 
-export default ProductsPage;
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      ) : (
+        <>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-secondary-50 rounded-lg">
+              <p className="text-secondary-600 mb-2">No products found.</p>
+              <p className="text-sm text-secondary-500">Try changing your filters or campus selection.</p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8">
+              <div className="flex space-x-1">
+                <button
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                  className="px-3 py-1 rounded border border-secondary-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handlePageChange(i + 1)}
+                    className={`px-3 py-1 rounded border ${
+                      page === i + 1 ? "bg-primary text-white border-primary" : "border-secondary-300"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 rounded border border-secondary-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+export default ProductsPage
+

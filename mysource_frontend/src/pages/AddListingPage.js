@@ -116,11 +116,11 @@ const AddListingPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Add New Listing</h1>
+    <div className="container mx-auto px-4 py-4 max-w-2xl">
+      <h1 className="text-xl font-bold mb-4">Add New Listing</h1>
 
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="mb-6">
+      <div className="bg-white shadow rounded-lg p-4">
+        <div className="mb-4">
           <div className="flex border rounded-lg overflow-hidden">
             <button
               type="button"
@@ -139,11 +139,11 @@ const AddListingPage = () => {
           </div>
         </div>
 
-        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           {listingType === "business" && (
-            <div className="mb-4">
+            <div className="mb-3">
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Business Name*
               </label>
@@ -153,13 +153,13 @@ const AddListingPage = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border rounded-md text-sm"
                 required
               />
             </div>
           )}
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
               Description*
             </label>
@@ -168,14 +168,14 @@ const AddListingPage = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows="4"
-              className="w-full px-3 py-2 border rounded-md"
+              rows="3"
+              className="w-full px-3 py-2 border rounded-md text-sm"
               required
             />
           </div>
 
           {listingType === "product" && (
-            <div className="mb-4">
+            <div className="mb-3">
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
                 Price (NGN)
               </label>
@@ -185,24 +185,24 @@ const AddListingPage = () => {
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-md"
+                className="w-full px-3 py-2 border rounded-md text-sm"
               />
             </div>
           )}
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <Select
               options={listingType === "product" ? PRODUCT_CATEGORIES : BUSINESS_CATEGORIES}
               onChange={handleCategoryChange}
               value={selectedCategory}
               placeholder="Select Category"
-              className="react-select-container"
+              className="react-select-container text-sm"
               classNamePrefix="react-select"
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {listingType === "product" ? "Product Images*" : "Business Image*"}
             </label>
@@ -210,7 +210,7 @@ const AddListingPage = () => {
               type="file"
               onChange={handleFileChange}
               accept="image/*"
-              className="w-full px-3 py-2 border rounded-md"
+              className="w-full px-3 py-2 border rounded-md text-sm"
               multiple={listingType === "product"}
               required
             />
@@ -224,7 +224,7 @@ const AddListingPage = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark"
+              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark text-sm"
               disabled={loading}
             >
               {loading ? "Adding..." : "Add Listing"}

@@ -75,6 +75,12 @@ export const login = async (req, res) => {
     return res.status(401).json({ message: "Invalid credentials" })
   }
 
+  // Update last seen
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastSeen: new Date() },
+  })
+
   // Generate JWT
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" })
 
@@ -92,12 +98,18 @@ export const getCurrentUser = async (req, res) => {
   // User is already attached to req by auth middleware
   const { password, ...userData } = req.user
 
+  // Update last seen
+  await prisma.user.update({
+    where: { id: req.user.id },
+    data: { lastSeen: new Date() },
+  })
+
   res.json(userData)
 }
 
 // Update user profile
 export const updateProfile = async (req, res) => {
-  const { name, campus } = req.body
+  const { name, phone, website } = req.body
   const userId = req.user.id
 
   // Update user
@@ -105,7 +117,9 @@ export const updateProfile = async (req, res) => {
     where: { id: userId },
     data: {
       name: name || undefined,
-      campus: campus || undefined,
+      phone: phone || undefined,
+      website: website || undefined,
+      lastSeen: new Date(),
     },
   })
 
@@ -144,7 +158,10 @@ export const changePassword = async (req, res) => {
   // Update password
   await prisma.user.update({
     where: { id: userId },
-    data: { password: hashedPassword },
+    data: {
+      password: hashedPassword,
+      lastSeen: new Date(),
+    },
   })
 
   res.json({ message: "Password updated successfully" })
@@ -178,7 +195,16 @@ export const googleLogin = async (req, res) => {
       // Link Google account to existing user
       user = await prisma.user.update({
         where: { id: user.id },
-        data: { googleId },
+        data: {
+          googleId,
+          lastSeen: new Date(),
+        },
+      })
+    } else {
+      // Update last seen
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { lastSeen: new Date() },
       })
     }
 
@@ -193,6 +219,8 @@ export const googleLogin = async (req, res) => {
         name: user.name,
         email: user.email,
         campus: user.campus,
+        phone: user.phone,
+        website: user.website,
       },
       token: jwtToken,
     })
@@ -210,7 +238,10 @@ export const linkTelegramAccount = async (req, res) => {
   try {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { telegramId },
+      data: {
+        telegramId,
+        lastSeen: new Date(),
+      },
     })
 
     res.json({
@@ -221,11 +252,38 @@ export const linkTelegramAccount = async (req, res) => {
         email: updatedUser.email,
         campus: updatedUser.campus,
         telegramId: updatedUser.telegramId,
+        phone: updatedUser.phone,
+        website: updatedUser.website,
       },
     })
   } catch (error) {
     console.error("Error linking Telegram account:", error)
     res.status(400).json({ message: "Failed to link Telegram account" })
   }
+}
+
+// Get active users count
+export const getActiveUsersCount = async (req, res) => {
+  const { campus } = req.query
+
+  // Consider users active if they've been seen in the last 15 minutes
+  const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000)
+
+  const where = {
+    lastSeen: {
+      gte: fifteenMinutesAgo,
+    },
+  }
+
+  // Add campus filter if provided
+  if (campus) {
+    where.campus = campus
+  }
+
+  const count = await prisma.user.count({
+    where,
+  })
+
+  res.json({ count })
 }
 

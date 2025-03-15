@@ -1,10 +1,38 @@
-// src/components/Footer.js
-import React from 'react';
-import { Link } from 'react-router-dom';
+"use client"
+
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import axios from "axios"
+import Cookies from "js-cookie"
+import { FiUsers } from "react-icons/fi"
 
 const Footer = () => {
+  const [activeUsers, setActiveUsers] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchActiveUsers = async () => {
+      try {
+        const campus = Cookies.get("userCampus") || ""
+        const response = await axios.get(`/api/auth/active-users${campus ? `?campus=${campus}` : ""}`)
+        setActiveUsers(response.data.count)
+      } catch (error) {
+        console.error("Error fetching active users:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchActiveUsers()
+
+    // Refresh active users count every minute
+    const interval = setInterval(fetchActiveUsers, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <footer className="bg-white border-t border-secondary-200 py-6">
+    <footer className="bg-white border-t border-secondary-200 py-4">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
@@ -21,21 +49,26 @@ const Footer = () => {
             <Link to="/businesses" className="text-secondary-600 hover:text-primary">
               Businesses
             </Link>
-            <Link to="/terms" className="text-secondary-600 hover:text-primary">
+            <a href="#" className="text-secondary-600 hover:text-primary">
               Terms of Service
-            </Link>
-            <Link to="/privacy" className="text-secondary-600 hover:text-primary">
+            </a>
+            <a href="#" className="text-secondary-600 hover:text-primary">
               Privacy Policy
-            </Link>
+            </a>
           </div>
         </div>
 
-        <div className="mt-6 text-center text-secondary-500 text-xs">
-          &copy; {new Date().getFullYear()} Campus Marketplace. All rights reserved.
+        <div className="mt-4 flex justify-between items-center text-secondary-500 text-xs">
+          <div>&copy; {new Date().getFullYear()} Campus Marketplace. All rights reserved.</div>
+          <div className="flex items-center bg-secondary-50 px-2 py-1 rounded-full">
+            <FiUsers className="mr-1" />
+            <span>{loading ? "..." : `${activeUsers} active ${activeUsers === 1 ? "user" : "users"}`}</span>
+          </div>
         </div>
       </div>
     </footer>
-  );
-};
+  )
+}
 
-export default Footer;
+export default Footer
+

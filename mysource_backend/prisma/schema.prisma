@@ -11,51 +11,61 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  name          String?
-  password      String?
-  campus        String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  products      Product[]
-  businesses    Business[]
-  telegramId    String?   @unique
-  googleId      String?   @unique
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
-  notifyByTelegram Boolean   @default(true)
+  id               String      @id @default(uuid())
+  email            String      @unique
+  name             String?
+  password         String?
+  campus           String
+  phone            String?     // Added phone field to user profile
+  website          String?     // Added website field to user profile
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  products         Product[]
+  businesses       Business[]
+  telegramId       String?     @unique
+  googleId         String?     @unique
+  sentMessages     Message[]   @relation("SentMessages")
+  receivedMessages Message[]   @relation("ReceivedMessages")
+  notifyByTelegram Boolean     @default(true)
+  comments         Comment[]
+  lastSeen         DateTime    @default(now())
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  description String   @db.Text
+  id          String    @id @default(uuid())
+  description String    @db.Text
   price       Float?
   category    String?
   campus      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   images      Image[]
   messages    Message[]
+  comments    Comment[]
+  views       View[]
+  viewCount   Int       @default(0)
 
   @@index([campus])
   @@index([category])
 }
 
 model Business {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  description String   @db.Text
+  description String    @db.Text
   category    String?
   campus      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
   images      Image[]
   messages    Message[]
+  comments    Comment[]
+  views       View[]
+  viewCount   Int       @default(0)
 
   @@index([campus])
   @@index([category])
@@ -87,6 +97,38 @@ model Message {
 
   @@index([senderId])
   @@index([receiverId])
+  @@index([productId])
+  @@index([businessId])
+}
+
+model Comment {
+  id          String    @id @default(uuid())
+  content     String    @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  productId   String?
+  businessId  String?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+  @@index([businessId])
+}
+
+model View {
+  id          String    @id @default(uuid())
+  visitorId   String    // User ID or session ID for anonymous users
+  productId   String?
+  businessId  String?
+  createdAt   DateTime  @default(now())
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([visitorId, productId])
+  @@unique([visitorId, businessId])
   @@index([productId])
   @@index([businessId])
 }

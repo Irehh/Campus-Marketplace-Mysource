@@ -53,53 +53,84 @@ export const AuthProvider = ({ children }) => {
 
   // Register user
   const register = async (userData) => {
-    const res = await axios.post("/api/auth/register", userData)
+    try {
+      const res = await axios.post("/api/auth/register", userData)
 
-    if (res.data.token) {
-      localStorage.setItem("token", res.data.token)
-      setToken(res.data.token)
-      setUser(res.data.user)
-      toast.success("Registration successful!")
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token)
+        setToken(res.data.token)
+        setUser(res.data.user)
+        toast.success("Registration successful!")
+      }
+
+      return res.data
+    } catch (error) {
+      console.error("Registration error:", error)
+      const message = error.response?.data?.message || "Registration failed. Please try again."
+      toast.error(message)
+      throw error
     }
-
-    return res.data
   }
 
   // Login user
   const login = async (credentials) => {
-    const res = await axios.post("/api/auth/login", credentials)
+    try {
+      const res = await axios.post("/api/auth/login", credentials)
 
-    if (res.data.token) {
-      localStorage.setItem("token", res.data.token)
-      setToken(res.data.token)
-      setUser(res.data.user)
-      toast.success("Login successful!")
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token)
+        setToken(res.data.token)
+        setUser(res.data.user)
+        toast.success("Login successful!")
+      }
+
+      return res.data
+    } catch (error) {
+      console.error("Login error:", error)
+      const message = error.response?.data?.message || "Login failed. Please check your credentials."
+      toast.error(message)
+      throw error
     }
-
-    return res.data
   }
 
   // Logout user
   const logout = () => {
-    localStorage.removeItem("token")
-    setToken(null)
-    setUser(null)
-    toast.success("Logged out successfully")
+    try {
+      localStorage.removeItem("token")
+      setToken(null)
+      setUser(null)
+      toast.success("Logged out successfully")
+    } catch (error) {
+      console.error("Logout error:", error)
+      toast.error("Error during logout")
+    }
   }
 
   // Update user profile
   const updateProfile = async (userData) => {
-    const res = await axios.put("/api/auth/profile", userData)
-    setUser(res.data)
-    toast.success("Profile updated successfully")
-    return res.data
+    try {
+      const res = await axios.put("/api/auth/profile", userData)
+      setUser(res.data)
+      toast.success("Profile updated successfully")
+      return res.data
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      toast.error("Failed to update profile")
+      throw error
+    }
   }
 
   // Change password
   const changePassword = async (passwordData) => {
-    const res = await axios.put("/api/auth/password", passwordData)
-    toast.success("Password changed successfully")
-    return res.data
+    try {
+      const res = await axios.put("/api/auth/password", passwordData)
+      toast.success("Password changed successfully")
+      return res.data
+    } catch (error) {
+      console.error("Error changing password:", error)
+      toast.error("Failed to change password")
+      throw error
+    }
   }
 
   // Google login

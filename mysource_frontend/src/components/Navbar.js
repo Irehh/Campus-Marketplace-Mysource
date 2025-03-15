@@ -26,9 +26,13 @@ const Navbar = () => {
   }
 
   const handleLogout = () => {
-    logout()
-    navigate("/")
-    setIsMenuOpen(false)
+    try {
+      logout()
+      navigate("/")
+      setIsMenuOpen(false)
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
   }
 
   return (

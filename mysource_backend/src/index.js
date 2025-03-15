@@ -14,6 +14,7 @@ import searchRoutes from "./routes/searchRoutes.js"
 import telegramRoutes from "./routes/telegramRoutes.js"
 import eventsRoutes from "./routes/eventsRoutes.js"
 import messageRoutes from "./routes/messageRoutes.js"
+import commentRoutes from "./routes/commentRoutes.js"
 
 // Import middleware
 import { errorHandler } from "./middleware/errorMiddleware.js"
@@ -56,6 +57,7 @@ app.use("/api/search", searchRoutes)
 app.use("/api/telegram", telegramRoutes)
 app.use("/api/events", eventsRoutes)
 app.use("/api/messages", messageRoutes)
+app.use("/api/comments", commentRoutes)
 
 // Health check route
 app.get("/health", (req, res) => {

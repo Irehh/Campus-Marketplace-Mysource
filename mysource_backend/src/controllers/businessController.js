@@ -21,6 +21,8 @@ export const getBusinesses = async (req, res) => {
         select: {
           id: true,
           name: true,
+          phone: true,
+          website: true,
         },
       },
     },
@@ -47,6 +49,7 @@ export const getBusinesses = async (req, res) => {
 // Get a single business by ID
 export const getBusinessById = async (req, res) => {
   const { id } = req.params
+  const visitorId = req.user?.id || req.headers["x-visitor-id"] || req.ip
 
   const business = await prisma.business.findUnique({
     where: { id },
@@ -56,6 +59,8 @@ export const getBusinessById = async (req, res) => {
         select: {
           id: true,
           name: true,
+          phone: true,
+          website: true,
         },
       },
     },
@@ -63,6 +68,41 @@ export const getBusinessById = async (req, res) => {
 
   if (!business) {
     return res.status(404).json({ message: "Business not found" })
+  }
+
+  // Record view if not already viewed by this visitor
+  try {
+    const existingView = await prisma.view.findFirst({
+      where: {
+        visitorId,
+        businessId: id,
+      },
+    })
+
+    if (!existingView) {
+      await prisma.view.create({
+        data: {
+          visitorId,
+          businessId: id,
+        },
+      })
+
+      // Increment view count
+      await prisma.business.update({
+        where: { id },
+        data: {
+          viewCount: {
+            increment: 1,
+          },
+        },
+      })
+
+      // Update the business object to reflect the new view count
+      business.viewCount += 1
+    }
+  } catch (error) {
+    console.error("Error recording view:", error)
+    // Continue with the response even if view recording fails
   }
 
   res.json(business)

@@ -21,6 +21,8 @@ export const getProducts = async (req, res) => {
         select: {
           id: true,
           name: true,
+          phone: true,
+          website: true,
         },
       },
     },
@@ -47,6 +49,7 @@ export const getProducts = async (req, res) => {
 // Get a single product by ID
 export const getProductById = async (req, res) => {
   const { id } = req.params
+  const visitorId = req.user?.id || req.headers["x-visitor-id"] || req.ip
 
   const product = await prisma.product.findUnique({
     where: { id },
@@ -56,6 +59,8 @@ export const getProductById = async (req, res) => {
         select: {
           id: true,
           name: true,
+          phone: true,
+          website: true,
         },
       },
     },
@@ -63,6 +68,41 @@ export const getProductById = async (req, res) => {
 
   if (!product) {
     return res.status(404).json({ message: "Product not found" })
+  }
+
+  // Record view if not already viewed by this visitor
+  try {
+    const existingView = await prisma.view.findFirst({
+      where: {
+        visitorId,
+        productId: id,
+      },
+    })
+
+    if (!existingView) {
+      await prisma.view.create({
+        data: {
+          visitorId,
+          productId: id,
+        },
+      })
+
+      // Increment view count
+      await prisma.product.update({
+        where: { id },
+        data: {
+          viewCount: {
+            increment: 1,
+          },
+        },
+      })
+
+      // Update the product object to reflect the new view count
+      product.viewCount += 1
+    }
+  } catch (error) {
+    console.error("Error recording view:", error)
+    // Continue with the response even if view recording fails
   }
 
   res.json(product)
@@ -92,7 +132,7 @@ export const createProduct = async (req, res) => {
         description,
         price: price ? Number.parseFloat(price) : null,
         category: category || null,
-        campus : user.campus,
+        campus,
         userId,
       },
     })

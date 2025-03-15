@@ -7,7 +7,7 @@ import {
   changePassword,
   googleLogin,
   linkTelegramAccount,
-  // linkTelegramAccount,
+  getActiveUsersCount,
 } from "../controllers/authController.js"
 import { authenticate } from "../middleware/authMiddleware.js"
 
@@ -17,6 +17,7 @@ const router = express.Router()
 router.post("/register", register)
 router.post("/login", login)
 router.post("/google-login", googleLogin)
+router.get("/active-users", getActiveUsersCount)
 
 // Protected routes
 router.get("/me", authenticate, getCurrentUser)
