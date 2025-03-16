@@ -7,15 +7,28 @@ import Cookies from "js-cookie"
 import { FiUsers } from "react-icons/fi"
 
 const Footer = () => {
-  const [activeUsers, setActiveUsers] = useState(0)
+  const [activeUsers, setActiveUsers] = useState("0")
+  const [totalUsers, setTotalUsers] = useState("0")
+  const [campusUsers, setCampusUsers] = useState("0")
+  const [activeCampusUsers, setActiveCampusUsers] = useState("0")
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchActiveUsers = async () => {
       try {
         const campus = Cookies.get("userCampus") || ""
-        const response = await axios.get(`/api/auth/active-users${campus ? `?campus=${campus}` : ""}`)
-        setActiveUsers(response.data.count)
+
+        // Get all users count
+        const allUsersResponse = await axios.get(`/api/auth/active-users`)
+        setActiveUsers(allUsersResponse.data.activeCount)
+        setTotalUsers(allUsersResponse.data.totalCount)
+
+        // Get campus-specific users count if a campus is selected
+        if (campus) {
+          const campusUsersResponse = await axios.get(`/api/auth/active-users?campus=${campus}`)
+          setActiveCampusUsers(campusUsersResponse.data.activeCount)
+          setCampusUsers(campusUsersResponse.data.totalCount)
+        }
       } catch (error) {
         console.error("Error fetching active users:", error)
       } finally {
@@ -30,6 +43,17 @@ const Footer = () => {
 
     return () => clearInterval(interval)
   }, [])
+
+  // Format the display string based on whether a campus is selected
+  const getUserCountDisplay = () => {
+    const campus = Cookies.get("userCampus")
+    if (campus) {
+      const campusName = campus.toUpperCase()
+      return `${activeCampusUsers} active, ${campusUsers} total on ${campusName}, ${totalUsers} platform-wide`
+    } else {
+      return `${activeUsers} active, ${totalUsers} total users`
+    }
+  }
 
   return (
     <footer className="bg-white border-t border-secondary-200 py-4">
@@ -62,7 +86,7 @@ const Footer = () => {
           <div>&copy; {new Date().getFullYear()} Campus Marketplace. All rights reserved.</div>
           <div className="flex items-center bg-secondary-50 px-2 py-1 rounded-full">
             <FiUsers className="mr-1" />
-            <span>{loading ? "..." : `${activeUsers} active ${activeUsers === 1 ? "user" : "users"}`}</span>
+            <span>{loading ? "..." : getUserCountDisplay()}</span>
           </div>
         </div>
       </div>

@@ -46,6 +46,28 @@ export const getProducts = async (req, res) => {
   })
 }
 
+// Get products for the authenticated user
+export const getUserProducts = async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    const products = await prisma.product.findMany({
+      where: { userId },
+      include: {
+        images: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+
+    res.json({ products })
+  } catch (error) {
+    console.error("Error fetching user products:", error)
+    res.status(500).json({ message: "Failed to fetch your products" })
+  }
+}
+
 // Get a single product by ID
 export const getProductById = async (req, res) => {
   const { id } = req.params

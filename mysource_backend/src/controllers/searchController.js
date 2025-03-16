@@ -10,66 +10,81 @@ export const search = async (req, res) => {
     return res.status(400).json({ message: "Search query is required" })
   }
 
-  const searchResults = {}
-  const whereClause = campus ? { campus } : {}
+  try {
+    const searchResults = {}
+    const whereClause = campus ? { campus } : {}
 
-  // Search products
-  if (type === "all" || type === "products") {
-    const products = await prisma.product.findMany({
-      where: {
-        ...whereClause,
-        OR: [
-          { description: { contains: q, mode: "insensitive" } },
-          { category: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      include: {
-        images: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
+    // Search products
+    if (type === "all" || type === "products") {
+      const products = await prisma.product.findMany({
+        where: {
+          ...whereClause,
+          OR: [
+            { description: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        include: {
+          images: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              website: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-    })
+        orderBy: [{ createdAt: "desc" }],
+        take: 10, // Limit to 10 products
+      })
 
-    searchResults.products = products
-  }
+      // Truncate description text to avoid too much text
+      searchResults.products = products.map((product) => ({
+        ...product,
+        description:
+          product.description.length > 150 ? product.description.substring(0, 150) + "..." : product.description,
+      }))
+    }
 
-  // Search businesses
-  if (type === "all" || type === "businesses") {
-    const businesses = await prisma.business.findMany({
-      where: {
-        ...whereClause,
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
-          { category: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      include: {
-        images: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
+    // Search businesses
+    if (type === "all" || type === "businesses") {
+      const businesses = await prisma.business.findMany({
+        where: {
+          ...whereClause,
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { description: { contains: q, mode: "insensitive" } },
+            { category: { contains: q, mode: "insensitive" } },
+          ],
+        },
+        include: {
+          images: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              website: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-    })
+        orderBy: [{ createdAt: "desc" }],
+        take: 5, // Limit to 5 businesses
+      })
 
-    searchResults.businesses = businesses
+      // Truncate description text to avoid too much text
+      searchResults.businesses = businesses.map((business) => ({
+        ...business,
+        description:
+          business.description.length > 150 ? business.description.substring(0, 150) + "..." : business.description,
+      }))
+    }
+
+    res.json(searchResults)
+  } catch (error) {
+    console.error("Search error:", error)
+    res.status(500).json({ message: "Failed to process search request" })
   }
-
-  res.json(searchResults)
 }
 

@@ -1,16 +1,44 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiPlus } from "react-icons/fi"
+import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiPlus, FiMessageCircle } from "react-icons/fi"
 import CampusSelector from "./CampusSelector"
+import axios from "axios"
 
 const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, logout, token } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const navigate = useNavigate()
+  const dropdownRef = useRef(null)
+  const timeoutRef = useRef(null)
+
+  // Fetch unread messages count
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await axios.get("/api/messages/unread-count", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          setUnreadCount(response.data.count)
+        } catch (error) {
+          console.error("Error fetching unread messages count:", error)
+        }
+      }
+
+      fetchUnreadCount()
+
+      // Poll for new messages every 30 seconds
+      const interval = setInterval(fetchUnreadCount, 30000)
+
+      return () => clearInterval(interval)
+    }
+  }, [isAuthenticated, token])
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -30,10 +58,35 @@ const Navbar = () => {
       logout()
       navigate("/")
       setIsMenuOpen(false)
+      setDropdownOpen(false)
     } catch (error) {
       console.error("Logout error:", error)
     }
   }
+
+  const handleDropdownOpen = () => {
+    setDropdownOpen(true)
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+  }
+
+  const handleDropdownClose = () => {
+    // Set a timeout to close the dropdown after 4 seconds
+    timeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false)
+    }, 4000) // 4 seconds
+  }
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   return (
     <nav className="bg-white shadow-sm">
@@ -74,28 +127,49 @@ const Navbar = () => {
                 </Link>
                 {isAuthenticated && (
                   <Link to="/messages" className="text-secondary-700 hover:text-primary relative">
-                    Messages
-                    {/* You can add an unread count badge here later */}
+                    <FiMessageCircle className="inline-block" />
+                    <span className="ml-1">Messages</span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
                   </Link>
                 )}
-                <div className="relative group">
+                <div
+                  className="relative"
+                  ref={dropdownRef}
+                  onMouseEnter={handleDropdownOpen}
+                  onMouseLeave={handleDropdownClose}
+                >
                   <button className="flex items-center text-secondary-700 hover:text-primary">
                     <FiUser className="mr-1" />
                     {user?.name?.split(" ")[0] || "Account"}
                   </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block group-hover:duration-300 group-hover:transition-all">
-                    <div className="pt-2 pb-2">
-                      <Link to="/profile" className="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100">
-                        Profile
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100"
-                      >
-                        Sign out
-                      </button>
+                  {dropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                      <div className="pt-2 pb-2">
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100"
+                        >
+                          Profile
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          className="block px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100"
+                        >
+                          Dashboard
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-sm text-secondary-700 hover:bg-secondary-100"
+                        >
+                          Sign out
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -163,12 +237,22 @@ const Navbar = () => {
                 {isAuthenticated && (
                   <Link
                     to="/messages"
-                    className="block py-2 text-secondary-700 hover:text-primary"
+                    className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Messages
+                    <FiMessageCircle className="mr-2" /> Messages
+                    {unreadCount > 0 && (
+                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{unreadCount}</span>
+                    )}
                   </Link>
                 )}
+                <Link
+                  to="/dashboard"
+                  className="flex items-center py-2 text-secondary-700 hover:text-primary"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FiUser className="mr-2" /> Dashboard
+                </Link>
                 <Link
                   to="/profile"
                   className="flex items-center py-2 text-secondary-700 hover:text-primary"

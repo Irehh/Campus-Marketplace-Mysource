@@ -194,8 +194,11 @@ export const sendMessage = async (req, res) => {
         itemInfo = `about your business: ${message.business.name}`
       }
 
+      // Add @ symbol if not present for username
+      const telegramRecipient = receiver.telegramId.startsWith("@") ? receiver.telegramId : `@${receiver.telegramId}`
+
       await bot.sendMessage(
-        receiver.telegramId,
+        telegramRecipient,
         `New message from ${req.user.name || "Someone"} ${itemInfo}:
         
 "${content.substring(0, 100)}${content.length > 100 ? "..." : ""}"
@@ -281,5 +284,24 @@ export const toggleNotifications = async (req, res) => {
   })
 
   res.json({ notifyByTelegram: user.notifyByTelegram })
+}
+
+// Get unread messages count
+export const getUnreadCount = async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    const count = await prisma.message.count({
+      where: {
+        receiverId: userId,
+        read: false,
+      },
+    })
+
+    res.json({ count })
+  } catch (error) {
+    console.error("Error getting unread messages count:", error)
+    res.status(500).json({ message: "Failed to get unread messages count" })
+  }
 }
 

@@ -11,24 +11,27 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(uuid())
-  email            String      @unique
-  name             String?
-  password         String?
-  campus           String
-  phone            String?     // Added phone field to user profile
-  website          String?     // Added website field to user profile
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  products         Product[]
-  businesses       Business[]
-  telegramId       String?     @unique
-  googleId         String?     @unique
-  sentMessages     Message[]   @relation("SentMessages")
-  receivedMessages Message[]   @relation("ReceivedMessages")
-  notifyByTelegram Boolean     @default(true)
-  comments         Comment[]
-  lastSeen         DateTime    @default(now())
+  id                 String      @id @default(uuid())
+  email              String      @unique
+  name               String?
+  password           String?
+  campus             String
+  phone              String?     // Added phone field to user profile
+  website            String?     // Added website field to user profile
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  products           Product[]
+  businesses         Business[]
+  telegramId         String?     @unique
+  googleId           String?     @unique
+  sentMessages       Message[]   @relation("SentMessages")
+  receivedMessages   Message[]   @relation("ReceivedMessages")
+  notifyByTelegram   Boolean     @default(true)
+  comments           Comment[]
+  lastSeen           DateTime    @default(now())
+  needsCampusSelection Boolean   @default(false)
+  resetToken         String?     // Add this field for password reset
+  resetTokenExpiry   DateTime?   // Add this field for password reset
 }
 
 model Product {

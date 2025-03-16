@@ -5,6 +5,7 @@ import {
   sendMessage,
   markAsRead,
   toggleNotifications,
+  getUnreadCount,
 } from "../controllers/messageController.js"
 import { authenticate } from "../middleware/authMiddleware.js"
 
@@ -18,6 +19,9 @@ router.get("/", getMessages)
 
 // Get conversation with another user
 router.get("/conversation/:otherUserId", getConversation)
+
+// Get unread messages count
+router.get("/unread-count", getUnreadCount)
 
 // Send a message
 router.post("/", sendMessage)

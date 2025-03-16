@@ -21,7 +21,7 @@ import { errorHandler } from "./middleware/errorMiddleware.js"
 import { setupMulter } from "./middleware/uploadMiddleware.js"
 
 // Import Telegram bot controller
-import { startBot } from "./controllers/telegramController.js"
+import { startBot, sendUnreadMessageNotifications } from "./controllers/telegramController.js"
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url)
@@ -69,6 +69,9 @@ app.use(errorHandler)
 
 // Start the Telegram bot
 startBot()
+
+// Schedule unread message notifications every 4 hours
+setInterval(sendUnreadMessageNotifications, 4 * 60 * 60 * 1000)
 
 // Start server
 app.listen(PORT, () => {

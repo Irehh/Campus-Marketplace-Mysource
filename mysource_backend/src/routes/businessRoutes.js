@@ -7,6 +7,7 @@ import {
   deleteBusiness,
   addBusinessImages,
   deleteBusinessImage,
+  getUserBusinesses,
 } from "../controllers/businessController.js"
 import { authenticate, optionalAuth } from "../middleware/authMiddleware.js"
 
@@ -17,6 +18,7 @@ router.get("/", optionalAuth, getBusinesses)
 router.get("/:id", optionalAuth, getBusinessById)
 
 // Protected routes
+router.get("/user", authenticate, getUserBusinesses)
 router.post(
   "/",
   authenticate,

@@ -46,6 +46,28 @@ export const getBusinesses = async (req, res) => {
   })
 }
 
+// Get businesses for the authenticated user
+export const getUserBusinesses = async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    const businesses = await prisma.business.findMany({
+      where: { userId },
+      include: {
+        images: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+
+    res.json({ businesses })
+  } catch (error) {
+    console.error("Error fetching user businesses:", error)
+    res.status(500).json({ message: "Failed to fetch your businesses" })
+  }
+}
+
 // Get a single business by ID
 export const getBusinessById = async (req, res) => {
   const { id } = req.params
