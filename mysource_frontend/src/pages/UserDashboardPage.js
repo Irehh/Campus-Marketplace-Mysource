@@ -1,37 +1,56 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import { useAuth } from "../contexts/AuthContext"
-import { FiEdit2, FiTrash2, FiPlus, FiEye, FiShoppingBag, FiGrid } from "react-icons/fi"
+import { FiEdit2, FiTrash2, FiPlus, FiEye, FiShoppingBag, FiGrid, FiAlertTriangle, FiSearch } from "react-icons/fi"
 import toast from "react-hot-toast"
 
 const UserDashboardPage = () => {
   const { user, token } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState("products")
   const [products, setProducts] = useState([])
   const [businesses, setBusinesses] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filterDisabled, setFilterDisabled] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     const fetchUserListings = async () => {
       setLoading(true)
       try {
-        const [productsRes, businessesRes] = await Promise.all([
-          axios.get("/api/products/user", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("/api/businesses/user", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ])
+        // Make sure the endpoints exist and are correctly called
+        const productsPromise = axios.get("/api/products/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
 
-        setProducts(productsRes.data.products || [])
-        setBusinesses(businessesRes.data.businesses || [])
+        const businessesPromise = axios.get("/api/businesses/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        // Use Promise.allSettled instead of Promise.all to handle partial failures
+        const [productsResult, businessesResult] = await Promise.allSettled([productsPromise, businessesPromise])
+
+        // Handle products result
+        if (productsResult.status === "fulfilled") {
+          setProducts(productsResult.value.data.products || [])
+        } else {
+          console.error("Error fetching products:", productsResult.reason)
+          setProducts([])
+        }
+
+        // Handle businesses result
+        if (businessesResult.status === "fulfilled") {
+          setBusinesses(businessesResult.value.data.businesses || [])
+        } else {
+          console.error("Error fetching businesses:", businessesResult.reason)
+          setBusinesses([])
+        }
       } catch (error) {
         console.error("Error fetching user listings:", error)
-        toast.error("Failed to load your listings")
+        toast.error("Failed to load your listings. Please try again later.")
       } finally {
         setLoading(false)
       }
@@ -74,6 +93,23 @@ const UserDashboardPage = () => {
     }
   }
 
+  // Filter products based on search term and disabled status
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = searchTerm === "" || product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesDisabledFilter = !filterDisabled || product.isDisabled
+    return matchesSearch && (filterDisabled ? product.isDisabled : true)
+  })
+
+  // Filter businesses based on search term and disabled status
+  const filteredBusinesses = businesses.filter((business) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      business.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesDisabledFilter = !filterDisabled || business.isDisabled
+    return matchesSearch && (filterDisabled ? business.isDisabled : true)
+  })
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -89,6 +125,31 @@ const UserDashboardPage = () => {
         <Link to="/add-listing" className="btn btn-primary flex items-center text-sm">
           <FiPlus className="mr-1" /> Add Listing
         </Link>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="mb-4 flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-grow">
+          <input
+            type="text"
+            placeholder="Search your listings..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        </div>
+        <div className="flex items-center">
+          <label className="inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filterDisabled}
+              onChange={() => setFilterDisabled(!filterDisabled)}
+              className="form-checkbox h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+            />
+            <span className="ml-2 text-sm text-gray-700">Show disabled only</span>
+          </label>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -129,6 +190,10 @@ const UserDashboardPage = () => {
                 <FiPlus className="mr-1" /> Add Your First Product
               </Link>
             </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <p className="text-gray-600">No products match your search criteria.</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white rounded-lg overflow-hidden">
@@ -144,13 +209,16 @@ const UserDashboardPage = () => {
                       Views
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {products.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className={`hover:bg-gray-50 ${product.isDisabled ? "bg-red-50" : ""}`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
@@ -180,6 +248,18 @@ const UserDashboardPage = () => {
                           <FiEye className="mr-1 text-gray-400" />
                           {product.viewCount || 0}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        {product.isDisabled ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            <FiAlertTriangle className="mr-1" size={10} />
+                            Disabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
@@ -225,6 +305,10 @@ const UserDashboardPage = () => {
                 <FiPlus className="mr-1" /> Add Your First Business
               </Link>
             </div>
+          ) : filteredBusinesses.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg">
+              <p className="text-gray-600">No businesses match your search criteria.</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white rounded-lg overflow-hidden">
@@ -240,13 +324,16 @@ const UserDashboardPage = () => {
                       Views
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {businesses.map((business) => (
-                    <tr key={business.id} className="hover:bg-gray-50">
+                  {filteredBusinesses.map((business) => (
+                    <tr key={business.id} className={`hover:bg-gray-50 ${business.isDisabled ? "bg-red-50" : ""}`}>
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="h-10 w-10 flex-shrink-0">
@@ -273,6 +360,18 @@ const UserDashboardPage = () => {
                           <FiEye className="mr-1 text-gray-400" />
                           {business.viewCount || 0}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm">
+                        {business.isDisabled ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                            <FiAlertTriangle className="mr-1" size={10} />
+                            Disabled
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">

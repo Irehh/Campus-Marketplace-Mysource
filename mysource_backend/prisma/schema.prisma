@@ -32,6 +32,13 @@ model User {
   needsCampusSelection Boolean   @default(false)
   resetToken         String?     // Add this field for password reset
   resetTokenExpiry   DateTime?   // Add this field for password reset
+  role               Role        @default(USER) // Add role field for admin functionality
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
 }
 
 model Product {
@@ -49,6 +56,8 @@ model Product {
   comments    Comment[]
   views       View[]
   viewCount   Int       @default(0)
+  isDisabled  Boolean   @default(false) // Add field to disable products
+  disabledReason String? @db.Text // Reason for disabling
 
   @@index([campus])
   @@index([category])
@@ -69,6 +78,8 @@ model Business {
   comments    Comment[]
   views       View[]
   viewCount   Int       @default(0)
+  isDisabled  Boolean   @default(false) // Add field to disable businesses
+  disabledReason String? @db.Text // Reason for disabling
 
   @@index([campus])
   @@index([category])

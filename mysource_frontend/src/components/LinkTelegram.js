@@ -3,16 +3,17 @@
 import { useState } from "react"
 import { useAuth } from "../contexts/AuthContext"
 import { FaTelegram } from "react-icons/fa"
-import { FiX, FiCheck } from "react-icons/fi"
+import { FiX, FiCheck, FiInfo } from "react-icons/fi"
 import axios from "axios"
 import toast from "react-hot-toast"
+import { Link } from "react-router-dom"
 
 const LinkTelegram = () => {
   const { user, token, updateProfile } = useAuth()
   const [telegramId, setTelegramId] = useState("")
   const [verificationCode, setVerificationCode] = useState("")
   const [showVerification, setShowVerification] = useState(false)
-  const [generatedCode, setGeneratedCode] = useState("")
+  const [, setGeneratedCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
 
@@ -219,6 +220,12 @@ const LinkTelegram = () => {
           </div>
         </form>
       )}
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <Link href="/telegram-setup" className="text-sm text-primary hover:underline flex items-center">
+          <FiInfo className="mr-1" size={14} />
+          How to set up your Telegram bot
+        </Link>
+      </div>
     </div>
   )
 }

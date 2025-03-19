@@ -22,6 +22,7 @@ const AddListingPage = () => {
   const [images, setImages] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -39,23 +40,23 @@ const AddListingPage = () => {
     setImages(files.slice(0, maxFiles))
   }
 
+  // Update the handleSubmit function to remove title and campus fields
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError("")
+    setSaving(true)
 
     try {
-      const formDataToSend = new FormData()
-
+      // First update the product details
       if (listingType === "product") {
         if (!formData.description) {
           throw new Error("Description is required")
         }
 
+        const formDataToSend = new FormData()
         formDataToSend.append("description", formData.description)
         formDataToSend.append("price", formData.price || "0")
         formDataToSend.append("category", formData.category || "")
-        formDataToSend.append("campus", user.campus)
+        // Campus is automatically set from user's profile
 
         // Append images
         images.forEach((image) => {
@@ -84,10 +85,11 @@ const AddListingPage = () => {
           throw new Error("Description is required")
         }
 
+        const formDataToSend = new FormData()
         formDataToSend.append("name", formData.name)
         formDataToSend.append("description", formData.description)
         formDataToSend.append("category", formData.category || "")
-        formDataToSend.append("campus", user.campus)
+        // Campus is automatically set from user's profile
 
         // Append image (only one for business)
         if (images.length === 0) {
@@ -111,7 +113,7 @@ const AddListingPage = () => {
       setError(error.response?.data?.message || error.message || "Failed to add listing. Please try again.")
       toast.error(error.response?.data?.message || error.message || "Failed to add listing")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
@@ -225,9 +227,9 @@ const AddListingPage = () => {
             <button
               type="submit"
               className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark text-sm"
-              disabled={loading}
+              disabled={saving}
             >
-              {loading ? "Adding..." : "Add Listing"}
+              {saving ? "Adding..." : "Add Listing"}
             </button>
           </div>
         </form>

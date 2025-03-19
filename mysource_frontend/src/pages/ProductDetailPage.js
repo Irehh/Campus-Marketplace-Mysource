@@ -7,21 +7,38 @@ import { formatCurrency } from "../utils/format"
 import { useAuth } from "../contexts/AuthContext"
 import MessageForm from "../components/MessageForm"
 import SuggestedProducts from "../components/SuggestedProducts"
-import { FiMessageSquare, FiMapPin, FiLink, FiPhone, FiClock, FiMessageCircle, FiEye } from "react-icons/fi"
+import {
+  FiMessageSquare,
+  FiMapPin,
+  FiLink,
+  FiPhone,
+  FiClock,
+  FiMessageCircle,
+  FiEye,
+  FiAlertTriangle,
+  FiShield,
+} from "react-icons/fi"
 import { BsTelegram } from "react-icons/bs"
 import { formatDistanceToNow } from "date-fns"
 import CommentSection from "../components/CommentSection"
+import toast from "react-hot-toast"
 
 const ProductDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, token } = useAuth()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
   const [showMessageForm, setShowMessageForm] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [telegramChannel, setTelegramChannel] = useState("")
+  const [disableReason, setDisableReason] = useState("")
+  const [showDisableForm, setShowDisableForm] = useState(false)
+  const [campusAdmin, setCampusAdmin] = useState(null)
+
+  // Check if user is an admin
+  const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
 
   // Mapping of campus codes to telegram channels
   const campusChannels = {
@@ -46,6 +63,8 @@ const ProductDetailPage = () => {
         const headers = {}
         if (!user?.id) {
           headers["x-visitor-id"] = visitorId
+        } else {
+          headers["Authorization"] = `Bearer ${token}`
         }
 
         const response = await axios.get(`/api/products/${id}`, { headers })
@@ -58,17 +77,78 @@ const ProductDetailPage = () => {
         }
       } catch (error) {
         console.error("Error fetching product:", error)
+        if (error.response?.status === 404) {
+          toast.error("Product not found or has been removed")
+          navigate("/products")
+        }
       } finally {
         setLoading(false)
       }
     }
 
     fetchProduct()
-  }, [id, user])
+  }, [id, user, token, navigate])
+
+  useEffect(() => {
+    const fetchCampusAdmins = async () => {
+      if (!product?.campus) return
+
+      try {
+        const response = await axios.get(`/api/admin/campus-admins/${product.campus}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+
+        if (response.data && response.data.length > 0) {
+          setCampusAdmin(response.data)
+        }
+      } catch (error) {
+        console.error("Error fetching campus admins:", error)
+      }
+    }
+
+    if (product) {
+      fetchCampusAdmins()
+    }
+  }, [product, token])
 
   const joinTelegramChannel = () => {
     if (telegramChannel) {
       window.open(`https://t.me/${telegramChannel}`, "_blank")
+    }
+  }
+
+  const handleDisableProduct = async () => {
+    if (!disableReason.trim()) {
+      toast.error("Please provide a reason for disabling this product")
+      return
+    }
+
+    try {
+      await axios.post(
+        `/api/admin/products/${id}/disable`,
+        { reason: disableReason },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+
+      toast.success("Product has been disabled")
+      setProduct((prev) => ({ ...prev, isDisabled: true, disabledReason: disableReason }))
+      setShowDisableForm(false)
+      setDisableReason("")
+    } catch (error) {
+      console.error("Error disabling product:", error)
+      toast.error("Failed to disable product")
+    }
+  }
+
+  const handleEnableProduct = async () => {
+    try {
+      await axios.post(`/api/admin/products/${id}/enable`, {}, { headers: { Authorization: `Bearer ${token}` } })
+
+      toast.success("Product has been enabled")
+      setProduct((prev) => ({ ...prev, isDisabled: false, disabledReason: null }))
+    } catch (error) {
+      console.error("Error enabling product:", error)
+      toast.error("Failed to enable product")
     }
   }
 
@@ -85,6 +165,31 @@ const ProductDetailPage = () => {
 
   return (
     <div className="container mx-auto px-2 py-2 max-w-4xl">
+      {/* Disabled product warning */}
+      {product.isDisabled && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-md">
+          <div className="flex items-start">
+            <FiAlertTriangle className="text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-red-700">This product has been disabled</p>
+              {product.disabledReason && <p className="text-sm text-red-600 mt-1">Reason: {product.disabledReason}</p>}
+              <p className="text-sm text-red-600 mt-1">
+                {isOwner
+                  ? "Only you can see this product. Contact an admin if you believe this is a mistake."
+                  : "This product is not visible to other users."}
+              </p>
+              {isOwner && (
+                <p className="text-sm mt-2">
+                  <a href="mailto:admin@campusmarketplace.com" className="text-primary hover:underline">
+                    Contact Admin
+                  </a>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
           {product.images && product.images.length > 0 ? (
@@ -181,7 +286,7 @@ const ProductDetailPage = () => {
           </div>
 
           <div className="flex flex-wrap mt-2 gap-2">
-            {!isOwner && (
+            {!isOwner && !product.isDisabled && (
               <button
                 onClick={() => setShowMessageForm(!showMessageForm)}
                 className="flex items-center px-3 py-1 bg-primary text-white rounded-md text-xs hover:bg-primary-dark"
@@ -189,6 +294,26 @@ const ProductDetailPage = () => {
                 <FiMessageSquare className="mr-1" size={12} />
                 Contact Seller
               </button>
+            )}
+
+            {campusAdmin && campusAdmin.length > 0 && (
+              <div className="mt-1 space-y-1 border-t border-gray-200 pt-1">
+                <p className="text-xs font-semibold">Campus Admin{campusAdmin.length > 1 ? "s" : ""}:</p>
+                <div className="flex flex-wrap gap-1">
+                  {campusAdmin.map((admin) => (
+                    <a
+                      key={admin.id}
+                      href={admin.website?.startsWith("http") ? admin.website : `https://${admin.website}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center px-2 py-0.5 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"
+                    >
+                      <FiAlertTriangle className="mr-1" size={10} />
+                      Contact {admin.name || "Admin"}
+                    </a>
+                  ))}
+                </div>
+              </div>
             )}
 
             <button
@@ -206,9 +331,58 @@ const ProductDetailPage = () => {
               <FiMessageCircle className="mr-1" size={12} />
               {showComments ? "Hide Comments" : "Show Comments"}
             </button>
+
+            {/* Admin controls */}
+            {isAdmin && !product.isDisabled && (
+              <button
+                onClick={() => setShowDisableForm(!showDisableForm)}
+                className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600"
+              >
+                <FiShield className="mr-1" size={12} />
+                Disable Product
+              </button>
+            )}
+
+            {isAdmin && product.isDisabled && (
+              <button
+                onClick={handleEnableProduct}
+                className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600"
+              >
+                <FiShield className="mr-1" size={12} />
+                Enable Product
+              </button>
+            )}
           </div>
 
-          {showMessageForm && !isOwner && (
+          {/* Disable product form */}
+          {showDisableForm && (
+            <div className="mt-3 p-3 border border-red-200 rounded-md bg-red-50">
+              <h3 className="text-sm font-medium text-red-700 mb-2">Disable Product</h3>
+              <textarea
+                value={disableReason}
+                onChange={(e) => setDisableReason(e.target.value)}
+                placeholder="Reason for disabling this product..."
+                className="w-full px-3 py-2 text-xs border border-red-300 rounded-md focus:outline-none focus:ring-1 focus:ring-red-500"
+                rows="2"
+              ></textarea>
+              <div className="flex justify-end mt-2 space-x-2">
+                <button
+                  onClick={() => setShowDisableForm(false)}
+                  className="px-3 py-1 text-xs border border-gray-300 rounded-md hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDisableProduct}
+                  className="px-3 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Disable
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showMessageForm && !isOwner && !product.isDisabled && (
             <div className="mt-2">
               <MessageForm
                 receiverId={product.userId}

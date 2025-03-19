@@ -23,6 +23,18 @@ import { useAuth } from "./contexts/AuthContext"
 import UserDashboardPage from "./pages/UserDashboardPage"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
+import EditProductPage from "./pages/UserDashboard/EditProductPage"
+import EditBusinessPage from "./pages/UserDashboard/EditBusinessPage"
+
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard"
+import AdminUsers from "./pages/admin/AdminUsers"
+import AdminProducts from "./pages/admin/AdminProducts"
+import AdminBusinesses from "./pages/admin/AdminBusinesses"
+import AdminRoute from "./components/AdminRoute"
+
+// Import the TelegramSetupGuide component
+import TelegramSetupGuide from "./pages/TelegramSetupGuide"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
@@ -55,6 +67,8 @@ function App() {
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password/:token" element={<ResetPasswordPage />} />
+          {/* Existing routes */}
+          <Route path="telegram-setup" element={<TelegramSetupGuide />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
@@ -63,6 +77,16 @@ function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:userId" element={<ConversationPage />} />
             <Route path="dashboard" element={<UserDashboardPage />} />
+            <Route path="edit-product/:id" element={<EditProductPage />} />
+            <Route path="edit-business/:id" element={<EditBusinessPage />} />
+          </Route>
+
+          {/* Admin Routes */}
+          <Route element={<AdminRoute />}>
+            <Route path="admin/dashboard" element={<AdminDashboard />} />
+            <Route path="admin/users" element={<AdminUsers />} />
+            <Route path="admin/products" element={<AdminProducts />} />
+            <Route path="admin/businesses" element={<AdminBusinesses />} />
           </Route>
 
           <Route path="*" element={<NotFoundPage />} />

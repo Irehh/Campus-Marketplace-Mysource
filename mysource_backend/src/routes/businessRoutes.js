@@ -5,9 +5,9 @@ import {
   createBusiness,
   updateBusiness,
   deleteBusiness,
+  getUserBusinesses,
   addBusinessImages,
   deleteBusinessImage,
-  getUserBusinesses,
 } from "../controllers/businessController.js"
 import { authenticate, optionalAuth } from "../middleware/authMiddleware.js"
 

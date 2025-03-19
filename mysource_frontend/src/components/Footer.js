@@ -39,7 +39,7 @@ const Footer = () => {
     fetchActiveUsers()
 
     // Refresh active users count every minute
-    const interval = setInterval(fetchActiveUsers, 60000)
+    const interval = setInterval(fetchActiveUsers, 6000000)
 
     return () => clearInterval(interval)
   }, [])

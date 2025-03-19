@@ -4,7 +4,7 @@ import { processImage } from "../utils/imageUtils.js"
 import { emitEvent } from "../utils/eventEmitter.js"
 
 const prisma = new PrismaClient()
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true })
+let bot = null
 
 export const handleWebhook = async (req, res) => {
   try {
@@ -25,10 +25,12 @@ export const handleWebhook = async (req, res) => {
     })
 
     if (!user) {
-      await bot.sendMessage(
-        chatId,
-        "Your Telegram account is not linked to Campus Marketplace. Please link your account first.",
-      )
+      if (bot) {
+        await bot.sendMessage(
+          chatId,
+          "Your Telegram account is not linked to Campus Marketplace. Please link your account first.",
+        )
+      }
       return res.sendStatus(200)
     }
 
@@ -37,7 +39,9 @@ export const handleWebhook = async (req, res) => {
       const query = text.replace("/search", "").trim()
 
       if (!query) {
-        await bot.sendMessage(chatId, "Please provide a search term. Example: /search laptop")
+        if (bot) {
+          await bot.sendMessage(chatId, "Please provide a search term. Example: /search laptop")
+        }
         return res.sendStatus(200)
       }
 
@@ -69,7 +73,9 @@ export const handleWebhook = async (req, res) => {
       })
 
       // Format and send results
-      let responseText = `Search results for "${query}":\n\n`
+      let responseText = `Search results for "${query}":
+
+`
 
       if (products.length > 0) {
         responseText += "📦 PRODUCTS:\n"
@@ -95,8 +101,10 @@ export const handleWebhook = async (req, res) => {
         responseText += "No results found for your search."
       }
 
-      await bot.sendMessage(chatId, responseText)
-    } else if (photos.length > 0) {
+      if (bot) {
+        await bot.sendMessage(chatId, responseText)
+      }
+    } else if (photos.length > 0 && bot) {
       // Handle product listing
       const photo = photos[photos.length - 1]
       const fileId = photo.file_id
@@ -140,7 +148,7 @@ Description: ${description.substring(0, 50)}...
 Price: ${price ? `₦${price}` : "Not specified"}
 View your product: ${process.env.FRONTEND_URL}/products/${product.id}`,
       )
-    } else {
+    } else if (bot) {
       await bot.sendMessage(
         chatId,
         `Welcome to Campus Marketplace!
@@ -148,7 +156,7 @@ View your product: ${process.env.FRONTEND_URL}/products/${product.id}`,
 Available commands:
 /start - Show this help message
 /search [query] - Search for products and businesses
-        
+       
 To add a product: Send a photo with caption in this format:
 Product Description
 Price: 1000 (optional)
@@ -173,67 +181,135 @@ export const sendVerificationCode = async (req, res) => {
   }
 
   try {
-    // Format the Telegram ID (ensure it has @ if it's a username)
-    const formattedId = telegramId.startsWith("@") ? telegramId : `@${telegramId}`
+    // Check if bot is initialized
+    if (!bot) {
+      return res.status(500).json({ message: "Telegram bot is not initialized" })
+    }
 
-    // Send the verification code
-    await bot.sendMessage(
-      formattedId,
-      `Your Campus Marketplace verification code is: ${code}\n\nThis code will expire in 10 minutes.`,
-    )
+    // Format the Telegram ID correctly
+    // Remove @ if present for internal processing
+    const formattedId = telegramId.startsWith("@") ? telegramId.substring(1) : telegramId
 
-    res.json({ message: "Verification code sent successfully" })
+    try {
+      // First try to send by username
+      await bot.sendMessage(
+        `@${formattedId}`,
+        `Your Campus Marketplace verification code is: ${code}
+
+This code will expire in 10 minutes.`,
+      )
+
+      res.json({ message: "Verification code sent successfully" })
+    } catch (error) {
+      console.error("Error sending by username, trying alternative methods:", error)
+
+      // If sending by username fails, try to find the chat ID
+      try {
+        // Get bot updates to find the chat ID
+        const updates = await bot.getUpdates()
+        const userChat = updates.find(
+          (update) =>
+            update.message &&
+            update.message.from &&
+            (update.message.from.username === formattedId || update.message.from.id.toString() === formattedId),
+        )
+
+        if (userChat && userChat.message && userChat.message.chat) {
+          // Send using chat ID
+          await bot.sendMessage(
+            userChat.message.chat.id,
+            `Your Campus Marketplace verification code is: ${code}
+
+This code will expire in 10 minutes.`,
+          )
+
+          res.json({ message: "Verification code sent successfully" })
+        } else {
+          throw new Error("User hasn't interacted with the bot yet")
+        }
+      } catch (secondError) {
+        console.error("All sending methods failed:", secondError)
+        res.status(400).json({
+          message:
+            "Failed to send verification code. Please make sure you've started a conversation with our bot first by searching for @YourBotUsername on Telegram and sending it a /start message.",
+        })
+      }
+    }
   } catch (error) {
     console.error("Error sending verification code:", error)
-    res.status(500).json({ message: "Failed to send verification code" })
+    res.status(500).json({
+      message: "Failed to send verification code. Please make sure you've started a conversation with our bot first.",
+    })
   }
 }
 
 // Function to start the bot and set up commands
 export const startBot = () => {
-  console.log("Starting Telegram bot...")
+  console.log("Checking Telegram bot configuration...")
 
   // Check if token is available
   if (!process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN === "your_telegram_bot_token") {
-    console.error("Invalid Telegram bot token. Please set a valid TELEGRAM_BOT_TOKEN in your .env file.")
+    console.warn("Invalid or missing Telegram bot token. Telegram features will be disabled.")
     return
   }
 
   try {
-    bot.onText(/\/start/, async (msg) => {
-      const chatId = msg.chat.id
-      const username = msg.from.username
+    // Initialize bot with polling disabled by default
+    const usePolling = process.env.TELEGRAM_USE_POLLING === "true"
 
-      console.log(`Received /start command from ${username || "unknown user"} (ID: ${chatId})`)
+    console.log(`Initializing Telegram bot with polling ${usePolling ? "enabled" : "disabled"}`)
 
-      const user = await prisma.user.findUnique({
-        where: { telegramId: username || chatId.toString() },
-      })
-
-      if (user) {
-        await bot.sendMessage(chatId, `Welcome back to Campus Marketplace, ${user.name}!`)
-      } else {
-        await bot.sendMessage(
-          chatId,
-          "Welcome to Campus Marketplace! Please link your account on our website to use this bot.",
-        )
-      }
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
+      polling: usePolling,
     })
 
-    // Set up commands
-    bot.setMyCommands([
-      { command: "start", description: "Start the bot and get help" },
-      { command: "search", description: "Search for products and businesses" },
-    ])
+    if (usePolling) {
+      bot.onText(/\/start/, async (msg) => {
+        const chatId = msg.chat.id
+        const username = msg.from.username
 
-    console.log(`Telegram bot started successfully. Username: @${process.env.TELEGRAM_BOT_USERNAME}`)
+        console.log(`Received /start command from ${username || "unknown user"} (ID: ${chatId})`)
+
+        const user = await prisma.user.findUnique({
+          where: { telegramId: username || chatId.toString() },
+        })
+
+        if (user) {
+          await bot.sendMessage(chatId, `Welcome back to Campus Marketplace, ${user.name}!`)
+        } else {
+          await bot.sendMessage(
+            chatId,
+            "Welcome to Campus Marketplace! Please link your account on our website to use this bot.",
+          )
+        }
+      })
+
+      // Set up commands only if polling is enabled
+      try {
+        bot.setMyCommands([
+          { command: "start", description: "Start the bot and get help" },
+          { command: "search", description: "Search for products and businesses" },
+        ])
+        console.log(`Telegram bot commands set up successfully.`)
+      } catch (error) {
+        console.warn("Could not set Telegram bot commands:", error.message)
+      }
+    }
+
+    console.log(`Telegram bot initialized successfully. Username: @${process.env.TELEGRAM_BOT_USERNAME || "unknown"}`)
   } catch (error) {
     console.error("Error starting Telegram bot:", error)
+    bot = null
   }
 }
 
 // Function to send notification for unread messages
 export const sendUnreadMessageNotifications = async () => {
+  if (!bot) {
+    console.warn("Telegram bot not initialized. Cannot send unread message notifications.")
+    return
+  }
+
   try {
     // Find users with unread messages older than 1 hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
@@ -273,12 +349,18 @@ export const sendUnreadMessageNotifications = async () => {
 
       const telegramId = user.telegramId.startsWith("@") ? user.telegramId : `@${user.telegramId}`
 
-      await bot.sendMessage(
-        telegramId,
-        `You have ${unreadCount} unread message${unreadCount > 1 ? "s" : ""} on Campus Marketplace.\n\nLog in to view and respond: ${process.env.FRONTEND_URL}/messages`,
-      )
+      try {
+        await bot.sendMessage(
+          telegramId,
+          `You have ${unreadCount} unread message${unreadCount > 1 ? "s" : ""} on Campus Marketplace.
 
-      console.log(`Sent unread message notification to ${user.name} (${telegramId})`)
+Log in to view and respond: ${process.env.FRONTEND_URL}/messages`,
+        )
+
+        console.log(`Sent unread message notification to ${user.name} (${telegramId})`)
+      } catch (error) {
+        console.error(`Failed to send notification to ${telegramId}:`, error.message)
+      }
     }
   } catch (error) {
     console.error("Error sending unread message notifications:", error)

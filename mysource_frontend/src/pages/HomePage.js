@@ -122,6 +122,9 @@ const HomePage = () => {
             <Link to="/telegram-info" className="text-white/80 text-sm underline hover:text-white">
               Learn More
             </Link>
+            <Link to="/telegram-setup" className="text-white/80 text-sm underline hover:text-white">
+              Setup Guide
+            </Link>
           </div>
         </div>
       </section>
