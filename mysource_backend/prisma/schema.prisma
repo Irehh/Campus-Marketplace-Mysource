@@ -10,29 +10,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Add telegramChatId field to User model
 model User {
-  id                 String      @id @default(uuid())
-  email              String      @unique
-  name               String?
-  password           String?
-  campus             String
-  phone              String?     // Added phone field to user profile
-  website            String?     // Added website field to user profile
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  products           Product[]
-  businesses         Business[]
-  telegramId         String?     @unique
-  googleId           String?     @unique
-  sentMessages       Message[]   @relation("SentMessages")
-  receivedMessages   Message[]   @relation("ReceivedMessages")
-  notifyByTelegram   Boolean     @default(true)
-  comments           Comment[]
-  lastSeen           DateTime    @default(now())
-  needsCampusSelection Boolean   @default(false)
-  resetToken         String?     // Add this field for password reset
-  resetTokenExpiry   DateTime?   // Add this field for password reset
-  role               Role        @default(USER) // Add role field for admin functionality
+  id                  String    @id @default(uuid())
+  name                String
+  email               String    @unique
+  password            String?
+  campus              String    @default("default")
+  phone               String?
+  website             String?
+  role                String    @default("user")
+  googleId            String?   @unique
+  telegramId          String?   @unique
+  telegramChatId      String?   // Add this field for storing the actual chat ID
+  notifyByTelegram    Boolean   @default(true)
+  needsCampusSelection Boolean  @default(true)
+  resetToken          String?
+  resetTokenExpiry    DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastSeen            DateTime  @default(now())
+  
+  // Relations
+  products            Product[]
+  businesses          Business[]
+  sentMessages        Message[]  @relation("SentMessages")
+  receivedMessages    Message[]  @relation("ReceivedMessages")
+  comments            Comment[]
 }
 
 enum Role {

@@ -190,50 +190,105 @@ export const sendVerificationCode = async (req, res) => {
     // Remove @ if present for internal processing
     const formattedId = telegramId.startsWith("@") ? telegramId.substring(1) : telegramId
 
+    // Try multiple methods to send the message
+    let success = false
+    let errorMessage = ""
+
+    // Method 1: Try to send by username
     try {
-      // First try to send by username
       await bot.sendMessage(
         `@${formattedId}`,
         `Your Campus Marketplace verification code is: ${code}
 
 This code will expire in 10 minutes.`,
       )
-
-      res.json({ message: "Verification code sent successfully" })
+      success = true
     } catch (error) {
-      console.error("Error sending by username, trying alternative methods:", error)
+      errorMessage = error.message || "Failed to send by username"
+      console.error("Error sending by username:", errorMessage)
+    }
 
-      // If sending by username fails, try to find the chat ID
+    // Method 2: If username fails, try to find the user in our database with their chat ID
+    if (!success) {
       try {
-        // Get bot updates to find the chat ID
-        const updates = await bot.getUpdates()
-        const userChat = updates.find(
-          (update) =>
-            update.message &&
-            update.message.from &&
-            (update.message.from.username === formattedId || update.message.from.id.toString() === formattedId),
-        )
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [{ telegramId: formattedId }, { telegramId: formattedId.toLowerCase() }],
+          },
+        })
 
-        if (userChat && userChat.message && userChat.message.chat) {
-          // Send using chat ID
+        if (user && user.telegramChatId) {
           await bot.sendMessage(
-            userChat.message.chat.id,
+            user.telegramChatId,
             `Your Campus Marketplace verification code is: ${code}
 
 This code will expire in 10 minutes.`,
           )
-
-          res.json({ message: "Verification code sent successfully" })
+          success = true
         } else {
-          throw new Error("User hasn't interacted with the bot yet")
+          errorMessage += " | No stored chat ID found"
         }
-      } catch (secondError) {
-        console.error("All sending methods failed:", secondError)
-        res.status(400).json({
-          message:
-            "Failed to send verification code. Please make sure you've started a conversation with our bot first by searching for @YourBotUsername on Telegram and sending it a /start message.",
-        })
+      } catch (error) {
+        errorMessage += " | " + (error.message || "Failed to send by stored chat ID")
+        console.error("Error sending by stored chat ID:", error)
       }
+    }
+
+    // Method 3: Try to find the chat ID from recent updates
+    if (!success) {
+      try {
+        const updates = await bot.getUpdates({ limit: 100 })
+        const userChat = updates.find(
+          (update) =>
+            update.message &&
+            update.message.from &&
+            (update.message.from.username === formattedId ||
+              update.message.from.username?.toLowerCase() === formattedId.toLowerCase() ||
+              update.message.from.id.toString() === formattedId),
+        )
+
+        if (userChat && userChat.message && userChat.message.chat) {
+          const chatId = userChat.message.chat.id
+
+          // Store this chat ID for future use
+          if (req.user && req.user.id) {
+            try {
+              await prisma.user.update({
+                where: { id: req.user.id },
+                data: { telegramChatId: chatId.toString() },
+              })
+            } catch (dbError) {
+              console.error("Failed to store Telegram chat ID:", dbError)
+            }
+          }
+
+          // Send using chat ID
+          await bot.sendMessage(
+            chatId,
+            `Your Campus Marketplace verification code is: ${code}
+
+This code will expire in 10 minutes.`,
+          )
+          success = true
+        } else {
+          errorMessage += " | User not found in recent updates"
+        }
+      } catch (error) {
+        errorMessage += " | " + (error.message || "Failed to get updates")
+        console.error("Error getting updates:", error)
+      }
+    }
+
+    if (success) {
+      res.json({ message: "Verification code sent successfully" })
+    } else {
+      res.status(400).json({
+        message:
+          "Failed to send verification code. Please make sure you've started a conversation with our bot first by searching for @" +
+          process.env.TELEGRAM_BOT_USERNAME +
+          " on Telegram and sending it a /start message.",
+        details: errorMessage,
+      })
     }
   } catch (error) {
     console.error("Error sending verification code:", error)
@@ -259,23 +314,76 @@ export const startBot = () => {
 
     console.log(`Initializing Telegram bot with polling ${usePolling ? "enabled" : "disabled"}`)
 
-    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
-      polling: usePolling,
+    // Create bot instance with appropriate options
+    const botOptions = {
+      polling: usePolling
+        ? {
+            timeout: 10, // 10 seconds polling timeout
+            limit: 100, // Get up to 100 updates at once
+            allowed_updates: ["message", "callback_query"],
+            params: {
+              timeout: 10, // API request timeout
+            },
+          }
+        : false,
+    }
+
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, botOptions)
+
+    // Add error handler
+    bot.on("error", (error) => {
+      console.error("Telegram bot error:", error.message || error)
+      // Don't crash the server for Telegram errors
     })
 
+    // Add polling error handler if polling is enabled
     if (usePolling) {
+      bot.on("polling_error", (error) => {
+        console.error("Telegram polling error:", error.message || error)
+        // Don't restart polling for network errors
+        if (error.code === "ETIMEDOUT" || error.code === "ECONNRESET" || error.code === "ENOTFOUND") {
+          console.warn("Network error in Telegram polling. Will retry automatically.")
+        }
+      })
+
       bot.onText(/\/start/, async (msg) => {
         const chatId = msg.chat.id
         const username = msg.from.username
 
         console.log(`Received /start command from ${username || "unknown user"} (ID: ${chatId})`)
 
-        const user = await prisma.user.findUnique({
-          where: { telegramId: username || chatId.toString() },
-        })
+        // Store the chat ID for this user if we have their username
+        if (username) {
+          try {
+            // Check if we have a user with this username
+            const user = await prisma.user.findFirst({
+              where: {
+                OR: [{ telegramId: username }, { telegramId: username.toLowerCase() }],
+              },
+            })
 
-        if (user) {
-          await bot.sendMessage(chatId, `Welcome back to Campus Marketplace, ${user.name}!`)
+            if (user) {
+              // Update the user with their actual chat ID for more reliable messaging
+              await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  telegramChatId: chatId.toString(),
+                  // Keep the username as well for backward compatibility
+                  telegramId: username,
+                },
+              })
+
+              await bot.sendMessage(chatId, `Welcome back to Campus Marketplace, ${user.name}!`)
+            } else {
+              await bot.sendMessage(
+                chatId,
+                "Welcome to Campus Marketplace! Please link your account on our website to use this bot.",
+              )
+            }
+          } catch (error) {
+            console.error("Error updating user Telegram chat ID:", error)
+            await bot.sendMessage(chatId, "Welcome to Campus Marketplace!")
+          }
         } else {
           await bot.sendMessage(
             chatId,
@@ -286,10 +394,15 @@ export const startBot = () => {
 
       // Set up commands only if polling is enabled
       try {
-        bot.setMyCommands([
-          { command: "start", description: "Start the bot and get help" },
-          { command: "search", description: "Search for products and businesses" },
-        ])
+        bot
+          .setMyCommands([
+            { command: "start", description: "Start the bot and get help" },
+            { command: "search", description: "Search for products and businesses" },
+          ])
+          .catch((error) => {
+            console.warn("Could not set Telegram bot commands:", error.message)
+            // Non-critical error, continue execution
+          })
         console.log(`Telegram bot commands set up successfully.`)
       } catch (error) {
         console.warn("Could not set Telegram bot commands:", error.message)

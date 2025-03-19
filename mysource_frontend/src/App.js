@@ -35,6 +35,8 @@ import AdminRoute from "./components/AdminRoute"
 
 // Import the TelegramSetupGuide component
 import TelegramSetupGuide from "./pages/TelegramSetupGuide"
+// Import the TelegramInstructionsPage component
+import TelegramInstructionsPage from "./pages/TelegramInstructionsPage"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
@@ -67,8 +69,9 @@ function App() {
           <Route path="register" element={<RegisterPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password/:token" element={<ResetPasswordPage />} />
-          {/* Existing routes */}
+          {/* Telegram routes */}
           <Route path="telegram-setup" element={<TelegramSetupGuide />} />
+          <Route path="telegram-info" element={<TelegramInstructionsPage />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>

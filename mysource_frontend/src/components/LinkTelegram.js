@@ -16,6 +16,7 @@ const LinkTelegram = () => {
   const [, setGeneratedCode] = useState("")
   const [loading, setLoading] = useState(false)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [error, setError] = useState("")
 
   const generateVerificationCode = () => {
     // Generate a 6-digit code
@@ -27,6 +28,7 @@ const LinkTelegram = () => {
     if (!telegramId.trim()) return
 
     setLoading(true)
+    setError("")
 
     try {
       // Generate a verification code
@@ -36,14 +38,14 @@ const LinkTelegram = () => {
       // Store the code temporarily (in a real app, you'd store this server-side)
       localStorage.setItem("telegramVerificationCode", code)
 
-      // Show verification step
-      setShowVerification(true)
+      // Format the Telegram ID (remove @ if present)
+      const formattedId = telegramId.startsWith("@") ? telegramId : `@${telegramId}`
 
       // Send verification message to the Telegram user
-      await axios.post(
+      const response = await axios.post(
         "/api/telegram/send-verification",
         {
-          telegramId: telegramId.startsWith("@") ? telegramId : `@${telegramId}`,
+          telegramId: formattedId,
           code,
         },
         {
@@ -53,10 +55,17 @@ const LinkTelegram = () => {
         },
       )
 
+      // Show verification step
+      setShowVerification(true)
       toast.success("Verification code sent to your Telegram account")
     } catch (error) {
       console.error("Error initiating Telegram link:", error)
-      toast.error("Failed to send verification code. Please check the Telegram ID.")
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to send verification code. Please check the Telegram ID and make sure you've started a conversation with our bot."
+
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -92,6 +101,7 @@ const LinkTelegram = () => {
       setShowVerification(false)
       setVerificationCode("")
       setTelegramId("")
+      setError("")
 
       // Update user data
       if (updateProfile) {
@@ -180,11 +190,26 @@ const LinkTelegram = () => {
               />
             </div>
             <p className="text-xs text-gray-500 mt-1">Enter your Telegram username or ID to receive notifications</p>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
           </div>
           <button type="submit" className="btn btn-primary flex items-center justify-center" disabled={loading}>
             <FaTelegram className="mr-2" />
             {loading ? "Sending Code..." : "Send Verification Code"}
           </button>
+
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 text-xs text-blue-700">
+            <p className="font-medium">Important:</p>
+            <p>Before linking, you must first start a conversation with our bot on Telegram:</p>
+            <ol className="list-decimal ml-4 mt-1 space-y-1">
+              <li>
+                Search for <strong>@YourBotUsername</strong> on Telegram
+              </li>
+              <li>
+                Start a conversation by sending the <strong>/start</strong> command
+              </li>
+              <li>Then return here to complete the linking process</li>
+            </ol>
+          </div>
         </form>
       ) : (
         <form onSubmit={handleVerifyAndLink} className="space-y-4">
@@ -221,7 +246,7 @@ const LinkTelegram = () => {
         </form>
       )}
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <Link href="/telegram-setup" className="text-sm text-primary hover:underline flex items-center">
+        <Link to="/telegram-setup" className="text-sm text-primary hover:underline flex items-center">
           <FiInfo className="mr-1" size={14} />
           How to set up your Telegram bot
         </Link>

@@ -44,6 +44,41 @@ export const register = async (req, res) => {
   // Generate JWT
   const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" })
 
+  // Send welcome email
+  try {
+    const welcomeTemplate = {
+      subject: "Welcome to Campus Marketplace!",
+      text: `Hello ${name},\n\nWelcome to Campus Marketplace! We're excited to have you join our community.\n\nBest regards,\nThe Campus Marketplace Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4a5568;">Welcome to Campus Marketplace!</h2>
+          <p>Hello ${name},</p>
+          <p>We're excited to have you join our community. Here's what you can do:</p>
+          <ul>
+            <li>Browse products and services from your campus</li>
+            <li>List your own products or business</li>
+            <li>Connect with other students</li>
+          </ul>
+          <p>If you have any questions, feel free to reach out to our support team.</p>
+          <p>Best regards,<br>The Campus Marketplace Team</p>
+        </div>
+      `,
+    }
+
+    await sendEmail({
+      to: email,
+      subject: welcomeTemplate.subject,
+      text: welcomeTemplate.text,
+      html: welcomeTemplate.html,
+    }).catch((error) => {
+      // Log but don't fail registration if email fails
+      console.error("Failed to send welcome email:", error)
+    })
+  } catch (emailError) {
+    // Log but don't fail registration if email fails
+    console.error("Error preparing welcome email:", emailError)
+  }
+
   // Return user data and token (excluding password)
   const { password: _, ...userData } = user
 
@@ -260,10 +295,47 @@ export const linkTelegramAccount = async (req, res) => {
     // Remove @ symbol if present
     const formattedTelegramId = telegramId.startsWith("@") ? telegramId.substring(1) : telegramId
 
+    // Check if this Telegram ID is already linked to another account
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        telegramId: formattedTelegramId,
+        id: { not: userId }, // Not the current user
+      },
+    })
+
+    if (existingUser) {
+      return res.status(400).json({
+        message: "This Telegram account is already linked to another user. Please use a different Telegram account.",
+      })
+    }
+
+    // Try to get the chat ID if available
+    let telegramChatId = null
+    try {
+      if (global.bot) {
+        const updates = await global.bot.getUpdates({ limit: 100 })
+        const userChat = updates.find(
+          (update) =>
+            update.message &&
+            update.message.from &&
+            (update.message.from.username === formattedTelegramId ||
+              update.message.from.username?.toLowerCase() === formattedTelegramId.toLowerCase()),
+        )
+
+        if (userChat && userChat.message && userChat.message.chat) {
+          telegramChatId = userChat.message.chat.id.toString()
+        }
+      }
+    } catch (error) {
+      console.error("Error getting Telegram chat ID:", error)
+      // Continue without the chat ID
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
         telegramId: formattedTelegramId,
+        telegramChatId: telegramChatId,
         lastSeen: new Date(),
       },
     })
@@ -276,6 +348,7 @@ export const linkTelegramAccount = async (req, res) => {
         email: updatedUser.email,
         campus: updatedUser.campus,
         telegramId: updatedUser.telegramId,
+        telegramChatId: updatedUser.telegramChatId,
         phone: updatedUser.phone,
         website: updatedUser.website,
       },
