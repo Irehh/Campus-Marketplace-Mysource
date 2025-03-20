@@ -6,6 +6,7 @@ import axios from "axios"
 import Cookies from "js-cookie"
 import { FiUsers } from "react-icons/fi"
 
+
 const Footer = () => {
   const [activeUsers, setActiveUsers] = useState("0")
   const [totalUsers, setTotalUsers] = useState("0")

@@ -12,31 +12,32 @@ datasource db {
 
 // Add telegramChatId field to User model
 model User {
-  id                  String    @id @default(uuid())
-  name                String
-  email               String    @unique
-  password            String?
-  campus              String    @default("default")
-  phone               String?
-  website             String?
-  role                String    @default("user")
-  googleId            String?   @unique
-  telegramId          String?   @unique
-  telegramChatId      String?   // Add this field for storing the actual chat ID
-  notifyByTelegram    Boolean   @default(true)
-  needsCampusSelection Boolean  @default(true)
-  resetToken          String?
-  resetTokenExpiry    DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  lastSeen            DateTime  @default(now())
-  
+  id                   String    @id @default(uuid())
+  name                 String
+  email                String    @unique
+  password             String?
+  campus               String    @default("default")
+  phone                String?
+  website              String?
+  role                 String    @default("user")
+  googleId             String?   @unique
+  telegramId           String?   @unique
+  telegramChatId       String? // Add this field for storing the actual chat ID
+  notifyByTelegram     Boolean   @default(true)
+  needsCampusSelection Boolean   @default(true)
+  resetToken           String?
+  resetTokenExpiry     DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  lastSeen             DateTime  @default(now())
+
   // Relations
-  products            Product[]
-  businesses          Business[]
-  sentMessages        Message[]  @relation("SentMessages")
-  receivedMessages    Message[]  @relation("ReceivedMessages")
-  comments            Comment[]
+  products         Product[]
+  businesses       Business[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  comments         Comment[]
+  verifications    Verification[] // Add this line
 }
 
 enum Role {
@@ -46,72 +47,72 @@ enum Role {
 }
 
 model Product {
-  id          String    @id @default(uuid())
-  description String    @db.Text
-  price       Float?
-  category    String?
-  campus      String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  images      Image[]
-  messages    Message[]
-  comments    Comment[]
-  views       View[]
-  viewCount   Int       @default(0)
-  isDisabled  Boolean   @default(false) // Add field to disable products
-  disabledReason String? @db.Text // Reason for disabling
+  id             String    @id @default(uuid())
+  description    String    @db.Text
+  price          Float?
+  category       String?
+  campus         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  images         Image[]
+  messages       Message[]
+  comments       Comment[]
+  views          View[]
+  viewCount      Int       @default(0)
+  isDisabled     Boolean   @default(false) // Add field to disable products
+  disabledReason String?   @db.Text // Reason for disabling
 
   @@index([campus])
   @@index([category])
 }
 
 model Business {
-  id          String    @id @default(uuid())
-  name        String
-  description String    @db.Text
-  category    String?
-  campus      String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  images      Image[]
-  messages    Message[]
-  comments    Comment[]
-  views       View[]
-  viewCount   Int       @default(0)
-  isDisabled  Boolean   @default(false) // Add field to disable businesses
-  disabledReason String? @db.Text // Reason for disabling
+  id             String    @id @default(uuid())
+  name           String
+  description    String    @db.Text
+  category       String?
+  campus         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  images         Image[]
+  messages       Message[]
+  comments       Comment[]
+  views          View[]
+  viewCount      Int       @default(0)
+  isDisabled     Boolean   @default(false) // Add field to disable businesses
+  disabledReason String?   @db.Text // Reason for disabling
 
   @@index([campus])
   @@index([category])
 }
 
 model Image {
-  id          String    @id @default(uuid())
-  url         String
+  id           String    @id @default(uuid())
+  url          String
   thumbnailUrl String
-  productId   String?
-  businessId  String?
-  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  productId    String?
+  businessId   String?
+  product      Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business     Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 }
 
 model Message {
-  id          String    @id @default(uuid())
-  content     String    @db.Text
-  createdAt   DateTime  @default(now())
-  read        Boolean   @default(false)
-  senderId    String
-  receiverId  String
-  productId   String?
-  businessId  String?
-  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
-  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
-  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  id         String    @id @default(uuid())
+  content    String    @db.Text
+  createdAt  DateTime  @default(now())
+  read       Boolean   @default(false)
+  senderId   String
+  receiverId String
+  productId  String?
+  businessId String?
+  sender     User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
 
   @@index([senderId])
   @@index([receiverId])
@@ -120,16 +121,16 @@ model Message {
 }
 
 model Comment {
-  id          String    @id @default(uuid())
-  content     String    @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  productId   String?
-  businessId  String?
-  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id         String    @id @default(uuid())
+  content    String    @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  productId  String?
+  businessId String?
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([productId])
@@ -137,13 +138,13 @@ model Comment {
 }
 
 model View {
-  id          String    @id @default(uuid())
-  visitorId   String    // User ID or session ID for anonymous users
-  productId   String?
-  businessId  String?
-  createdAt   DateTime  @default(now())
-  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id         String    @id @default(uuid())
+  visitorId  String // User ID or session ID for anonymous users
+  productId  String?
+  businessId String?
+  createdAt  DateTime  @default(now())
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@unique([visitorId, productId])
   @@unique([visitorId, businessId])
@@ -151,3 +152,10 @@ model View {
   @@index([businessId])
 }
 
+model Verification {
+  id        String   @id @default(uuid())
+  code      String
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+}

@@ -1,11 +1,10 @@
-import express from "express"
-import { handleWebhook, sendVerificationCode } from "../controllers/telegramController.js"
-import { authenticate } from "../middleware/authMiddleware.js"
+import express from "express";
+import { handleWebhook, initiateLink } from "../controllers/telegramController.js";
+import { authenticate } from "../middleware/authMiddleware.js";
 
-const router = express.Router()
+const router = express.Router();
 
-router.post("/webhook", handleWebhook)
-router.post("/send-verification", authenticate, sendVerificationCode)
+router.post("/webhook", handleWebhook);
+router.post("/link", authenticate, initiateLink);
 
-export default router
-
+export default router;
