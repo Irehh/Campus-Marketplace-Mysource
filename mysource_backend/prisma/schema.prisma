@@ -155,7 +155,7 @@ model View {
 model Verification {
   id        String   @id @default(uuid())
   code      String
-  userId    String
+  userId    String   @unique // Add @unique here
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation("UserVerification", fields: [userId], references: [id])
 }

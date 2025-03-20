@@ -9,27 +9,22 @@ import toast from "react-hot-toast";
 
 const LinkTelegram = () => {
   const { user, token, updateProfile } = useAuth();
-  const [telegramId, setTelegramId] = useState("");
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  const handleLink = async (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
-    if (!telegramId.trim()) return;
+    if (!code.trim()) return;
 
     setLoading(true);
     try {
-      await axios.post(
-        "/api/telegram/link",
-        { telegramId: telegramId.startsWith("@") ? telegramId : `@${telegramId}` },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success(
-        `Verification code sent! Check @${process.env.REACT_APP_TELEGRAM_BOT_USERNAME} and send /link <code>`
-      );
-      setTelegramId("");
+      await axios.post("/api/telegram/verify-link", { code }, { headers: { Authorization: `Bearer ${token}` } });
+      await updateProfile({});
+      toast.success("Telegram account linked successfully!");
+      setCode("");
     } catch (error) {
-      toast.error("Failed to send code. Start the bot first by messaging @" + process.env.REACT_APP_TELEGRAM_BOT_USERNAME);
+      toast.error(error.response?.data?.error || "Failed to link account. Check the code and try again.");
     } finally {
       setLoading(false);
     }
@@ -70,32 +65,32 @@ const LinkTelegram = () => {
   }
 
   return (
-    <form onSubmit={handleLink} className="space-y-4">
+    <form onSubmit={handleVerify} className="space-y-4">
       <div>
-        <label htmlFor="telegramId" className="label">
-          Telegram Username
+        <label htmlFor="code" className="label">
+          Telegram Linking Code
         </label>
         <input
           type="text"
-          id="telegramId"
-          value={telegramId}
-          onChange={(e) => setTelegramId(e.target.value)}
-          placeholder="e.g. @username"
+          id="code"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Enter 6-digit code"
           className="input"
           required
           disabled={loading}
         />
         <p className="text-xs text-gray-500 mt-1">
-          1. Start a chat with @{process.env.REACT_APP_TELEGRAM_BOT_USERNAME} using /start
+          1. Send /link to @{process.env.REACT_APP_TELEGRAM_BOT_USERNAME} in Telegram
           <br />
-          2. Enter your Telegram username above
+          2. Copy the 6-digit code you receive
           <br />
-          3. Send the code you receive with /link &lt;code&gt;
+          3. Paste it here and submit
         </p>
       </div>
       <button type="submit" className="btn btn-primary flex items-center justify-center" disabled={loading}>
         <FaTelegram className="mr-2" />
-        {loading ? "Sending..." : "Link Telegram"}
+        {loading ? "Verifying..." : "Link Telegram"}
       </button>
     </form>
   );
