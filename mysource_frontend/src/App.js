@@ -26,6 +26,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage"
 import EditProductPage from "./pages/UserDashboard/EditProductPage"
 import EditBusinessPage from "./pages/UserDashboard/EditBusinessPage"
 import OfflineIndicator from "./components/OfflineIndicator"
+import NotificationSettingsPage from "./pages/NotificationSettingsPage"
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard"
@@ -153,6 +154,7 @@ function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:userId" element={<ConversationPage />} />
             <Route path="dashboard" element={<UserDashboardPage />} />
+            <Route path="notification-settings" element={<NotificationSettingsPage />} />
             <Route path="edit-product/:id" element={<EditProductPage />} />
             <Route path="edit-business/:id" element={<EditBusinessPage />} />
           </Route>

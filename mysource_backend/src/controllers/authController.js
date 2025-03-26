@@ -532,3 +532,75 @@ export const resetPassword = async (req, res) => {
   }
 }
 
+// Get notification settings
+export const getNotificationSettings = async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        notifyByTelegram: true,
+        notificationKeywords: true,
+      },
+    })
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    res.json({
+      notifyByTelegram: user.notifyByTelegram,
+      notificationKeywords: user.notificationKeywords || "",
+    })
+  } catch (error) {
+    console.error("Error getting notification settings:", error)
+    res.status(500).json({ message: "Failed to get notification settings" })
+  }
+}
+
+// Update notification settings
+export const updateNotificationSettings = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const { notifyByTelegram, notificationKeywords } = req.body
+
+    // Validate input
+    if (typeof notifyByTelegram !== "boolean") {
+      return res.status(400).json({ message: "notifyByTelegram must be a boolean" })
+    }
+
+    // Clean and validate keywords
+    let cleanedKeywords = null
+    if (notificationKeywords) {
+      // Split by commas, trim whitespace, filter out empty strings, and join back
+      cleanedKeywords = notificationKeywords
+        .split(",")
+        .map((keyword) => keyword.trim().toLowerCase())
+        .filter((keyword) => keyword.length > 0)
+        .join(",")
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        notifyByTelegram,
+        notificationKeywords: cleanedKeywords,
+        lastSeen: new Date(),
+      },
+      select: {
+        notifyByTelegram: true,
+        notificationKeywords: true,
+      },
+    })
+
+    res.json({
+      message: "Notification settings updated successfully",
+      settings: updatedUser,
+    })
+  } catch (error) {
+    console.error("Error updating notification settings:", error)
+    res.status(500).json({ message: "Failed to update notification settings" })
+  }
+}
+

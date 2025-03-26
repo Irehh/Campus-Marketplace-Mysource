@@ -3,6 +3,7 @@ import TelegramBot from "node-telegram-bot-api"
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
+import sharp from "sharp"
 
 const prisma = new PrismaClient()
 let bot = null
@@ -253,7 +254,7 @@ const handleProductUpload = async (bot, msg, user) => {
     if (!caption) {
       await bot.sendMessage(
         chatId,
-        "Please provide a caption with your image. The caption should include the product description and price.",
+        "Please provide a caption with your image. The caption should include the product title and description.",
         { parse_mode: "Markdown" },
       )
       return
@@ -273,28 +274,33 @@ const handleProductUpload = async (bot, msg, user) => {
       fs.mkdirSync(uploadDir, { recursive: true })
     }
 
-    // Download the file using fetch instead of axios
+    // Download the file using fetch
     const response = await fetch(fileUrl)
     if (!response.ok) {
       throw new Error(`Failed to download image: ${response.status} ${response.statusText}`)
     }
 
+    // Get the image buffer
+    const buffer = Buffer.from(await response.arrayBuffer())
+
     // Generate a unique filename
-    const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.jpg`
+    const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`
     const filePath = path.join(uploadDir, filename)
-    const relativePath = `uploads/${filename}`
+    const relativePath = `${process.env.API_BASE_URL || "http://localhost:5000"}/uploads/${filename}`
 
-    // Save the file
-    const fileStream = fs.createWriteStream(filePath)
-    const buffer = await response.arrayBuffer()
+    // Generate thumbnail filename
+    const thumbnailFilename = `thumb_${filename}`
+    const thumbnailPath = path.join(uploadDir, thumbnailFilename)
+    const thumbnailRelativePath = `${process.env.API_BASE_URL || "http://localhost:5000"}/uploads/${thumbnailFilename}`
 
-    fileStream.write(Buffer.from(buffer))
-    fileStream.end()
+    // Process and save the main image
+    await sharp(buffer)
+      .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(filePath)
 
-    await new Promise((resolve, reject) => {
-      fileStream.on("finish", resolve)
-      fileStream.on("error", reject)
-    })
+    // Create thumbnail
+    await sharp(buffer).resize(200, 200, { fit: "cover" }).webp({ quality: 60 }).toFile(thumbnailPath)
 
     // Parse caption for title and description
     let title = caption
@@ -320,11 +326,11 @@ const handleProductUpload = async (bot, msg, user) => {
       },
     })
 
-    // Create the image record
+    // Create the image record with both URLs
     await prisma.image.create({
       data: {
         url: relativePath,
-        thumbnailUrl: relativePath,
+        thumbnailUrl: thumbnailRelativePath,
         productId: product.id,
       },
     })
@@ -337,9 +343,75 @@ const handleProductUpload = async (bot, msg, user) => {
     )
 
     console.info(`User ${user.id} posted product ${product.id} via Telegram`)
+
+    // Check for keyword notifications
+    await sendKeywordNotifications(product, description || title)
   } catch (error) {
     console.error("Error handling product upload:", error)
     await bot.sendMessage(msg.chat.id, "Sorry, there was an error posting your product. Please try again later.")
+  }
+}
+
+// Send notifications to users who have matching keywords
+const sendKeywordNotifications = async (product, description) => {
+  try {
+    // Find all users with notification keywords
+    const usersWithKeywords = await prisma.user.findMany({
+      where: {
+        notificationKeywords: {
+          not: null,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        telegramChatId: true,
+        notifyByTelegram: true,
+        notificationKeywords: true,
+      },
+    })
+
+    if (usersWithKeywords.length === 0) return
+
+    // Check each user's keywords against the product description
+    for (const user of usersWithKeywords) {
+      if (!user.notificationKeywords) continue
+
+      // Parse keywords (comma-separated)
+      const keywords = user.notificationKeywords
+        .split(",")
+        .map((k) => k.trim().toLowerCase())
+        .filter((k) => k.length > 0)
+
+      if (keywords.length === 0) continue
+
+      // Check if any keyword matches the description
+      const descriptionLower = description.toLowerCase()
+      const matchingKeywords = keywords.filter((keyword) => descriptionLower.includes(keyword))
+
+      if (matchingKeywords.length === 0) continue
+
+      // We have a match! Send notification
+      console.log(`Sending keyword notification to user ${user.id} for keywords: ${matchingKeywords.join(", ")}`)
+
+      // Send Telegram notification if enabled
+      if (user.notifyByTelegram && user.telegramChatId) {
+        try {
+          await bot.sendMessage(
+            user.telegramChatId,
+            `🔔 *New Product Alert!*\n\nA new product matching your keywords (${matchingKeywords.join(", ")}) has been posted:\n\n*${description.substring(0, 50)}${description.length > 50 ? "..." : ""}*\n\nView it here: ${process.env.FRONTEND_URL}/products/${product.id}`,
+            { parse_mode: "Markdown" },
+          )
+        } catch (error) {
+          console.error(`Failed to send Telegram notification to user ${user.id}:`, error)
+        }
+      }
+
+      // TODO: Send push notification if implemented
+    }
+  } catch (error) {
+    console.error("Error sending keyword notifications:", error)
   }
 }
 

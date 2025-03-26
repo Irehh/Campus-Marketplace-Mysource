@@ -11,6 +11,8 @@ import {
   unlinkTelegramAccount,
   requestPasswordReset,
   resetPassword,
+  getNotificationSettings,
+  updateNotificationSettings,
 } from "../controllers/authController.js"
 import { authenticate } from "../middleware/authMiddleware.js"
 
@@ -30,6 +32,10 @@ router.put("/profile", authenticate, updateProfile)
 router.put("/password", authenticate, changePassword)
 router.post("/link-telegram", authenticate, linkTelegramAccount)
 router.post("/unlink-telegram", authenticate, unlinkTelegramAccount)
+
+// Notification settings routes
+router.get("/notification-settings", authenticate, getNotificationSettings)
+router.put("/notification-settings", authenticate, updateNotificationSettings)
 
 export default router
 
