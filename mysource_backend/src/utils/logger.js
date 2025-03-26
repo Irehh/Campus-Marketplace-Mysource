@@ -1,90 +1,81 @@
 import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
-import winston from "winston"
 
-// Get the directory name
+// Get current directory
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Create logs directory if it doesn't exist
-const logsDir = path.join(__dirname, "../../logs")
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true })
+// Define logger functions
+const info = (message, meta = {}) => {
+  const timestamp = new Date().toISOString()
+  const logMessage = `[${timestamp}] [INFO] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}\n`
+
+  console.log(`[INFO] ${message}`, meta)
+  writeToLog(path.join(process.cwd(), "logs", "info.log"), logMessage)
 }
 
-// Define log format
-const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.errors({ stack: true }),
-  winston.format.splat(),
-  winston.format.json(),
-)
+const error = (message, meta = {}) => {
+  const timestamp = new Date().toISOString()
+  const logMessage = `[${timestamp}] [ERROR] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}\n`
 
-// Create the logger
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === "production" ? "info" : "debug",
-  format: logFormat,
-  defaultMeta: { service: "campus-marketplace" },
-  transports: [
-    // Write all logs with level 'error' and below to error.log
-    new winston.transports.File({
-      filename: path.join(logsDir, "error.log"),
-      level: "error",
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    // Write all logs with level 'info' and below to combined.log
-    new winston.transports.File({
-      filename: path.join(logsDir, "combined.log"),
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-  ],
-})
-
-// If we're not in production, also log to the console
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
-    }),
-  )
+  console.error(`[ERROR] ${message}`, meta)
+  writeToLog(path.join(process.cwd(), "logs", "error.log"), logMessage)
 }
 
-// Create a stream object with a write function that will be used by morgan
-logger.stream = {
-  write: (message) => {
-    logger.info(message.trim())
-  },
+const warn = (message, meta = {}) => {
+  const timestamp = new Date().toISOString()
+  const logMessage = `[${timestamp}] [WARN] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}\n`
+
+  console.warn(`[WARN] ${message}`, meta)
+  writeToLog(path.join(process.cwd(), "logs", "warn.log"), logMessage)
 }
 
-// Export a wrapper that includes both winston logger and console methods
-export default {
-  error: (message, meta = {}) => {
-    logger.error(message, meta)
-    if (process.env.NODE_ENV !== "production") {
-      console.error(message, meta)
-    }
-  },
-  warn: (message, meta = {}) => {
-    logger.warn(message, meta)
-    if (process.env.NODE_ENV !== "production") {
-      console.warn(message, meta)
-    }
-  },
-  info: (message, meta = {}) => {
-    logger.info(message, meta)
-    if (process.env.NODE_ENV !== "production") {
-      console.info(message, meta)
-    }
-  },
-  debug: (message, meta = {}) => {
-    logger.debug(message, meta)
-    if (process.env.NODE_ENV !== "production") {
-      console.debug(message, meta)
-    }
-  },
-  stream: logger.stream,
+const debug = (message, meta = {}) => {
+  if (process.env.NODE_ENV !== "production") {
+    const timestamp = new Date().toISOString()
+    const logMessage = `[${timestamp}] [DEBUG] ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ""}\n`
+
+    console.debug(`[DEBUG] ${message}`, meta)
+    writeToLog(path.join(process.cwd(), "logs", "debug.log"), logMessage)
+  }
 }
+
+// Write to log file with error handling
+const writeToLog = (filePath, message) => {
+  try {
+    fs.appendFileSync(filePath, message)
+    // Add a console log to confirm writing to log file
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`Log written to ${filePath}`)
+    }
+  } catch (error) {
+    console.error(`Failed to write to log file ${filePath}:`, error)
+    // Try to create the directory if it doesn't exist
+    try {
+      const dir = path.dirname(filePath)
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+        // Try writing again
+        fs.appendFileSync(filePath, message)
+        console.log(`Created log directory and wrote to ${filePath}`)
+      }
+    } catch (mkdirError) {
+      console.error(`Failed to create log directory:`, mkdirError)
+    }
+  }
+}
+
+// Create the logger object with all functions
+const logger = {
+  info,
+  error,
+  warn,
+  debug,
+  writeToLog,
+}
+
+// Export both named exports and default export
+export { info, error, warn, debug, writeToLog }
+export default logger
 

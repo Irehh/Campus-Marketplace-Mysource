@@ -10,7 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Add telegramChatId field to User model
 model User {
   id                   String    @id @default(uuid())
   name                 String
@@ -22,7 +21,7 @@ model User {
   role                 String    @default("user")
   googleId             String?   @unique
   telegramId           String?   @unique
-  telegramChatId       String? // Add this field for storing the actual chat ID
+  telegramChatId       String?
   notifyByTelegram     Boolean   @default(true)
   needsCampusSelection Boolean   @default(true)
   resetToken           String?
@@ -32,12 +31,11 @@ model User {
   lastSeen             DateTime  @default(now())
 
   // Relations
-  products         Product[]
-  businesses       Business[]
-  sentMessages     Message[]      @relation("SentMessages")
-  receivedMessages Message[]      @relation("ReceivedMessages")
-  comments         Comment[]
-  verifications    Verification[] // Add this line
+  products      Product[]
+  businesses    Business[]
+  sentMessages  Message[]      @relation("SentMessages")
+  receivedMessages Message[]   @relation("ReceivedMessages")
+  comments      Comment[]
 }
 
 enum Role {
@@ -61,8 +59,8 @@ model Product {
   comments       Comment[]
   views          View[]
   viewCount      Int       @default(0)
-  isDisabled     Boolean   @default(false) // Add field to disable products
-  disabledReason String?   @db.Text // Reason for disabling
+  isDisabled     Boolean   @default(false)
+  disabledReason String?   @db.Text
 
   @@index([campus])
   @@index([category])
@@ -83,8 +81,8 @@ model Business {
   comments       Comment[]
   views          View[]
   viewCount      Int       @default(0)
-  isDisabled     Boolean   @default(false) // Add field to disable businesses
-  disabledReason String?   @db.Text // Reason for disabling
+  isDisabled     Boolean   @default(false)
+  disabledReason String?   @db.Text
 
   @@index([campus])
   @@index([category])
@@ -139,7 +137,7 @@ model Comment {
 
 model View {
   id         String    @id @default(uuid())
-  visitorId  String // User ID or session ID for anonymous users
+  visitorId  String
   productId  String?
   businessId String?
   createdAt  DateTime  @default(now())
@@ -152,10 +150,26 @@ model View {
   @@index([businessId])
 }
 
+// Updated Verification model without foreign key constraint
 model Verification {
-  id        String   @id @default(uuid())
-  code      String
-  userId    String   @unique // Add @unique here
-  expiresAt DateTime
-  user      User     @relation("UserVerification", fields: [userId], references: [id])
+  id              String   @id @default(uuid())
+  code            String
+  telegramChatId  String
+  expiresAt       DateTime
+  createdAt       DateTime @default(now())
+  
+  @@index([telegramChatId])
 }
+
+// New model for push subscriptions
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+}
+

@@ -20,6 +20,7 @@ export const CAMPUSES = [
 export const PRODUCT_CATEGORIES = [
   { value: "electronics", label: "Electronics" },
   { value: "books", label: "Books" },
+  { value: "lodges", label: "Lodges" },
   { value: "clothing", label: "Clothing" },
   { value: "furniture", label: "Furniture" },
   { value: "other", label: "Other" },

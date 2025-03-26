@@ -1,10 +1,14 @@
-import express from "express";
-import { handleWebhook, verifyLink } from "../controllers/telegramController.js";
-import { authenticate } from "../middleware/authMiddleware.js";
+import express from "express"
+import { handleWebhook, verifyTelegramCode } from "../controllers/telegramController.js"
+import { authenticate } from "../middleware/authMiddleware.js"
 
-const router = express.Router();
+const router = express.Router()
 
-router.post("/webhook", handleWebhook);
-router.post("/verify-link", authenticate, verifyLink);
+// Webhook endpoint for Telegram
+router.post("/webhook", handleWebhook)
 
-export default router;
+// Verify and link Telegram account
+router.post("/verify", authenticate, verifyTelegramCode)
+
+export default router
+

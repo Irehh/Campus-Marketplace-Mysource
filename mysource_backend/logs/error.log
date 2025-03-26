@@ -1,0 +1,1 @@
+[2025-03-25T06:35:25.999Z] [ERROR] Error handling /start command {"error":"\nInvalid `prisma.verification.create()` invocation:\n\n\nForeign key constraint violated: `userId`"}
