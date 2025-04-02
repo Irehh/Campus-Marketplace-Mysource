@@ -20,8 +20,8 @@ export const search = async (req, res) => {
         where: {
           ...whereClause,
           OR: [
-            { description: { contains: q, mode: "insensitive" } },
-            { category: { contains: q, mode: "insensitive" } },
+            { description: { contains: q } },
+            { category: { contains: q} },
           ],
         },
         include: {
@@ -53,9 +53,9 @@ export const search = async (req, res) => {
         where: {
           ...whereClause,
           OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-            { category: { contains: q, mode: "insensitive" } },
+            { name: { contains: q } },
+            { description: { contains: q } },
+            { category: { contains: q } },
           ],
         },
         include: {
