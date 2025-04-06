@@ -340,3 +340,43 @@ export const getUserProducts = async (req, res) => {
   }
 }
 
+// Get multiple products by IDs
+export const getProductsByIds = async (req, res) => {
+  try {
+    const { ids } = req.query
+    
+    if (!ids) {
+      return res.status(400).json({ message: 'Product IDs are required' })
+    }
+    
+    const productIds = ids.split(',')
+    
+    const products = await prisma.product.findMany({
+      where: {
+        id: {
+          in: productIds
+        },
+        isDisabled: false
+      },
+      include: {
+        images: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            website: true,
+            avatar: true
+          }
+        }
+      }
+    })
+    
+    res.json(products)
+  } catch (error) {
+    console.error('Error fetching products by IDs:', error)
+    res.status(500).json({ message: 'Failed to fetch products' })
+  }
+}
+

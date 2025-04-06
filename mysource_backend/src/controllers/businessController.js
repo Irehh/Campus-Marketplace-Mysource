@@ -386,3 +386,43 @@ export const getUserBusinesses = async (req, res) => {
   }
 }
 
+
+// Get multiple businesses by IDs
+export const getBusinessesByIds = async (req, res) => {
+  try {
+    const { ids } = req.query
+    
+    if (!ids) {
+      return res.status(400).json({ message: 'Business IDs are required' })
+    }
+    
+    const businessIds = ids.split(',')
+    
+    const businesses = await prisma.business.findMany({
+      where: {
+        id: {
+          in: businessIds
+        },
+        isDisabled: false
+      },
+      include: {
+        images: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            website: true,
+            avatar: true
+          }
+        }
+      }
+    })
+    
+    res.json(businesses)
+  } catch (error) {
+    console.error('Error fetching businesses by IDs:', error)
+    res.status(500).json({ message: 'Failed to fetch businesses' })
+  }
+}

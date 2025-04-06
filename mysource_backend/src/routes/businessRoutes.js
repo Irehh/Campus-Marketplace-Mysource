@@ -8,6 +8,7 @@ import {
   getUserBusinesses,
   addBusinessImages,
   deleteBusinessImage,
+  getBusinessesByIds
 } from "../controllers/businessController.js"
 import { authenticate, optionalAuth } from "../middleware/authMiddleware.js"
 
@@ -48,6 +49,9 @@ router.post(
 )
 
 router.delete("/:id/images/:imageId", authenticate, deleteBusinessImage)
+
+// Add this route to your existing routes
+router.get('/batch', authenticate, getBusinessesByIds)
 
 export default router
 

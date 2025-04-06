@@ -889,4 +889,3 @@ export const getCampusAdmins = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch campus admins" })
   }
 }
-

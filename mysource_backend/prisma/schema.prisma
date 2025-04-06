@@ -37,6 +37,7 @@ model User {
   sentMessages  Message[]      @relation("SentMessages")
   receivedMessages Message[]   @relation("ReceivedMessages")
   comments      Comment[]
+  favorites         Favorite[]
 }
 
 enum Role {
@@ -174,3 +175,13 @@ model PushSubscription {
   @@index([userId])
 }
 
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId    String
+  itemType  String   // "product" or "business"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemId, itemType])
+}

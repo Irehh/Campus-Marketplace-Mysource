@@ -6,6 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   getUserProducts,
+  getProductsByIds
 } from "../controllers/productController.js"
 import { authenticate, optionalAuth } from "../middleware/authMiddleware.js"
 
@@ -26,6 +27,9 @@ router.post("/", authenticate, (req, res, next) => {
 
 router.put("/:id", authenticate, updateProduct)
 router.delete("/:id", authenticate, deleteProduct)
+// Add this route to your existing routes
+router.get('/batch', authenticate, getProductsByIds)
+
 
 export default router
 
