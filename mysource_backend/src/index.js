@@ -46,6 +46,12 @@ app.use(
 )
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use((req, res, next) => {
+  if (!req.secure && req.get('X-Forwarded-Proto') !== 'https') {
+    return res.redirect(`https://${req.get('host')}${req.url}`);
+  }
+  next();
+});
 
 // Optional: Customize Morgan logging (only log errors, not all requests)
 // Comment out or remove this line to disable all Morgan logging

@@ -1,0 +1,48 @@
+name: Deploy Backend to Namecheap
+
+on:
+  push:
+    paths:
+      - 'mysource_backend/**'
+      - '.github/workflows/backend-deploy.yml'
+    branches:
+      - master  # Change to 'master' if your default branch is 'master'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'  # Match your cPanel Node.js version
+
+      - name: Install backend dependencies
+        run: npm ci  # Use npm ci for deterministic installs
+        working-directory: ./mysource_backend
+
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+        working-directory: ./mysource_backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}  # Add if Prisma needs it
+
+      - name: Create .env file for backend
+        run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
+        working-directory: ./mysource_backend
+
+      - name: Deploy backend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./mysource_backend/
+          server-dir: /home/mysofuhc/mysource.com.ng/
+          exclude: |
+            node_modules/**
+            .env

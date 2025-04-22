@@ -26,8 +26,13 @@ jobs:
         working-directory: ./mysource_frontend
 
       - name: Build React app
-        run: npm run build
+        run: |
+          REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} \
+          REACT_APP_GOOGLE_CLIENT_ID=${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }} \
+          REACT_APP_TELEGRAM_BOT_USERNAME=${{ secrets.REACT_APP_TELEGRAM_BOT_USERNAME }} \
+          npm run build
         working-directory: ./mysource_frontend
+      
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4

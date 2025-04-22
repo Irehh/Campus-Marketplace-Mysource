@@ -6,3 +6,4 @@ mysource_backend/dist/
 mysource_frontend/dist/
 mysource_backend/logs/
 mysource_backend/uploads/
+mysource_backend/.env.production
