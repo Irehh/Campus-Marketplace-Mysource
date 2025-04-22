@@ -1,4 +1,5 @@
 // mysource_backend/src/routes/favoriteRoutes.js
+
 import express from 'express'
 import * as favoriteController from '../controllers/favoriteController.js'
 import { authenticate } from '../middleware/authMiddleware.js'

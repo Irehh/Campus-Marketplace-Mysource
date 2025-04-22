@@ -2,7 +2,7 @@
 
 import { createContext, useState, useEffect, useContext } from "react"
 import axios from "axios"
-import { API_URL } from "../config"
+import { REACT_APP_API_URL } from "../config"
 import toast from "react-hot-toast"
 
 const AuthContext = createContext()
@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   // Configure axios defaults
-  axios.defaults.baseURL = API_URL
+  axios.defaults.baseURL = REACT_APP_API_URL
 
   // Set auth token for all requests if available
   useEffect(() => {
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
   // Google login
   const googleLogin = async (googleToken) => {
     try {
-      const res = await axios.post(`${API_URL}/api/auth/google-login`, { token: googleToken })
+      const res = await axios.post(`${REACT_APP_API_URL}/api/auth/google-login`, { token: googleToken })
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token)
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
   // Link Telegram account
   const linkTelegramAccount = async (telegramId) => {
     try {
-      const res = await axios.post(`${API_URL}/api/auth/link-telegram`, { telegramId })
+      const res = await axios.post(`${REACT_APP_API_URL}/api/auth/link-telegram`, { telegramId })
       setUser(res.data.user)
       toast.success("Telegram account linked successfully!")
       return res.data

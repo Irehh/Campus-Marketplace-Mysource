@@ -17,16 +17,19 @@ import {
   FiEye,
   FiAlertTriangle,
   FiShield,
+  FiHeart,
 } from "react-icons/fi"
 import { BsTelegram } from "react-icons/bs"
 import { formatDistanceToNow } from "date-fns"
 import CommentSection from "../components/CommentSection"
 import toast from "react-hot-toast"
+import { useFavorites } from "../contexts/FavoritesContext"
 
 const ProductDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, isAuthenticated, token } = useAuth()
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -39,6 +42,7 @@ const ProductDetailPage = () => {
 
   // Check if user is an admin
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
+  const isFav = isFavorite(id, "product")
 
   // Mapping of campus codes to telegram channels
   const campusChannels = {
@@ -90,24 +94,24 @@ const ProductDetailPage = () => {
   }, [id, user, token, navigate])
 
   useEffect(() => {
-    const fetchCampusAdmins = async () => {
+    const fetchCampusAdmin = async () => {
       if (!product?.campus) return
 
       try {
-        const response = await axios.get(`/api/admin/campus-admins/${product.campus}`, {
+        const response = await axios.get(`/api/admin/campus-admin/${product.campus}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         })
 
-        if (response.data && response.data.length > 0) {
+        if (response.data && response.data.website) {
           setCampusAdmin(response.data)
         }
       } catch (error) {
-        console.error("Error fetching campus admins:", error)
+        console.error("Error fetching campus admin:", error)
       }
     }
 
     if (product) {
-      fetchCampusAdmins()
+      fetchCampusAdmin()
     }
   }, [product, token])
 
@@ -152,6 +156,15 @@ const ProductDetailPage = () => {
     }
   }
 
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate("/login")
+      return
+    }
+
+    await toggleFavorite(id, "product")
+  }
+
   if (loading) {
     return <div className="text-center py-4">Loading...</div>
   }
@@ -194,12 +207,21 @@ const ProductDetailPage = () => {
         <div>
           {product.images && product.images.length > 0 ? (
             <div className="grid grid-cols-1 gap-2">
-              <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100">
+              <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100 relative">
                 <img
                   src={product.images[selectedImage].url || "/placeholder.svg"}
                   alt={product.description}
                   className="w-full h-full object-contain"
                 />
+                <button
+                  onClick={handleToggleFavorite}
+                  className={`absolute top-2 right-2 z-10 rounded-full flex items-center justify-center 
+                    ${isFav ? "bg-red-500 text-white" : "bg-white text-gray-600"} 
+                    w-8 h-8 hover:scale-110 transition-all duration-200 shadow-md`}
+                  aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <FiHeart className={isFav ? "fill-current" : ""} />
+                </button>
               </div>
               <div className="grid grid-cols-4 gap-1">
                 {product.images.map((image, index) => (
@@ -214,8 +236,17 @@ const ProductDetailPage = () => {
               </div>
             </div>
           ) : (
-            <div className="w-full h-[166px] bg-gray-200 rounded-lg flex items-center justify-center">
+            <div className="w-full h-[166px] bg-gray-200 rounded-lg flex items-center justify-center relative">
               <p>No image available</p>
+              <button
+                onClick={handleToggleFavorite}
+                className={`absolute top-2 right-2 z-10 rounded-full flex items-center justify-center 
+                  ${isFav ? "bg-red-500 text-white" : "bg-white text-gray-600"} 
+                  w-8 h-8 hover:scale-110 transition-all duration-200 shadow-md`}
+                aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+              >
+                <FiHeart className={isFav ? "fill-current" : ""} />
+              </button>
             </div>
           )}
         </div>
@@ -296,24 +327,17 @@ const ProductDetailPage = () => {
               </button>
             )}
 
-            {campusAdmin && campusAdmin.length > 0 && (
-              <div className="mt-1 space-y-1 border-t border-gray-200 pt-1">
-                <p className="text-xs font-semibold">Campus Admin{campusAdmin.length > 1 ? "s" : ""}:</p>
-                <div className="flex flex-wrap gap-1">
-                  {campusAdmin.map((admin) => (
-                    <a
-                      key={admin.id}
-                      href={admin.website?.startsWith("http") ? admin.website : `https://${admin.website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center px-2 py-0.5 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"
-                    >
-                      <FiAlertTriangle className="mr-1" size={10} />
-                      Contact {admin.name || "Admin"}
-                    </a>
-                  ))}
-                </div>
-              </div>
+            {/* Always show contact admin button if there's an admin for the campus */}
+            {campusAdmin && campusAdmin.website && (
+              <a
+                href={campusAdmin.website.startsWith("http") ? campusAdmin.website : `https://${campusAdmin.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700"
+              >
+                <FiAlertTriangle className="mr-1" size={12} />
+                Contact Admin
+              </a>
             )}
 
             <button

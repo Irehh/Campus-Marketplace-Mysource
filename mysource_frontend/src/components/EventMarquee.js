@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { API_URL } from "../config"
+import { REACT_APP_API_URL } from "../config"
 import { useAuth } from "../contexts/AuthContext"
 import Cookies from "js-cookie"
 
@@ -22,7 +22,7 @@ const EventMarquee = () => {
     }
 
     // Create new connection
-    const newEventSource = new EventSource(`${API_URL}/api/events`)
+    const newEventSource = new EventSource(`${REACT_APP_API_URL}/api/events`)
     setEventSource(newEventSource)
 
     newEventSource.onmessage = (event) => {

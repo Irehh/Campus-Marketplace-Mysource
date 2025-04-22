@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Routes, Route } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google"
@@ -27,6 +25,11 @@ import EditProductPage from "./pages/UserDashboard/EditProductPage"
 import EditBusinessPage from "./pages/UserDashboard/EditBusinessPage"
 import OfflineIndicator from "./components/OfflineIndicator"
 import NotificationSettingsPage from "./pages/NotificationSettingsPage"
+import FavoritesPage from "./pages/FavoritesPage"
+// Import the TelegramSetupGuide component
+import TelegramSetupGuide from "./pages/TelegramSetupGuide"
+// Import the TelegramInstructionsPage component
+import TelegramInstructionsPage from "./pages/TelegramInstructionsPage"
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard"
@@ -34,11 +37,6 @@ import AdminUsers from "./pages/admin/AdminUsers"
 import AdminProducts from "./pages/admin/AdminProducts"
 import AdminBusinesses from "./pages/admin/AdminBusinesses"
 import AdminRoute from "./components/AdminRoute"
-
-// Import the TelegramSetupGuide component
-import TelegramSetupGuide from "./pages/TelegramSetupGuide"
-// Import the TelegramInstructionsPage component
-import TelegramInstructionsPage from "./pages/TelegramInstructionsPage"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
@@ -60,6 +58,7 @@ function App() {
   // Handle PWA install prompt
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
+      setShowInstallBanner(true)
       // Prevent Chrome 76+ from automatically showing the prompt
       e.preventDefault()
       // Stash the event so it can be triggered later
@@ -157,6 +156,7 @@ function App() {
             <Route path="notification-settings" element={<NotificationSettingsPage />} />
             <Route path="edit-product/:id" element={<EditProductPage />} />
             <Route path="edit-business/:id" element={<EditBusinessPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
           </Route>
 
           {/* Admin Routes */}
@@ -175,4 +175,3 @@ function App() {
 }
 
 export default App
-

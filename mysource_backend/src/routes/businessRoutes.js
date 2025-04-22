@@ -16,10 +16,11 @@ const router = express.Router()
 
 // Public/optional auth routes
 router.get("/", optionalAuth, getBusinesses)
+router.get("/user", authenticate, getUserBusinesses)
 router.get("/:id", optionalAuth, getBusinessById)
 
 // Protected routes
-router.get("/user", authenticate, getUserBusinesses)
+
 router.post(
   "/",
   authenticate,

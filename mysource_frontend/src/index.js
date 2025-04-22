@@ -1,4 +1,4 @@
- 'use client'
+
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "react-hot-toast"
 import { registerServiceWorker } from "./utils/pushNotifications"
+import { FavoritesProvider } from "./contexts/FavoritesContext"
 
 // Register service worker for PWA
 if ("serviceWorker" in navigator) {
@@ -22,10 +23,11 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
-        <Toaster position="top-right" />
+        <FavoritesProvider>
+          <App />
+          <Toaster position="top-right" />
+        </FavoritesProvider>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 )
-

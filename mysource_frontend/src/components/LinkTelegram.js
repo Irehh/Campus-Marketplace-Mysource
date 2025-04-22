@@ -1,6 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
-import { API_URL } from "../config"
+import { REACT_APP_API_URL } from "../config"
 import toast from "react-hot-toast"
 import { BsTelegram } from "react-icons/bs"
 import { FiAlertCircle } from "react-icons/fi"
@@ -24,11 +24,11 @@ const LinkTelegram = ({ user, onUpdate }) => {
       // Log the request details to console
       console.log("Sending Telegram verification request:", {
         code,
-        endpoint: `${API_URL}/api/telegram/verify-code`, // Fixed endpoint URL
+        endpoint: `${REACT_APP_API_URL}/api/telegram/verify-code`, // Fixed endpoint URL
       })
 
       const response = await axios.post(
-        `${API_URL}/api/telegram/verify-code`, // Fixed endpoint URL to match backend route
+        `${REACT_APP_API_URL}/api/telegram/verify-code`, // Fixed endpoint URL to match backend route
         { code },
         {
           headers: {

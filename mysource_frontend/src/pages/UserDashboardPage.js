@@ -17,7 +17,9 @@ const UserDashboardPage = () => {
   const [deleteType, setDeleteType] = useState("")
 
   // Use your existing API base URL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
+
+ 
 
   useEffect(() => {
     const fetchUserListings = async () => {
@@ -25,7 +27,7 @@ const UserDashboardPage = () => {
         setLoading(true)
 
         // Fetch user's products
-        const productsResponse = await axios.get(`${API_BASE_URL}/products/user`, {
+        const productsResponse = await axios.get(`${REACT_APP_API_URL}/api/products/user`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -41,7 +43,7 @@ const UserDashboardPage = () => {
         }
 
         // Fetch user's businesses
-        const businessesResponse = await axios.get(`${API_BASE_URL}/businesses/user`, {
+        const businessesResponse = await axios.get(`${REACT_APP_API_URL}/api/businesses/user`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
@@ -66,7 +68,7 @@ const UserDashboardPage = () => {
     if (user && token) {
       fetchUserListings()
     }
-  }, [user, token, API_BASE_URL])
+  }, [user, token, REACT_APP_API_URL])
 
   const handleDeleteClick = (item, type) => {
     setItemToDelete(item)
@@ -77,13 +79,13 @@ const UserDashboardPage = () => {
   const handleDeleteConfirm = async () => {
     try {
       if (deleteType === "product") {
-        await axios.delete(`${API_BASE_URL}/products/${itemToDelete.id}`, {
+        await axios.delete(`${REACT_APP_API_URL}/api/products/${itemToDelete.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setProducts(products.filter((p) => p.id !== itemToDelete.id))
         toast.success("Product deleted successfully")
       } else if (deleteType === "business") {
-        await axios.delete(`${API_BASE_URL}/businesses/${itemToDelete.id}`, {
+        await axios.delete(`${REACT_APP_API_URL}/api/businesses/${itemToDelete.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setBusinesses(businesses.filter((b) => b.id !== itemToDelete.id))

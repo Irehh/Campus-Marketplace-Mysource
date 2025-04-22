@@ -3,12 +3,14 @@
 import { useState, useRef, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiPlus, FiMessageCircle } from "react-icons/fi"
+import { FiMenu, FiX, FiSearch, FiUser, FiLogOut, FiPlus, FiMessageCircle, FiHeart } from "react-icons/fi"
 import CampusSelector from "./CampusSelector"
 import axios from "axios"
+import { useFavorites } from "../contexts/FavoritesContext"
 
 const Navbar = () => {
   const { user, isAuthenticated, logout, token } = useAuth()
+  const { favorites } = useFavorites()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -126,15 +128,26 @@ const Navbar = () => {
                   <FiPlus className="mr-1" /> Add Listing
                 </Link>
                 {isAuthenticated && (
-                  <Link to="/messages" className="text-secondary-700 hover:text-primary relative">
-                    <FiMessageCircle className="inline-block" />
-                    <span className="ml-1">Messages</span>
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </Link>
+                  <>
+                    <Link to="/favorites" className="text-secondary-700 hover:text-primary relative">
+                      <FiHeart className="inline-block" />
+                      <span className="ml-1">Favorites</span>
+                      {favorites.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {favorites.length > 9 ? "9+" : favorites.length}
+                        </span>
+                      )}
+                    </Link>
+                    <Link to="/messages" className="text-secondary-700 hover:text-primary relative">
+                      <FiMessageCircle className="inline-block" />
+                      <span className="ml-1">Messages</span>
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  </>
                 )}
                 <div
                   className="relative"
@@ -235,16 +248,32 @@ const Navbar = () => {
                   <FiPlus className="mr-2" /> Add Listing
                 </Link>
                 {isAuthenticated && (
-                  <Link
-                    to="/messages"
-                    className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <FiMessageCircle className="mr-2" /> Messages
-                    {unreadCount > 0 && (
-                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">{unreadCount}</span>
-                    )}
-                  </Link>
+                  <>
+                    <Link
+                      to="/favorites"
+                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FiHeart className="mr-2" /> Favorites
+                      {favorites.length > 0 && (
+                        <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                          {favorites.length}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      to="/messages"
+                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <FiMessageCircle className="mr-2" /> Messages
+                      {unreadCount > 0 && (
+                        <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  </>
                 )}
                 <Link
                   to="/dashboard"
