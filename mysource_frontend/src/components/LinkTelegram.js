@@ -1,53 +1,35 @@
-"use client"
-
 import { useState } from "react"
-import { useAuth } from "../contexts/AuthContext"
-import { FaTelegram } from "react-icons/fa"
-import { FiX, FiCheck, FiInfo } from "react-icons/fi"
 import axios from "axios"
+import { REACT_APP_API_URL } from "../config"
 import toast from "react-hot-toast"
-import { Link } from "react-router-dom"
+import { BsTelegram } from "react-icons/bs"
+import { FiAlertCircle } from "react-icons/fi"
 
-const LinkTelegram = () => {
-  const { user, token, updateProfile } = useAuth()
-  const [telegramId, setTelegramId] = useState("")
-  const [verificationCode, setVerificationCode] = useState("")
-  const [showVerification, setShowVerification] = useState(false)
-  const [, setGeneratedCode] = useState("")
+const LinkTelegram = ({ user, onUpdate }) => {
+  const [code, setCode] = useState("")
   const [loading, setLoading] = useState(false)
-  const [disconnecting, setDisconnecting] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const botUsername = process.env.REACT_APP_TELEGRAM_BOT_USERNAME || "your_bot_username"
 
-  const generateVerificationCode = () => {
-    // Generate a 6-digit code
-    return Math.floor(100000 + Math.random() * 900000).toString()
-  }
-
-  const handleInitiateLink = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!telegramId.trim()) return
-
     setLoading(true)
     setError("")
+    setSuccess("")
 
     try {
-      // Generate a verification code
-      const code = generateVerificationCode()
-      setGeneratedCode(code)
+      const token = localStorage.getItem("token")
 
-      // Store the code temporarily (in a real app, you'd store this server-side)
-      localStorage.setItem("telegramVerificationCode", code)
+      // Log the request details to console
+      console.log("Sending Telegram verification request:", {
+        code,
+        endpoint: `${REACT_APP_API_URL}/api/telegram/verify-code`, // Fixed endpoint URL
+      })
 
-      // Format the Telegram ID (remove @ if present)
-      const formattedId = telegramId.startsWith("@") ? telegramId : `@${telegramId}`
-
-      // Send verification message to the Telegram user
       const response = await axios.post(
-        "/api/telegram/send-verification",
-        {
-          telegramId: formattedId,
-          code,
-        },
+        `${REACT_APP_API_URL}/api/telegram/verify-code`, // Fixed endpoint URL to match backend route
+        { code },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -55,202 +37,93 @@ const LinkTelegram = () => {
         },
       )
 
-      // Show verification step
-      setShowVerification(true)
-      toast.success("Verification code sent to your Telegram account")
-    } catch (error) {
-      console.error("Error initiating Telegram link:", error)
-      const errorMessage =
-        error.response?.data?.message ||
-        "Failed to send verification code. Please check the Telegram ID and make sure you've started a conversation with our bot."
+      console.log("Telegram verification response:", response.data)
 
-      setError(errorMessage)
-      toast.error(errorMessage)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleVerifyAndLink = async (e) => {
-    e.preventDefault()
-
-    // Get stored code
-    const storedCode = localStorage.getItem("telegramVerificationCode")
-
-    if (verificationCode !== storedCode) {
-      toast.error("Invalid verification code")
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      // Link the account
-      await axios.post(
-        "/api/auth/link-telegram",
-        { telegramId: telegramId.startsWith("@") ? telegramId.substring(1) : telegramId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      // Clear verification data
-      localStorage.removeItem("telegramVerificationCode")
-      setShowVerification(false)
-      setVerificationCode("")
-      setTelegramId("")
-      setError("")
-
-      // Update user data
-      if (updateProfile) {
-        await updateProfile({})
-      }
-
+      setSuccess(response.data.message || "Telegram account linked successfully!")
       toast.success("Telegram account linked successfully!")
-    } catch (error) {
-      console.error("Error linking Telegram account:", error)
-      toast.error("Failed to link Telegram account. Please try again.")
+      if (onUpdate) onUpdate()
+    } catch (err) {
+      console.error("Telegram verification error:", err)
+      console.error("Error response:", err.response?.data)
+
+      setError(
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Failed to link Telegram account. Please try again.",
+      )
+      toast.error(error || "Failed to link Telegram account")
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleDisconnect = async () => {
-    if (!window.confirm("Are you sure you want to disconnect your Telegram account?")) {
-      return
-    }
-
-    setDisconnecting(true)
-
-    try {
-      await axios.post(
-        "/api/auth/unlink-telegram",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      )
-
-      // Update user data
-      if (updateProfile) {
-        await updateProfile({})
-      }
-
-      toast.success("Telegram account disconnected successfully")
-    } catch (error) {
-      console.error("Error disconnecting Telegram account:", error)
-      toast.error("Failed to disconnect Telegram account")
-    } finally {
-      setDisconnecting(false)
-    }
-  }
-
-  if (user?.telegramId) {
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center text-green-600">
-          <FaTelegram className="mr-2" />
-          <span>Telegram account linked: @{user.telegramId}</span>
-        </div>
-
-        <button
-          onClick={handleDisconnect}
-          disabled={disconnecting}
-          className="flex items-center text-red-500 hover:text-red-700 text-sm"
-        >
-          <FiX className="mr-1" />
-          {disconnecting ? "Disconnecting..." : "Disconnect Telegram Account"}
-        </button>
-      </div>
-    )
   }
 
   return (
-    <div className="space-y-4">
-      {!showVerification ? (
-        <form onSubmit={handleInitiateLink} className="space-y-4">
-          <div>
-            <label htmlFor="telegramId" className="label">
-              Telegram Username
-            </label>
-            <div className="flex">
-              <input
-                type="text"
-                id="telegramId"
-                value={telegramId}
-                onChange={(e) => setTelegramId(e.target.value)}
-                placeholder="e.g. @username"
-                className="input flex-grow"
-                required
-                disabled={loading}
-              />
-            </div>
-            <p className="text-xs text-gray-500 mt-1">Enter your Telegram username or ID to receive notifications</p>
-            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-          </div>
-          <button type="submit" className="btn btn-primary flex items-center justify-center" disabled={loading}>
-            <FaTelegram className="mr-2" />
-            {loading ? "Sending Code..." : "Send Verification Code"}
-          </button>
+    <div className="bg-white rounded-lg shadow p-4 mb-4">
+      <h3 className="text-lg font-semibold mb-2 flex items-center">
+        <BsTelegram className="text-blue-500 mr-2" />
+        Link Telegram Account
+      </h3>
 
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-3 text-xs text-blue-700">
-            <p className="font-medium">Important:</p>
-            <p>Before linking, you must first start a conversation with our bot on Telegram:</p>
-            <ol className="list-decimal ml-4 mt-1 space-y-1">
+      {user?.telegramChatId ? (
+        <div className="mb-4">
+          <p className="text-green-600 font-medium">✅ Your Telegram account is linked!</p>
+          <p className="text-sm text-gray-600 mt-1">You will receive notifications about your listings and messages.</p>
+        </div>
+      ) : (
+        <div className="mb-4">
+          <p className="text-sm text-gray-700 mb-3">
+            Link your Telegram account to receive notifications about your listings and messages.
+          </p>
+
+          <div className="bg-blue-50 p-3 rounded-md mb-4">
+            <h4 className="font-medium text-blue-700 mb-2">How to link your account:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-700 space-y-1">
               <li>
-                Search for <strong>@YourBotUsername</strong> on Telegram
+                Search for <span className="font-mono bg-gray-100 px-1 rounded">@{botUsername}</span> on Telegram
               </li>
-              <li>
-                Start a conversation by sending the <strong>/start</strong> command
-              </li>
-              <li>Then return here to complete the linking process</li>
+              <li>Start a chat with the bot by clicking "Start" or sending "/start"</li>
+              <li>The bot will send you a 6-digit verification code</li>
+              <li>Enter that code below to complete the linking process</li>
             </ol>
           </div>
-        </form>
-      ) : (
-        <form onSubmit={handleVerifyAndLink} className="space-y-4">
-          <div>
-            <label htmlFor="verificationCode" className="label">
-              Verification Code
-            </label>
-            <input
-              type="text"
-              id="verificationCode"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              className="input"
-              placeholder="Enter 6-digit code"
-              required
-              disabled={loading}
-            />
-            <p className="text-xs text-gray-500 mt-1">Enter the 6-digit code sent to your Telegram account</p>
-          </div>
-          <div className="flex space-x-2">
-            <button type="submit" className="btn btn-primary flex items-center justify-center" disabled={loading}>
-              <FiCheck className="mr-2" />
-              {loading ? "Verifying..." : "Verify & Link"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowVerification(false)}
-              className="btn btn-outline"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-3 text-sm">
+              <div className="flex items-center text-red-700">
+                <FiAlertCircle className="mr-2" />
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-50 border-l-4 border-green-500 p-3 mb-3 text-sm text-green-700">{success}</div>
+          )}
+
+          <form onSubmit={handleSubmit} className="mt-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Enter verification code"
+                className="border rounded px-3 py-2 w-full sm:w-auto"
+                maxLength={6}
+                required
+              />
+              <button
+                type="submit"
+                disabled={loading || !code}
+                className={`px-4 py-2 rounded font-medium ${
+                  loading ? "bg-gray-300 text-gray-700" : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {loading ? "Linking..." : "Link Account"}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <Link to="/telegram-setup" className="text-sm text-primary hover:underline flex items-center">
-          <FiInfo className="mr-1" size={14} />
-          How to set up your Telegram bot
-        </Link>
-      </div>
     </div>
   )
 }

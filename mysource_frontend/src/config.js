@@ -1,5 +1,5 @@
 // API URL
-export const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
+export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
 // Format options
 export const CURRENCY_FORMAT = {
@@ -20,6 +20,7 @@ export const CAMPUSES = [
 export const PRODUCT_CATEGORIES = [
   { value: "electronics", label: "Electronics" },
   { value: "books", label: "Books" },
+  { value: "lodges", label: "Lodges" },
   { value: "clothing", label: "Clothing" },
   { value: "furniture", label: "Furniture" },
   { value: "other", label: "Other" },

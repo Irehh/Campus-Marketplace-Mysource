@@ -5,7 +5,7 @@ const eventEmitter = new EventEmitter()
 
 // Store recent events to send to new clients
 const recentEvents = []
-const MAX_STORED_EVENTS = 5
+const MAX_STORED_EVENTS = 2
 
 // SSE endpoint
 export const eventsHandler = (req, res) => {

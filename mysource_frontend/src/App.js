@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Routes, Route } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google"
@@ -25,6 +23,13 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
 import EditProductPage from "./pages/UserDashboard/EditProductPage"
 import EditBusinessPage from "./pages/UserDashboard/EditBusinessPage"
+import OfflineIndicator from "./components/OfflineIndicator"
+import NotificationSettingsPage from "./pages/NotificationSettingsPage"
+import FavoritesPage from "./pages/FavoritesPage"
+// Import the TelegramSetupGuide component
+import TelegramSetupGuide from "./pages/TelegramSetupGuide"
+// Import the TelegramInstructionsPage component
+import TelegramInstructionsPage from "./pages/TelegramInstructionsPage"
 
 // Admin pages
 import AdminDashboard from "./pages/admin/AdminDashboard"
@@ -33,14 +38,11 @@ import AdminProducts from "./pages/admin/AdminProducts"
 import AdminBusinesses from "./pages/admin/AdminBusinesses"
 import AdminRoute from "./components/AdminRoute"
 
-// Import the TelegramSetupGuide component
-import TelegramSetupGuide from "./pages/TelegramSetupGuide"
-// Import the TelegramInstructionsPage component
-import TelegramInstructionsPage from "./pages/TelegramInstructionsPage"
-
 function App() {
   const { user, isAuthenticated } = useAuth()
   const [showCampusSelection, setShowCampusSelection] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState(null)
+  const [showInstallBanner, setShowInstallBanner] = useState(false)
 
   // Check if user needs to select a campus
   useEffect(() => {
@@ -53,9 +55,80 @@ function App() {
     }
   }, [isAuthenticated, user])
 
+  // Handle PWA install prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      setShowInstallBanner(true)
+      // Prevent Chrome 76+ from automatically showing the prompt
+      e.preventDefault()
+      // Stash the event so it can be triggered later
+      setInstallPrompt(e)
+      // Show install banner if user hasn't dismissed it before
+      const hasUserDismissedInstall = localStorage.getItem("dismissedInstall")
+      if (!hasUserDismissedInstall) {
+        setShowInstallBanner(true)
+      }
+    }
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
+    }
+  }, [])
+
+  // Handle install banner
+  const handleInstall = () => {
+    if (installPrompt) {
+      // Show the install prompt
+      installPrompt.prompt()
+
+      // Wait for the user to respond to the prompt
+      installPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("User accepted the install prompt")
+        } else {
+          console.log("User dismissed the install prompt")
+        }
+        // Clear the saved prompt since it can't be used again
+        setInstallPrompt(null)
+        setShowInstallBanner(false)
+      })
+    }
+  }
+
+  const dismissInstallBanner = () => {
+    setShowInstallBanner(false)
+    localStorage.setItem("dismissedInstall", "true")
+  }
+
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       {showCampusSelection && <RequiredCampusSelection onComplete={() => setShowCampusSelection(false)} />}
+
+      {/* PWA Install Banner */}
+      {showInstallBanner && (
+        <div className="fixed bottom-0 left-0 right-0 bg-primary text-white p-3 flex justify-between items-center z-50">
+          <div>
+            <p className="font-medium">Install Campus Marketplace</p>
+            <p className="text-xs">Add to your home screen for a better experience</p>
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={dismissInstallBanner}
+              className="px-3 py-1 text-xs bg-transparent border border-white rounded-md"
+            >
+              Not now
+            </button>
+            <button onClick={handleInstall} className="px-3 py-1 text-xs bg-white text-primary font-medium rounded-md">
+              Install
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Indicator */}
+      <OfflineIndicator />
 
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -80,8 +153,10 @@ function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="messages/:userId" element={<ConversationPage />} />
             <Route path="dashboard" element={<UserDashboardPage />} />
+            <Route path="notification-settings" element={<NotificationSettingsPage />} />
             <Route path="edit-product/:id" element={<EditProductPage />} />
             <Route path="edit-business/:id" element={<EditBusinessPage />} />
+            <Route path="favorites" element={<FavoritesPage />} />
           </Route>
 
           {/* Admin Routes */}
@@ -100,4 +175,3 @@ function App() {
 }
 
 export default App
-

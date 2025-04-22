@@ -1,4 +1,4 @@
-// Update the index.js file to make Telegram bot polling optional
+
 
 import "dotenv/config"
 import express from "express"
@@ -15,9 +15,11 @@ import businessRoutes from "./routes/businessRoutes.js"
 import searchRoutes from "./routes/searchRoutes.js"
 import telegramRoutes from "./routes/telegramRoutes.js"
 import eventsRoutes from "./routes/eventsRoutes.js"
+import favoriteRoutes from "./routes/favoriteRoutes.js"
 import messageRoutes from "./routes/messageRoutes.js"
 import commentRoutes from "./routes/commentRoutes.js"
-import adminRoutes from "./routes/adminRoutes.js" // Add admin routes
+import adminRoutes from "./routes/adminRoutes.js"
+import pushRoutes from "./routes/pushRoutes.js"
 
 // Import middleware
 import { errorHandler } from "./middleware/errorMiddleware.js"
@@ -40,11 +42,18 @@ app.use(
     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  }),
+  })
 )
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(morgan("dev"))
+
+// Optional: Customize Morgan logging (only log errors, not all requests)
+// Comment out or remove this line to disable all Morgan logging
+app.use(
+  morgan("dev", {
+    skip: (req, res) => res.statusCode < 400, // Only log requests with errors (400+)
+  })
+)
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "..", process.env.UPLOAD_DIR || "uploads")))
@@ -61,11 +70,20 @@ app.use("/api/telegram", telegramRoutes)
 app.use("/api/events", eventsRoutes)
 app.use("/api/messages", messageRoutes)
 app.use("/api/comments", commentRoutes)
-app.use("/api/admin", adminRoutes) // Add admin routes
+app.use("/api/favorites", favoriteRoutes)
+app.use("/api/admin", adminRoutes)
+app.use("/api/push", pushRoutes)
 
 // Health check route
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() })
+})
+
+// Catch-all for undefined routes (e.g., PUT /auth/profile 404)
+app.use((req, res, next) => {
+  const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`)
+  error.status = 404
+  next(error)
 })
 
 // Error handling middleware
@@ -73,54 +91,59 @@ app.use(errorHandler)
 
 // Start the Telegram bot if configured
 if (process.env.ENABLE_TELEGRAM === "true") {
-  let bot // Declare bot here
+  let bot
   try {
-    bot = await startBot()
-    // Make the bot instance available globally
+    bot = startBot()
     global.bot = bot
-    console.log("Telegram bot started successfully")
+    console.info("Telegram bot started successfully")
 
-    // Schedule unread message notifications if polling is enabled
     if (process.env.TELEGRAM_USE_POLLING === "true") {
-      // Run less frequently to reduce potential errors
       const notificationInterval = 4 * 60 * 60 * 1000 // 4 hours
       const notificationTimer = setInterval(async () => {
         try {
           await sendUnreadMessageNotifications()
         } catch (error) {
-          console.error("Error sending notifications:", error)
-          // Don't stop the interval for errors
+          console.error("Error sending notifications:", {
+            message: error.message,
+            stack: error.stack,
+          })
         }
       }, notificationInterval)
 
-      // Clean shutdown of notification timer
       process.on("SIGTERM", () => {
         clearInterval(notificationTimer)
       })
     }
   } catch (error) {
-    console.error("Failed to start Telegram bot:", error)
-    console.log("Telegram features will be disabled")
+    console.error("Failed to start Telegram bot:", {
+      message: error.message,
+      stack: error.stack,
+    })
+    console.warn("Telegram features will be disabled")
   }
 } else {
-  console.log("Telegram bot is disabled. Set ENABLE_TELEGRAM=true to enable it.")
+  console.info("Telegram bot is disabled. Set ENABLE_TELEGRAM=true to enable it.")
 }
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-  console.log(`Environment: ${process.env.NODE_ENV}`)
+  console.info(`Server running on port ${PORT}`)
+  console.info(`Environment: ${process.env.NODE_ENV}`)
 })
 
 // Handle graceful shutdown
 process.on("SIGTERM", () => {
-  console.log("SIGTERM received, shutting down gracefully")
+  console.info("SIGTERM received, shutting down gracefully")
   process.exit(0)
 })
 
+// Improved error logging for uncaught exceptions
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught Exception:", error)
-  // Don't exit the process for non-critical errors
+  console.error("Uncaught Exception:", {
+    message: error.message,
+    stack: error.stack,
+    code: error.code,
+  })
   if (error.code === "EFATAL" || error.code === "ENOTFOUND") {
     console.warn("Non-critical error caught, continuing execution")
   } else {
@@ -128,13 +151,19 @@ process.on("uncaughtException", (error) => {
   }
 })
 
+// Improved error logging for unhandled rejections
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason)
-  // Don't exit the process for network-related errors
+  console.error("Unhandled Rejection:", {
+    promise,
+    reason: reason instanceof Error ? {
+      message: reason.message,
+      stack: reason.stack,
+      code: reason.code,
+    } : reason,
+  })
   if (reason && (reason.code === "EFATAL" || reason.code === "ENOTFOUND")) {
     console.warn("Non-critical rejection caught, continuing execution")
   } else {
     process.exit(1)
   }
 })
-

@@ -2,3 +2,7 @@ mysource_backend/node_modules/
 mysource_frontend/node_modules/
 mysource_backend/.env
 mysource_frontend/.env
+mysource_backend/dist/
+mysource_frontend/dist/
+mysource_backend/logs/
+mysource_backend/uploads/

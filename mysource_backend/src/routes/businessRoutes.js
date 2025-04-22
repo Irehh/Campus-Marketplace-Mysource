@@ -8,6 +8,7 @@ import {
   getUserBusinesses,
   addBusinessImages,
   deleteBusinessImage,
+  getBusinessesByIds
 } from "../controllers/businessController.js"
 import { authenticate, optionalAuth } from "../middleware/authMiddleware.js"
 
@@ -15,10 +16,11 @@ const router = express.Router()
 
 // Public/optional auth routes
 router.get("/", optionalAuth, getBusinesses)
+router.get("/user", authenticate, getUserBusinesses)
 router.get("/:id", optionalAuth, getBusinessById)
 
 // Protected routes
-router.get("/user", authenticate, getUserBusinesses)
+
 router.post(
   "/",
   authenticate,
@@ -48,6 +50,9 @@ router.post(
 )
 
 router.delete("/:id/images/:imageId", authenticate, deleteBusinessImage)
+
+// Add this route to your existing routes
+router.get('/batch', authenticate, getBusinessesByIds)
 
 export default router
 

@@ -122,3 +122,6 @@ To properly connect your Telegram bot, you need to:
 
 
 The webhook must point to your backend because that's where the Telegram controller logic is implemented. The frontend just provides the UI for users to link their accounts.
+
+
+curl -X POST "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=<YOUR_BACKEND_URL>/api/telegram/webhook"

@@ -1,435 +1,1386 @@
-import { PrismaClient } from "@prisma/client"
-import TelegramBot from "node-telegram-bot-api"
-import { processImage } from "../utils/imageUtils.js"
-import { emitEvent } from "../utils/eventEmitter.js"
+// import { PrismaClient } from "@prisma/client"
+// import TelegramBot from "node-telegram-bot-api"
+// import fs from "fs"
+// import path from "path"
+// import { fileURLToPath } from "url"
+// import sharp from "sharp"
 
-const prisma = new PrismaClient()
-let bot = null
+// const prisma = new PrismaClient()
+// let bot = null
 
-export const handleWebhook = async (req, res) => {
-  try {
-    const { message } = req.body
+// // Get current directory
+// const __filename = fileURLToPath(import.meta.url)
+// const __dirname = path.dirname(__filename)
 
-    if (!message) {
-      return res.sendStatus(200)
-    }
+// // Generate a random 6-digit code
+// const generateVerificationCode = () => {
+//   return Math.floor(100000 + Math.random() * 900000).toString()
+// }
 
-    const chatId = message.chat.id
-    const username = message.from.username
-    const text = message.text || ""
-    const photos = message.photo || []
+// // Initialize the Telegram bot
+// export const startBot = () => {
+//   try {
+//     if (!process.env.TELEGRAM_BOT_TOKEN) {
+//       console.warn("Telegram bot token not provided, bot will not be initialized")
+//       return null
+//     }
 
-    // Check if the user's Telegram ID is linked to an account
-    const user = await prisma.user.findUnique({
-      where: { telegramId: username || chatId.toString() },
-    })
+//     const usePolling = process.env.TELEGRAM_USE_POLLING === "true"
+//     const options = {
+//       polling: usePolling
+//         ? {
+//             timeout: 10, // 10 seconds polling timeout
+//             limit: 100, // Get up to 100 updates at once
+//             allowed_updates: ["message", "callback_query"],
+//             params: {
+//               timeout: 10, // API request timeout
+//             },
+//           }
+//         : false,
+//     }
 
-    if (!user) {
-      if (bot) {
-        await bot.sendMessage(
-          chatId,
-          "Your Telegram account is not linked to Campus Marketplace. Please link your account first.",
-        )
-      }
-      return res.sendStatus(200)
-    }
+//     bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, options)
 
-    if (text.startsWith("/search")) {
-      // Handle search
-      const query = text.replace("/search", "").trim()
+//     // Set up command handlers
+//     setupCommandHandlers(bot)
 
-      if (!query) {
-        if (bot) {
-          await bot.sendMessage(chatId, "Please provide a search term. Example: /search laptop")
-        }
-        return res.sendStatus(200)
-      }
+//     // Set up message handlers
+//     setupMessageHandlers(bot)
 
-      // Search for products
-      const products = await prisma.product.findMany({
-        where: {
-          campus: user.campus,
-          OR: [
-            { description: { contains: query, mode: "insensitive" } },
-            { category: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      })
+//     console.info("Telegram bot initialized successfully")
 
-      // Search for businesses
-      const businesses = await prisma.business.findMany({
-        where: {
-          campus: user.campus,
-          OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            { category: { contains: query, mode: "insensitive" } },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      })
+//     if (usePolling) {
+//       // Set up polling with timeout
+//       setupPollingWithTimeout(bot)
 
-      // Format and send results
-      let responseText = `Search results for "${query}":
+//       // Add error handlers
+//       bot.on("error", (error) => {
+//         console.error("Telegram bot error:", error.message || error)
+//         // Don't crash the server for Telegram errors
+//       })
 
-`
+//       bot.on("polling_error", (error) => {
+//         console.error("Telegram polling error:", error.message || error)
+//         // Don't restart polling for network errors
+//         if (error.code === "ETIMEDOUT" || error.code === "ECONNRESET" || error.code === "ENOTFOUND") {
+//           console.warn("Network error in Telegram polling. Will retry automatically.")
+//         }
+//       })
+//     }
 
-      if (products.length > 0) {
-        responseText += "📦 PRODUCTS:\n"
-        products.forEach((product, index) => {
-          const shortDesc =
-            product.description.length > 50 ? product.description.substring(0, 50) + "..." : product.description
+//     return bot
+//   } catch (error) {
+//     console.error("Failed to initialize Telegram bot", { error: error.message })
+//     return null
+//   }
+// }
 
-          responseText += `${index + 1}. ${shortDesc}\n`
-          responseText += `   Price: ${product.price ? `₦${product.price}` : "Not specified"}\n`
-          responseText += `   Link: ${process.env.FRONTEND_URL}/products/${product.id}\n\n`
-        })
-      }
+// // Set up command handlers for the bot
+// const setupCommandHandlers = (bot) => {
+//   // Handle /start command
+//   bot.onText(/\/start/, async (msg) => {
+//     try {
+//       const chatId = msg.chat.id
+//       const username = msg.from.username
 
-      if (businesses.length > 0) {
-        responseText += "🏪 BUSINESSES:\n"
-        businesses.forEach((business, index) => {
-          responseText += `${index + 1}. ${business.name}\n`
-          responseText += `   Link: ${process.env.FRONTEND_URL}/businesses/${business.id}\n\n`
-        })
-      }
+//       console.info("User started bot", { chatId, username })
 
-      if (products.length === 0 && businesses.length === 0) {
-        responseText += "No results found for your search."
-      }
+//       // Check if user is already linked
+//       const existingUser = await prisma.user.findFirst({
+//         where: { telegramChatId: chatId.toString() },
+//       })
 
-      if (bot) {
-        await bot.sendMessage(chatId, responseText)
-      }
-    } else if (photos.length > 0 && bot) {
-      // Handle product listing
-      const photo = photos[photos.length - 1]
-      const fileId = photo.file_id
+//       if (existingUser) {
+//         await bot.sendMessage(
+//           chatId,
+//           `Welcome back, ${existingUser.name || "User"}! Your account is already linked with Campus Marketplace.
 
-      const fileInfo = await bot.getFile(fileId)
-      const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${fileInfo.file_path}`
+// You can:
+// • Send text to search for products and businesses
+// • Send an image with caption to post a new product`,
+//           { parse_mode: "Markdown" },
+//         )
+//         return
+//       }
 
-      // Download and process the image
-      const { url, thumbnailUrl } = await processImage(fileUrl)
+//       // Generate a verification code
+//       const code = generateVerificationCode()
 
-      // Parse product details from caption
-      const description = text || "No description provided"
-      let price = null
+//       // First, try to find an existing verification for this chat ID
+//       const existingVerification = await prisma.verification.findFirst({
+//         where: { telegramChatId: chatId.toString() },
+//       })
 
-      const priceMatch = description.match(/price:?\s*(\d+)/i)
-      if (priceMatch) price = Number.parseFloat(priceMatch[1])
+//       if (existingVerification) {
+//         // Update the existing verification
+//         await prisma.verification.update({
+//           where: { id: existingVerification.id },
+//           data: {
+//             code,
+//             expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+//           },
+//         })
+//       } else {
+//         // Create a new verification
+//         await prisma.verification.create({
+//           data: {
+//             telegramChatId: chatId.toString(),
+//             code,
+//             expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+//           },
+//         })
+//       }
 
-      // Create product
-      const product = await prisma.product.create({
-        data: {
-          description: description.length > 500 ? description.substring(0, 500) + "..." : description,
-          price,
-          campus: user.campus,
-          userId: user.id,
-          images: {
-            create: [{ url, thumbnailUrl }],
-          },
-        },
-      })
+//       // Send welcome message with verification code
+//       await bot.sendMessage(
+//         chatId,
+//         `Welcome to Campus Marketplace! 🎉\n\nYour verification code is: *${code}*\n\nThis code will expire in 1 hour. Enter it on your profile page to link your Telegram account.`,
+//         { parse_mode: "Markdown" },
+//       )
 
-      // Emit event for real-time updates
-      emitEvent("newProduct", {
-        message: `New product added via Telegram: ${description.substring(0, 30)}...`,
-        campus: user.campus,
-      })
+//       // Store the chat ID for this user if we have their username
+//       if (username) {
+//         try {
+//           // Check if we have a user with this username
+//           const user = await prisma.user.findFirst({
+//             where: {
+//               OR: [{ telegramId: username }, { telegramId: username.toLowerCase() }],
+//             },
+//           })
 
-      await bot.sendMessage(
-        chatId,
-        `Product added successfully!
-Description: ${description.substring(0, 50)}...
-Price: ${price ? `₦${price}` : "Not specified"}
-View your product: ${process.env.FRONTEND_URL}/products/${product.id}`,
-      )
-    } else if (bot) {
-      await bot.sendMessage(
-        chatId,
-        `Welcome to Campus Marketplace!
+//           if (user) {
+//             // Update the user with their actual chat ID for more reliable messaging
+//             await prisma.user.update({
+//               where: { id: user.id },
+//               data: {
+//                 telegramChatId: chatId.toString(),
+//                 // Keep the username as well for backward compatibility
+//                 telegramId: username,
+//               },
+//             })
+//           }
+//         } catch (error) {
+//           console.error("Error updating user Telegram chat ID:", error)
+//         }
+//       }
+//     } catch (error) {
+//       console.error("Error handling /start command", { error: error.message })
+//     }
+//   })
 
-Available commands:
-/start - Show this help message
-/search [query] - Search for products and businesses
-       
-To add a product: Send a photo with caption in this format:
-Product Description
-Price: 1000 (optional)
+//   // Handle /help command
+//   bot.onText(/\/help/, async (msg) => {
+//     try {
+//       const chatId = msg.chat.id
 
-Your products will be posted to your campus: ${user.campus.toUpperCase()}`,
-      )
-    }
+//       await bot.sendMessage(
+//         chatId,
+//         `*Campus Marketplace Bot Help*\n\n` +
+//           `• /start - Get a verification code to link your account\n` +
+//           `• /help - Show this help message\n\n` +
+//           `After linking your account, you can:\n` +
+//           `• Send text to search for products and businesses\n` +
+//           `• Send an image with caption to post a new product`,
+//         { parse_mode: "Markdown" },
+//       )
+//     } catch (error) {
+//       console.error("Error handling /help command", { error: error.message })
+//     }
+//   })
+// }
 
-    res.sendStatus(200)
-  } catch (error) {
-    console.error("Telegram webhook error:", error)
-    res.status(500).json({ error: "Failed to process webhook" })
-  }
-}
+// // Set up message handlers for the bot
+// const setupMessageHandlers = (bot) => {
+//   // Handle regular messages (not commands)
+//   bot.on("message", async (msg) => {
+//     try {
+//       // Skip command messages (they're handled separately)
+//       if (msg.text && msg.text.startsWith("/")) {
+//         return
+//       }
 
-// Send verification code to Telegram user
-export const sendVerificationCode = async (req, res) => {
-  const { telegramId, code } = req.body
+//       const chatId = msg.chat.id
 
-  if (!telegramId || !code) {
-    return res.status(400).json({ message: "Telegram ID and verification code are required" })
-  }
+//       // Check if user is linked
+//       const user = await prisma.user.findFirst({
+//         where: { telegramChatId: chatId.toString() },
+//       })
 
-  try {
-    // Check if bot is initialized
-    if (!bot) {
-      return res.status(500).json({ message: "Telegram bot is not initialized" })
-    }
+//       if (!user) {
+//         await bot.sendMessage(
+//           chatId,
+//           "Your account is not linked with Campus Marketplace. Please use /start to get a verification code and link your account.",
+//           { parse_mode: "Markdown" },
+//         )
+//         return
+//       }
 
-    // Format the Telegram ID correctly
-    // Remove @ if present for internal processing
-    const formattedId = telegramId.startsWith("@") ? telegramId.substring(1) : telegramId
+//       // Handle image with caption (product upload)
+//       if (msg.photo && msg.photo.length > 0) {
+//         await handleProductUpload(bot, msg, user)
+//         return
+//       }
 
-    // Try multiple methods to send the message
-    let success = false
-    let errorMessage = ""
+//       // Handle text message (search)
+//       if (msg.text) {
+//         await handleSearch(bot, msg, user)
+//         return
+//       }
 
-    // Method 1: Try to send by username
-    try {
-      await bot.sendMessage(
-        `@${formattedId}`,
-        `Your Campus Marketplace verification code is: ${code}
+//       // If we get here, it's an unsupported message type
+//       await bot.sendMessage(
+//         chatId,
+//         "I can only process text messages for search or images with captions for product uploads.",
+//         { parse_mode: "Markdown" },
+//       )
+//     } catch (error) {
+//       console.error("Error handling message:", error)
+//       try {
+//         await bot.sendMessage(msg.chat.id, "Sorry, there was an error processing your message. Please try again later.")
+//       } catch (sendError) {
+//         console.error("Error sending error message:", sendError)
+//       }
+//     }
+//   })
+// }
 
-This code will expire in 10 minutes.`,
-      )
-      success = true
-    } catch (error) {
-      errorMessage = error.message || "Failed to send by username"
-      console.error("Error sending by username:", errorMessage)
-    }
+// // Handle product upload from image with caption
+// const handleProductUpload = async (bot, msg, user) => {
+//   try {
+//     const chatId = msg.chat.id
+//     const caption = msg.caption || ""
 
-    // Method 2: If username fails, try to find the user in our database with their chat ID
-    if (!success) {
-      try {
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [{ telegramId: formattedId }, { telegramId: formattedId.toLowerCase() }],
-          },
-        })
+//     // Check if caption exists
+//     if (!caption) {
+//       await bot.sendMessage(
+//         chatId,
+//         "Please provide a caption with your image. The caption should include the product title and description.",
+//         { parse_mode: "Markdown" },
+//       )
+//       return
+//     }
 
-        if (user && user.telegramChatId) {
-          await bot.sendMessage(
-            user.telegramChatId,
-            `Your Campus Marketplace verification code is: ${code}
+//     // Get the largest photo
+//     const photo = msg.photo[msg.photo.length - 1]
+//     const fileId = photo.file_id
 
-This code will expire in 10 minutes.`,
-          )
-          success = true
-        } else {
-          errorMessage += " | No stored chat ID found"
-        }
-      } catch (error) {
-        errorMessage += " | " + (error.message || "Failed to send by stored chat ID")
-        console.error("Error sending by stored chat ID:", error)
-      }
-    }
+//     // Get file path from Telegram
+//     const file = await bot.getFile(fileId)
+//     const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`
 
-    // Method 3: Try to find the chat ID from recent updates
-    if (!success) {
-      try {
-        const updates = await bot.getUpdates({ limit: 100 })
-        const userChat = updates.find(
-          (update) =>
-            update.message &&
-            update.message.from &&
-            (update.message.from.username === formattedId ||
-              update.message.from.username?.toLowerCase() === formattedId.toLowerCase() ||
-              update.message.from.id.toString() === formattedId),
-        )
+//     // Create uploads directory if it doesn't exist
+//     const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || "uploads")
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true })
+//     }
 
-        if (userChat && userChat.message && userChat.message.chat) {
-          const chatId = userChat.message.chat.id
+//     // Download the file using fetch
+//     const response = await fetch(fileUrl)
+//     if (!response.ok) {
+//       throw new Error(`Failed to download image: ${response.status} ${response.statusText}`)
+//     }
 
-          // Store this chat ID for future use
-          if (req.user && req.user.id) {
-            try {
-              await prisma.user.update({
-                where: { id: req.user.id },
-                data: { telegramChatId: chatId.toString() },
-              })
-            } catch (dbError) {
-              console.error("Failed to store Telegram chat ID:", dbError)
-            }
-          }
+//     // Get the image buffer
+//     const buffer = Buffer.from(await response.arrayBuffer())
 
-          // Send using chat ID
-          await bot.sendMessage(
-            chatId,
-            `Your Campus Marketplace verification code is: ${code}
+//     // Generate a unique filename
+//     const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`
+//     const filePath = path.join(uploadDir, filename)
+//     const relativePath = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/uploads/${filename}`
 
-This code will expire in 10 minutes.`,
-          )
-          success = true
-        } else {
-          errorMessage += " | User not found in recent updates"
-        }
-      } catch (error) {
-        errorMessage += " | " + (error.message || "Failed to get updates")
-        console.error("Error getting updates:", error)
-      }
-    }
+//     // Generate thumbnail filename
+//     const thumbnailFilename = `thumb_${filename}`
+//     const thumbnailPath = path.join(uploadDir, thumbnailFilename)
+//     const thumbnailRelativePath = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/uploads/${thumbnailFilename}`
 
-    if (success) {
-      res.json({ message: "Verification code sent successfully" })
-    } else {
-      res.status(400).json({
-        message:
-          "Failed to send verification code. Please make sure you've started a conversation with our bot first by searching for @" +
-          process.env.TELEGRAM_BOT_USERNAME +
-          " on Telegram and sending it a /start message.",
-        details: errorMessage,
-      })
-    }
-  } catch (error) {
-    console.error("Error sending verification code:", error)
-    res.status(500).json({
-      message: "Failed to send verification code. Please make sure you've started a conversation with our bot first.",
-    })
-  }
-}
+//     // Process and save the main image
+//     await sharp(buffer)
+//       .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+//       .webp({ quality: 80 })
+//       .toFile(filePath)
 
-// Function to start the bot and set up commands
+//     // Create thumbnail
+//     await sharp(buffer).resize(200, 200, { fit: "cover" }).webp({ quality: 60 }).toFile(thumbnailPath)
+
+//     // Parse caption for title and description
+//     let title = caption
+//     let description = ""
+
+//     // If caption contains a newline, split into title and description
+//     if (caption.includes("\n")) {
+//       const parts = caption.split("\n")
+//       title = parts[0].trim()
+//       description = parts.slice(1).join("\n").trim()
+//     }
+
+//     // Create the product
+//     const product = await prisma.product.create({
+//       data: {
+//         description: description || title, // Use title as description if none provided
+//         price: null, // Price is null as specified
+//         category: "Other", // Default category
+//         campus: user.campus || "default", // Use user's campus
+//         userId: user.id,
+//         isDisabled: false,
+//         viewCount: 0,
+//       },
+//     })
+
+//     // Create the image record with both URLs
+//     await prisma.image.create({
+//       data: {
+//         url: relativePath,
+//         thumbnailUrl: thumbnailRelativePath,
+//         productId: product.id,
+//       },
+//     })
+
+//     // Send confirmation
+//     await bot.sendMessage(
+//       chatId,
+//       `✅ Product posted successfully!\n\n*${title}*\n\nView it on the marketplace: ${process.env.FRONTEND_URL}/products/${product.id}`,
+//       { parse_mode: "Markdown" },
+//     )
+
+//     console.info(`User ${user.id} posted product ${product.id} via Telegram`)
+
+//     // Check for keyword notifications
+//     await sendKeywordNotifications(product, description || title)
+//   } catch (error) {
+//     console.error("Error handling product upload:", error)
+//     await bot.sendMessage(msg.chat.id, "Sorry, there was an error posting your product. Please try again later.")
+//   }
+// }
+
+// // Send notifications to users who have matching keywords
+// const sendKeywordNotifications = async (product, description) => {
+//   try {
+//     // Find all users with notification keywords
+//     const usersWithKeywords = await prisma.user.findMany({
+//       where: {
+//         notificationKeywords: {
+//           not: null,
+//         },
+//       },
+//       select: {
+//         id: true,
+//         name: true,
+//         email: true,
+//         telegramChatId: true,
+//         notifyByTelegram: true,
+//         notificationKeywords: true,
+//       },
+//     })
+
+//     if (usersWithKeywords.length === 0) return
+
+//     // Check each user's keywords against the product description
+//     for (const user of usersWithKeywords) {
+//       if (!user.notificationKeywords) continue
+
+//       // Parse keywords (comma-separated)
+//       const keywords = user.notificationKeywords
+//         .split(",")
+//         .map((k) => k.trim().toLowerCase())
+//         .filter((k) => k.length > 0)
+
+//       if (keywords.length === 0) continue
+
+//       // Check if any keyword matches the description
+//       const descriptionLower = description.toLowerCase()
+//       const matchingKeywords = keywords.filter((keyword) => descriptionLower.includes(keyword))
+
+//       if (matchingKeywords.length === 0) continue
+
+//       // We have a match! Send notification
+//       console.log(`Sending keyword notification to user ${user.id} for keywords: ${matchingKeywords.join(", ")}`)
+
+//       // Send Telegram notification if enabled
+//       if (user.notifyByTelegram && user.telegramChatId) {
+//         try {
+//           await bot.sendMessage(
+//             user.telegramChatId,
+//             `🔔 *New Product Alert!*\n\nA new product matching your keywords (${matchingKeywords.join(", ")}) has been posted:\n\n*${description.substring(0, 50)}${description.length > 50 ? "..." : ""}*\n\nView it here: ${process.env.FRONTEND_URL}/products/${product.id}`,
+//             { parse_mode: "Markdown" },
+//           )
+//         } catch (error) {
+//           console.error(`Failed to send Telegram notification to user ${user.id}:`, error)
+//         }
+//       }
+
+//       // TODO: Send push notification if implemented
+//     }
+//   } catch (error) {
+//     console.error("Error sending keyword notifications:", error)
+//   }
+// }
+
+// // Handle search from text message
+// const handleSearch = async (bot, msg, user) => {
+//   try {
+//     const chatId = msg.chat.id
+//     const searchQuery = msg.text.trim()
+
+//     if (searchQuery.length < 2) {
+//       await bot.sendMessage(chatId, "Please provide a longer search term (at least 2 characters).")
+//       return
+//     }
+
+//     // Search for products (limit 10)
+//     const products = await prisma.product.findMany({
+//       where: {
+//         OR: [{ description: { contains: searchQuery } }, { category: { contains: searchQuery } }],
+//         isDisabled: false,
+//         campus: user.campus || undefined, // Filter by user's campus if available
+//       },
+//       include: {
+//         images: true,
+//         user: {
+//           select: {
+//             id: true,
+//             name: true,
+//           },
+//         },
+//       },
+//       orderBy: { createdAt: "desc" },
+//       take: 10,
+//     })
+
+//     // Search for businesses (limit 5)
+//     const businesses = await prisma.business.findMany({
+//       where: {
+//         OR: [
+//           { name: { contains: searchQuery } },
+//           { description: { contains: searchQuery } },
+//           { category: { contains: searchQuery } },
+//         ],
+//         isDisabled: false,
+//         campus: user.campus || undefined, // Filter by user's campus if available
+//       },
+//       include: {
+//         images: true,
+//         user: {
+//           select: {
+//             id: true,
+//             name: true,
+//           },
+//         },
+//       },
+//       orderBy: { createdAt: "desc" },
+//       take: 5,
+//     })
+
+//     // Prepare response message
+//     let responseMessage = `🔍 *Search results for "${searchQuery}"*\n\n`
+
+//     if (products.length === 0 && businesses.length === 0) {
+//       responseMessage += "No results found. Try a different search term."
+//     } else {
+//       // Add products to response
+//       if (products.length > 0) {
+//         responseMessage += `*Products (${products.length}):*\n`
+//         products.forEach((product, index) => {
+//           const price = product.price ? `₦${product.price}` : "Price not specified"
+//           responseMessage += `${index + 1}. *${product.description.substring(0, 30)}${product.description.length > 30 ? "..." : ""}* - ${price}\n`
+//           responseMessage += `   ${process.env.FRONTEND_URL}/products/${product.id}\n\n`
+//         })
+//       }
+
+//       // Add businesses to response
+//       if (businesses.length > 0) {
+//         responseMessage += `*Businesses (${businesses.length}):*\n`
+//         businesses.forEach((business, index) => {
+//           responseMessage += `${index + 1}. *${business.name}*\n`
+//           responseMessage += `   ${process.env.FRONTEND_URL}/businesses/${business.id}\n\n`
+//         })
+//       }
+
+//       responseMessage += `View more results on the website: ${process.env.FRONTEND_URL}/search?q=${encodeURIComponent(searchQuery)}`
+//     }
+
+//     // Send response
+//     await bot.sendMessage(chatId, responseMessage, { parse_mode: "Markdown" })
+
+//     console.info(`User ${user.id} searched for "${searchQuery}" via Telegram`)
+//   } catch (error) {
+//     console.error("Error handling search:", error)
+//     await bot.sendMessage(msg.chat.id, "Sorry, there was an error processing your search. Please try again later.")
+//   }
+// }
+
+// // Set up polling with timeout
+// const setupPollingWithTimeout = (bot) => {
+//   let lastMessageTime = Date.now()
+
+//   // Listen for any message
+//   bot.on("message", () => {
+//     lastMessageTime = Date.now()
+//   })
+
+//   // Check if we should stop polling
+//   const checkPollingTimeout = () => {
+//     const currentTime = Date.now()
+//     const timeSinceLastMessage = currentTime - lastMessageTime
+
+//     // If no messages for 10 seconds, stop polling
+//     if (timeSinceLastMessage > 10000) {
+//       console.info("No messages received for 10 seconds, stopping polling")
+//       bot.stopPolling()
+
+//       // Restart polling after a delay
+//       setTimeout(() => {
+//         console.info("Restarting polling")
+//         bot.startPolling()
+//         lastMessageTime = Date.now()
+//       }, 30000) // 30 second delay before restarting
+//     }
+//   }
+
+//   // Check polling timeout every 5 seconds
+//   setInterval(checkPollingTimeout, 5000)
+// }
+
+// // Verify a Telegram code
+// export const verifyTelegramCode = async (req, res) => {
+//   try {
+//     const { code } = req.body
+//     const userId = req.user.id
+
+//     if (!code) {
+//       return res.status(400).json({ message: "Verification code is required" })
+//     }
+
+//     // Find the verification record
+//     const verification = await prisma.verification.findFirst({
+//       where: {
+//         code,
+//         expiresAt: {
+//           gt: new Date(),
+//         },
+//       },
+//     })
+
+//     // Add detailed logging to console
+//     console.log("Verification attempt:", {
+//       userId,
+//       codeProvided: code,
+//       verificationFound: !!verification,
+//       expiryTime: verification?.expiresAt,
+//     })
+
+//     if (!verification) {
+//       return res.status(400).json({ message: "Invalid or expired verification code" })
+//     }
+
+//     // Update the user with the Telegram chat ID
+//     await prisma.user.update({
+//       where: { id: userId },
+//       data: {
+//         telegramChatId: verification.telegramChatId,
+//         telegramId: null, // Clear the old telegramId field
+//       },
+//     })
+
+//     // Delete the verification record
+//     await prisma.verification.delete({
+//       where: { id: verification.id },
+//     })
+
+//     // Send confirmation message to the user on Telegram
+//     if (bot) {
+//       try {
+//         const user = await prisma.user.findUnique({
+//           where: { id: userId },
+//         })
+
+//         await bot.sendMessage(
+//           verification.telegramChatId,
+//           `Your account has been successfully linked with ${user.name || user.email}! 🎉
+
+// You will now receive notifications about your listings and messages.
+
+// You can:
+// • Send text to search for products and businesses
+// • Send an image with caption to post a new product`,
+//         )
+//       } catch (error) {
+//         console.error("Error sending confirmation message to Telegram:", error)
+//       }
+//     }
+
+//     return res.status(200).json({ message: "Telegram account linked successfully" })
+//   } catch (error) {
+//     // Enhanced error logging to console
+//     console.error("Error verifying Telegram code:", error)
+//     console.error("Error details:", {
+//       error: error.message,
+//       stack: error.stack,
+//       userId: req.user?.id,
+//       code: req.body?.code,
+//     })
+
+//     return res.status(500).json({
+//       message: "Failed to verify Telegram code",
+//       error: error.message,
+//     })
+//   }
+// }
+
+// // Send a message to a user via Telegram
+// export const sendTelegramMessage = async (userId, message) => {
+//   try {
+//     if (!bot) {
+//       console.warn("Telegram bot not initialized, cannot send message")
+//       return false
+//     }
+
+//     // Find the user
+//     const user = await prisma.user.findUnique({
+//       where: { id: userId },
+//     })
+
+//     if (!user || !user.telegramChatId) {
+//       console.warn("User has no linked Telegram account", { userId })
+//       return false
+//     }
+
+//     // Send the message
+//     await bot.sendMessage(user.telegramChatId, message)
+//     console.info("Telegram message sent successfully", { userId })
+//     return true
+//   } catch (error) {
+//     console.error("Error sending Telegram message", { error: error.message, userId })
+//     return false
+//   }
+// }
+
+// // Function to send notification for unread messages
+// export const sendUnreadMessageNotifications = async () => {
+//   if (!bot) {
+//     console.warn("Telegram bot not initialized. Cannot send unread message notifications.")
+//     return
+//   }
+
+//   try {
+//     // Find users with unread messages older than 1 hour
+//     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+
+//     const usersWithUnreadMessages = await prisma.user.findMany({
+//       where: {
+//         telegramChatId: { not: null },
+//         notifyByTelegram: true,
+//         receivedMessages: {
+//           some: {
+//             read: false,
+//             createdAt: { lt: oneHourAgo },
+//           },
+//         },
+//       },
+//       include: {
+//         receivedMessages: {
+//           where: {
+//             read: false,
+//             createdAt: { lt: oneHourAgo },
+//           },
+//           include: {
+//             sender: {
+//               select: { name: true },
+//             },
+//           },
+//         },
+//       },
+//     })
+
+//     // Send notifications
+//     for (const user of usersWithUnreadMessages) {
+//       if (!user.telegramChatId) continue
+
+//       const unreadCount = user.receivedMessages.length
+//       if (unreadCount === 0) continue
+
+//       try {
+//         await bot.sendMessage(
+//           user.telegramChatId,
+//           `You have ${unreadCount} unread message${unreadCount > 1 ? "s" : ""} on Campus Marketplace.
+
+// Log in to view and respond: ${process.env.FRONTEND_URL}/messages`,
+//         )
+
+//         console.info(`Sent unread message notification to ${user.name} (${user.telegramChatId})`)
+//       } catch (error) {
+//         console.error(`Failed to send notification to ${user.telegramChatId}:`, error.message)
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Error sending unread message notifications:", error)
+//   }
+// }
+
+// // Get the bot instance
+// export const getBot = () => bot
+
+// // Webhook handler for Telegram updates
+// export const handleWebhook = (req, res) => {
+//   try {
+//     if (!bot) {
+//       return res.status(500).json({ message: "Telegram bot not initialized" })
+//     }
+
+//     const update = req.body
+//     bot.processUpdate(update)
+//     return res.status(200).json({ message: "Update processed" })
+//   } catch (error) {
+//     console.error("Error processing webhook update", { error: error.message })
+//     return res.status(500).json({ message: "Failed to process update" })
+//   }
+// }
+
+
+
+import { PrismaClient } from "@prisma/client";
+import TelegramBot from "node-telegram-bot-api";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import sharp from "sharp";
+
+const prisma = new PrismaClient();
+let bot = null;
+
+// Get current directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Generate a random 6-digit code
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Initialize the Telegram bot
 export const startBot = () => {
-  console.log("Checking Telegram bot configuration...")
-
-  // Check if token is available
-  if (!process.env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN === "your_telegram_bot_token") {
-    console.warn("Invalid or missing Telegram bot token. Telegram features will be disabled.")
-    return
-  }
-
   try {
-    // Initialize bot with polling disabled by default
-    const usePolling = process.env.TELEGRAM_USE_POLLING === "true"
+    if (!process.env.TELEGRAM_BOT_TOKEN) {
+      console.warn("Telegram bot token not provided, bot will not be initialized");
+      return null;
+    }
 
-    console.log(`Initializing Telegram bot with polling ${usePolling ? "enabled" : "disabled"}`)
-
-    // Create bot instance with appropriate options
-    const botOptions = {
+    const usePolling = process.env.TELEGRAM_USE_POLLING === "true";
+    const options = {
       polling: usePolling
         ? {
-            timeout: 10, // 10 seconds polling timeout
-            limit: 100, // Get up to 100 updates at once
+            timeout: 10,
+            limit: 100,
             allowed_updates: ["message", "callback_query"],
             params: {
-              timeout: 10, // API request timeout
+              timeout: 10,
             },
           }
         : false,
+    };
+
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, options);
+
+    // Set up command handlers
+    setupCommandHandlers(bot);
+
+    // Set up message handlers
+    setupMessageHandlers(bot);
+
+    console.info("Telegram bot initialized successfully");
+
+    if (usePolling) {
+      // Set up polling with timeout
+      setupPollingWithTimeout(bot);
+
+      // Add error handlers
+      bot.on("error", (error) => {
+        console.error("Telegram bot error:", error.message || error);
+      });
+
+      bot.on("polling_error", (error) => {
+        console.error("Telegram polling error:", error.message || error);
+        if (error.code === "ETIMEDOUT" || error.code === "ECONNRESET" || error.code === "ENOTFOUND") {
+          console.warn("Network error in Telegram polling. Will retry automatically.");
+        }
+      });
     }
 
-    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, botOptions)
+    return bot;
+  } catch (error) {
+    console.error("Failed to initialize Telegram bot", { error: error.message });
+    return null;
+  }
+};
 
-    // Add error handler
-    bot.on("error", (error) => {
-      console.error("Telegram bot error:", error.message || error)
-      // Don't crash the server for Telegram errors
-    })
+// Set up command handlers for the bot
+const setupCommandHandlers = (bot) => {
+  // Handle /start command
+  bot.onText(/\/start/, async (msg) => {
+    try {
+      const chatId = msg.chat.id.toString(); // telegramChatId is String in schema
+      const username = msg.from.username;
 
-    // Add polling error handler if polling is enabled
-    if (usePolling) {
-      bot.on("polling_error", (error) => {
-        console.error("Telegram polling error:", error.message || error)
-        // Don't restart polling for network errors
-        if (error.code === "ETIMEDOUT" || error.code === "ECONNRESET" || error.code === "ENOTFOUND") {
-          console.warn("Network error in Telegram polling. Will retry automatically.")
-        }
-      })
+      console.info("User started bot", { chatId, username });
 
-      bot.onText(/\/start/, async (msg) => {
-        const chatId = msg.chat.id
-        const username = msg.from.username
+      // Check if user is already linked
+      const existingUser = await prisma.user.findFirst({
+        where: { telegramChatId: chatId },
+      });
 
-        console.log(`Received /start command from ${username || "unknown user"} (ID: ${chatId})`)
+      if (existingUser) {
+        await bot.sendMessage(
+          chatId,
+          `Welcome back, ${existingUser.name || "User"}! Your account is already linked with Campus Marketplace.
 
-        // Store the chat ID for this user if we have their username
-        if (username) {
-          try {
-            // Check if we have a user with this username
-            const user = await prisma.user.findFirst({
-              where: {
-                OR: [{ telegramId: username }, { telegramId: username.toLowerCase() }],
+You can:
+• Send text to search for products and businesses
+• Send an image with caption to post a new product`,
+          { parse_mode: "Markdown" },
+        );
+        return;
+      }
+
+      // Generate a verification code
+      const code = generateVerificationCode();
+
+      // First, try to find an existing verification for this chat ID
+      const existingVerification = await prisma.verification.findFirst({
+        where: { telegramChatId: chatId },
+      });
+
+      if (existingVerification) {
+        // Update the existing verification
+        await prisma.verification.update({
+          where: { id: existingVerification.id }, // id is Int
+          data: {
+            code,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+          },
+        });
+      } else {
+        // Create a new verification
+        await prisma.verification.create({
+          data: {
+            telegramChatId: chatId,
+            code,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiration
+          },
+        });
+      }
+
+      // Send welcome message with verification code
+      await bot.sendMessage(
+        chatId,
+        `Welcome to Campus Marketplace! 🎉\n\nYour verification code is: *${code}*\n\nThis code will expire in 1 hour. Enter it on your profile page to link your Telegram account.`,
+        { parse_mode: "Markdown" },
+      );
+
+      // Store the chat ID for this user if we have their username
+      if (username) {
+        try {
+          // Check if we have a user with this username
+          const user = await prisma.user.findFirst({
+            where: {
+              OR: [{ telegramId: username }, { telegramId: username.toLowerCase() }],
+            },
+          });
+
+          if (user) {
+            // Update the user with their actual chat ID
+            await prisma.user.update({
+              where: { id: user.id }, // id is Int
+              data: {
+                telegramChatId: chatId,
+                telegramId: username,
               },
-            })
-
-            if (user) {
-              // Update the user with their actual chat ID for more reliable messaging
-              await prisma.user.update({
-                where: { id: user.id },
-                data: {
-                  telegramChatId: chatId.toString(),
-                  // Keep the username as well for backward compatibility
-                  telegramId: username,
-                },
-              })
-
-              await bot.sendMessage(chatId, `Welcome back to Campus Marketplace, ${user.name}!`)
-            } else {
-              await bot.sendMessage(
-                chatId,
-                "Welcome to Campus Marketplace! Please link your account on our website to use this bot.",
-              )
-            }
-          } catch (error) {
-            console.error("Error updating user Telegram chat ID:", error)
-            await bot.sendMessage(chatId, "Welcome to Campus Marketplace!")
+            });
           }
-        } else {
-          await bot.sendMessage(
-            chatId,
-            "Welcome to Campus Marketplace! Please link your account on our website to use this bot.",
-          )
+        } catch (error) {
+          console.error("Error updating user Telegram chat ID:", error);
         }
-      })
+      }
+    } catch (error) {
+      console.error("Error handling /start command", { error: error.message });
+    }
+  });
 
-      // Set up commands only if polling is enabled
+  // Handle /help command
+  bot.onText(/\/help/, async (msg) => {
+    try {
+      const chatId = msg.chat.id.toString(); // telegramChatId is String
+
+      await bot.sendMessage(
+        chatId,
+        `*Campus Marketplace Bot Help*\n\n` +
+          `• /start - Get a verification code to link your account\n` +
+          `• /help - Show this help message\n\n` +
+          `After linking your account, you can:\n` +
+          `• Send text to search for products and businesses\n` +
+          `• Send an image with caption to post a new product`,
+        { parse_mode: "Markdown" },
+      );
+    } catch (error) {
+      console.error("Error handling /help command", { error: error.message });
+    }
+  });
+};
+
+// Set up message handlers for the bot
+const setupMessageHandlers = (bot) => {
+  bot.on("message", async (msg) => {
+    try {
+      if (msg.text && msg.text.startsWith("/")) {
+        return;
+      }
+
+      const chatId = msg.chat.id.toString(); // telegramChatId is String
+
+      // Check if user is linked
+      const user = await prisma.user.findFirst({
+        where: { telegramChatId: chatId },
+      });
+
+      if (!user) {
+        await bot.sendMessage(
+          chatId,
+          "Your account is not linked with Campus Marketplace. Please use /start to get a verification code and link your account.",
+          { parse_mode: "Markdown" },
+        );
+        return;
+      }
+
+      // Handle image with caption (product upload)
+      if (msg.photo && msg.photo.length > 0) {
+        await handleProductUpload(bot, msg, user);
+        return;
+      }
+
+      // Handle text message (search)
+      if (msg.text) {
+        await handleSearch(bot, msg, user);
+        return;
+      }
+
+      await bot.sendMessage(
+        chatId,
+        "I can only process text messages for search or images with captions for product uploads.",
+        { parse_mode: "Markdown" },
+      );
+    } catch (error) {
+      console.error("Error handling message:", error);
       try {
-        bot
-          .setMyCommands([
-            { command: "start", description: "Start the bot and get help" },
-            { command: "search", description: "Search for products and businesses" },
-          ])
-          .catch((error) => {
-            console.warn("Could not set Telegram bot commands:", error.message)
-            // Non-critical error, continue execution
-          })
-        console.log(`Telegram bot commands set up successfully.`)
+        await bot.sendMessage(msg.chat.id, "Sorry, there was an error processing your message. Please try again later.");
+      } catch (sendError) {
+        console.error("Error sending error message:", sendError);
+      }
+    }
+  });
+};
+
+// Handle product upload from image with caption
+const handleProductUpload = async (bot, msg, user) => {
+  try {
+    const chatId = msg.chat.id.toString(); // telegramChatId is String
+    const caption = msg.caption || "";
+
+    if (!caption) {
+      await bot.sendMessage(
+        chatId,
+        "Please provide a caption with your image. The caption should include the product title and description.",
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+
+    // Get the largest photo
+    const photo = msg.photo[msg.photo.length - 1];
+    const fileId = photo.file_id;
+
+    // Get file path from Telegram
+    const file = await bot.getFile(fileId);
+    const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+
+    // Create uploads directory
+    const uploadDir = path.join(process.cwd(), process.env.UPLOAD_DIR || "uploads");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    // Download the file using fetch
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.status} ${response.statusText}`);
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Generate filenames
+    const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`;
+    const filePath = path.join(uploadDir, filename);
+    const relativePath = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/Uploads/${filename}`;
+
+    const thumbnailFilename = `thumb_${filename}`;
+    const thumbnailPath = path.join(uploadDir, thumbnailFilename);
+    const thumbnailRelativePath = `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/Uploads/${thumbnailFilename}`;
+
+    // Process and save images
+    await sharp(buffer)
+      .resize(800, 800, { fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(filePath);
+
+    await sharp(buffer)
+      .resize(200, 200, { fit: "cover" })
+      .webp({ quality: 60 })
+      .toFile(thumbnailPath);
+
+    // Parse caption
+    let title = caption;
+    let description = "";
+
+    if (caption.includes("\n")) {
+      const parts = caption.split("\n");
+      title = parts[0].trim();
+      description = parts.slice(1).join("\n").trim();
+    }
+
+    // Create the product
+    const product = await prisma.product.create({
+      data: {
+        description: description || title,
+        price: null,
+        category: "Other",
+        campus: user.campus || "default",
+        userId: user.id, // user.id is Int
+        isDisabled: false,
+        viewCount: 0,
+      },
+    });
+
+    // Create the image record
+    await prisma.image.create({
+      data: {
+        url: relativePath,
+        thumbnailUrl: thumbnailRelativePath,
+        productId: product.id, // product.id is Int
+      },
+    });
+
+    // Send confirmation
+    await bot.sendMessage(
+      chatId,
+      `✅ Product posted successfully!\n\n*${title}*\n\nView it on the marketplace: ${process.env.FRONTEND_URL}/products/${product.id}`,
+      { parse_mode: "Markdown" },
+    );
+
+    console.info(`User ${user.id} posted product ${product.id} via Telegram`);
+
+    // Check for keyword notifications
+    await sendKeywordNotifications(product, description || title);
+  } catch (error) {
+    console.error("Error handling product upload:", error);
+    await bot.sendMessage(msg.chat.id, "Sorry, there was an error posting your product. Please try again later.");
+  }
+};
+
+// Send notifications to users with matching keywords
+const sendKeywordNotifications = async (product, description) => {
+  try {
+    // Find users with notification keywords
+    const usersWithKeywords = await prisma.user.findMany({
+      where: {
+        notificationKeywords: {
+          not: null,
+        },
+      },
+      select: {
+        id: true, // Int
+        name: true,
+        email: true,
+        telegramChatId: true, // String
+        notifyByTelegram: true,
+        notificationKeywords: true,
+      },
+    });
+
+    if (usersWithKeywords.length === 0) return;
+
+    for (const user of usersWithKeywords) {
+      if (!user.notificationKeywords) continue;
+
+      const keywords = user.notificationKeywords
+        .split(",")
+        .map((k) => k.trim().toLowerCase())
+        .filter((k) => k.length > 0);
+
+      if (keywords.length === 0) continue;
+
+      const descriptionLower = description.toLowerCase();
+      const matchingKeywords = keywords.filter((keyword) => descriptionLower.includes(keyword));
+
+      if (matchingKeywords.length === 0) continue;
+
+      console.log(`Sending keyword notification to user ${user.id} for keywords: ${matchingKeywords.join(", ")}`);
+
+      if (user.notifyByTelegram && user.telegramChatId) {
+        try {
+          await bot.sendMessage(
+            user.telegramChatId,
+            `🔔 *New Product Alert!*\n\nA new product matching your keywords (${matchingKeywords.join(", ")}) has been posted:\n\n*${description.substring(0, 50)}${description.length > 50 ? "..." : ""}*\n\nView it here: ${process.env.FRONTEND_URL}/products/${product.id}`,
+            { parse_mode: "Markdown" },
+          );
+        } catch (error) {
+          console.error(`Failed to send Telegram notification to user ${user.id}:`, error);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error sending keyword notifications:", error);
+  }
+};
+
+// Handle search from text message
+const handleSearch = async (bot, msg, user) => {
+  try {
+    const chatId = msg.chat.id.toString(); // telegramChatId is String
+    const searchQuery = msg.text.trim();
+
+    if (searchQuery.length < 2) {
+      await bot.sendMessage(chatId, "Please provide a longer search term (at least 2 characters).");
+      return;
+    }
+
+    // Search for products
+    const products = await prisma.product.findMany({
+      where: {
+        OR: [{ description: { contains: searchQuery } }, { category: { contains: searchQuery } }],
+        isDisabled: false,
+        campus: user.campus || undefined,
+      },
+      include: {
+        images: true,
+        user: {
+          select: {
+            id: true, // Int
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    });
+
+    // Search for businesses
+    const businesses = await prisma.business.findMany({
+      where: {
+        OR: [
+          { name: { contains: searchQuery } },
+          { description: { contains: searchQuery } },
+          { category: { contains: searchQuery } },
+        ],
+        isDisabled: false,
+        campus: user.campus || undefined,
+      },
+      include: {
+        images: true,
+        user: {
+          select: {
+            id: true, // Int
+            name: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // Prepare response message
+    let responseMessage = `🔍 *Search results for "${searchQuery}"*\n\n`;
+
+    if (products.length === 0 && businesses.length === 0) {
+      responseMessage += "No results found. Try a different search term.";
+    } else {
+      if (products.length > 0) {
+        responseMessage += `*Products (${products.length}):*\n`;
+        products.forEach((product, index) => {
+          const price = product.price ? `₦${product.price}` : "Price not specified";
+          responseMessage += `${index + 1}. *${product.description.substring(0, 30)}${product.description.length > 30 ? "..." : ""}* - ${price}\n`;
+          responseMessage += `   ${process.env.FRONTEND_URL}/products/${product.id}\n\n`; // product.id is Int
+        });
+      }
+
+      if (businesses.length > 0) {
+        responseMessage += `*Businesses (${businesses.length}):*\n`;
+        businesses.forEach((business, index) => {
+          responseMessage += `${index + 1}. *${business.name}*\n`;
+          responseMessage += `   ${process.env.FRONTEND_URL}/businesses/${business.id}\n\n`; // business.id is Int
+        });
+      }
+
+      responseMessage += `View more results on the website: ${process.env.FRONTEND_URL}/search?q=${encodeURIComponent(searchQuery)}`;
+    }
+
+    await bot.sendMessage(chatId, responseMessage, { parse_mode: "Markdown" });
+
+    console.info(`User ${user.id} searched for "${searchQuery}" via Telegram`);
+  } catch (error) {
+    console.error("Error handling search:", error);
+    await bot.sendMessage(msg.chat.id, "Sorry, there was an error processing your search. Please try again later.");
+  }
+};
+
+// Set up polling with timeout
+const setupPollingWithTimeout = (bot) => {
+  let lastMessageTime = Date.now();
+
+  bot.on("message", () => {
+    lastMessageTime = Date.now();
+  });
+
+  const checkPollingTimeout = () => {
+    const currentTime = Date.now();
+    const timeSinceLastMessage = currentTime - lastMessageTime;
+
+    if (timeSinceLastMessage > 10000) {
+      console.info("No messages received for 10 seconds, stopping polling");
+      bot.stopPolling();
+
+      setTimeout(() => {
+        console.info("Restarting polling");
+        bot.startPolling();
+        lastMessageTime = Date.now();
+      }, 30000);
+    }
+  };
+
+  setInterval(checkPollingTimeout, 5000);
+};
+
+// Verify a Telegram code
+export const verifyTelegramCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const userId = req.user.id; // Assumed to be an integer
+
+    if (!code) {
+      return res.status(400).json({ message: "Verification code is required" });
+    }
+
+    // Find the verification record
+    const verification = await prisma.verification.findFirst({
+      where: {
+        code,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    console.log("Verification attempt:", {
+      userId,
+      codeProvided: code,
+      verificationFound: !!verification,
+      expiryTime: verification?.expiresAt,
+    });
+
+    if (!verification) {
+      return res.status(400).json({ message: "Invalid or expired verification code" });
+    }
+
+    // Update the user with the Telegram chat ID
+    await prisma.user.update({
+      where: { id: userId }, // userId is Int
+      data: {
+        telegramChatId: verification.telegramChatId, // String
+        telegramId: null,
+      },
+    });
+
+    // Delete the verification record
+    await prisma.verification.delete({
+      where: { id: verification.id }, // id is Int
+    });
+
+    // Send confirmation message to the user on Telegram
+    if (bot) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: userId }, // userId is Int
+        });
+
+        await bot.sendMessage(
+          verification.telegramChatId,
+          `Your account has been successfully linked with ${user.name || user.email}! 🎉
+
+You will now receive notifications about your listings and messages.
+
+You can:
+• Send text to search for products and businesses
+• Send an image with caption to post a new product`,
+        );
       } catch (error) {
-        console.warn("Could not set Telegram bot commands:", error.message)
+        console.error("Error sending confirmation message to Telegram:", error);
       }
     }
 
-    console.log(`Telegram bot initialized successfully. Username: @${process.env.TELEGRAM_BOT_USERNAME || "unknown"}`)
+    return res.status(200).json({ message: "Telegram account linked successfully" });
   } catch (error) {
-    console.error("Error starting Telegram bot:", error)
-    bot = null
+    console.error("Error verifying Telegram code:", error);
+    console.error("Error details:", {
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      code: req.body?.code,
+    });
+
+    return res.status(500).json({
+      message: "Failed to verify Telegram code",
+      error: error.message,
+    });
   }
-}
+};
+
+// Send a message to a user via Telegram
+export const sendTelegramMessage = async (userId, message) => {
+  try {
+    if (!bot) {
+      console.warn("Telegram bot not initialized, cannot send message");
+      return false;
+    }
+
+    // Find the user
+    const user = await prisma.user.findUnique({
+      where: { id: userId }, // userId is Int
+    });
+
+    if (!user || !user.telegramChatId) {
+      console.warn("User has no linked Telegram account", { userId });
+      return false;
+    }
+
+    // Send the message
+    await bot.sendMessage(user.telegramChatId, message);
+    console.info("Telegram message sent successfully", { userId });
+    return true;
+  } catch (error) {
+    console.error("Error sending Telegram message", { error: error.message, userId });
+    return false;
+  }
+};
 
 // Function to send notification for unread messages
 export const sendUnreadMessageNotifications = async () => {
   if (!bot) {
-    console.warn("Telegram bot not initialized. Cannot send unread message notifications.")
-    return
+    console.warn("Telegram bot not initialized. Cannot send unread message notifications.");
+    return;
   }
 
   try {
-    // Find users with unread messages older than 1 hour
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
     const usersWithUnreadMessages = await prisma.user.findMany({
       where: {
-        telegramId: { not: null },
+        telegramChatId: { not: null },
         notifyByTelegram: true,
         receivedMessages: {
           some: {
@@ -451,32 +1402,47 @@ export const sendUnreadMessageNotifications = async () => {
           },
         },
       },
-    })
+    });
 
-    // Send notifications
     for (const user of usersWithUnreadMessages) {
-      if (!user.telegramId) continue
+      if (!user.telegramChatId) continue;
 
-      const unreadCount = user.receivedMessages.length
-      if (unreadCount === 0) continue
-
-      const telegramId = user.telegramId.startsWith("@") ? user.telegramId : `@${user.telegramId}`
+      const unreadCount = user.receivedMessages.length;
+      if (unreadCount === 0) continue;
 
       try {
         await bot.sendMessage(
-          telegramId,
+          user.telegramChatId,
           `You have ${unreadCount} unread message${unreadCount > 1 ? "s" : ""} on Campus Marketplace.
 
 Log in to view and respond: ${process.env.FRONTEND_URL}/messages`,
-        )
+        );
 
-        console.log(`Sent unread message notification to ${user.name} (${telegramId})`)
+        console.info(`Sent unread message notification to ${user.name} (${user.telegramChatId})`);
       } catch (error) {
-        console.error(`Failed to send notification to ${telegramId}:`, error.message)
+        console.error(`Failed to send notification to ${user.telegramChatId}:`, error.message);
       }
     }
   } catch (error) {
-    console.error("Error sending unread message notifications:", error)
+    console.error("Error sending unread message notifications:", error);
   }
-}
+};
 
+// Get the bot instance
+export const getBot = () => bot;
+
+// Webhook handler for Telegram updates
+export const handleWebhook = (req, res) => {
+  try {
+    if (!bot) {
+      return res.status(500).json({ message: "Telegram bot not initialized" });
+    }
+
+    const update = req.body;
+    bot.processUpdate(update);
+    return res.status(200).json({ message: "Update processed" });
+  } catch (error) {
+    console.error("Error processing webhook update", { error: error.message });
+    return res.status(500).json({ message: "Failed to process update" });
+  }
+};
