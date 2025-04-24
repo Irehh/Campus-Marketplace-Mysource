@@ -25,20 +25,26 @@ jobs:
         run: npm ci
         working-directory: ./mysource_backend
 
-      - name: Debug DATABASE_URL
-        run: echo "DATABASE_URL is set to $DATABASE_URL"
+      - name: Create .env file for backend
+        run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
+        working-directory: ./mysource_backend
+
+      - name: Debug environment
+        run: |
+          echo "DATABASE_URL is $DATABASE_URL"
+          cat .env
+          env | grep DATABASE_URL
+        working-directory: ./mysource_backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run Prisma migrations
-        run: npx prisma migrate deploy --schema=prisma/schema.prisma
+        run: |
+          npm install dotenv --save-dev
+          node -r dotenv/config node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
         working-directory: ./mysource_backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
-      - name: Create .env file for backend
-        run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
-        working-directory: ./mysource_backend
 
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
