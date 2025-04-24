@@ -13,40 +13,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install backend dependencies
+      - name: 📦 Install backend dependencies
         run: npm ci
         working-directory: ./mysource_backend
 
-      - name: Create .env file for backend
+      - name: 🛠️ Create .env file
         run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
         working-directory: ./mysource_backend
 
-      - name: Debug environment
-        run: |
-          echo "DATABASE_URL is $DATABASE_URL"
-          cat .env
-          env | grep DATABASE_URL
+      - name: 🔍 Debug .env content
+        run: cat .env
         working-directory: ./mysource_backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Run Prisma migrations
+      - name: ⚙️ Run Prisma migrate deploy
         run: |
           npm install dotenv --save-dev
           node -r dotenv/config node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
         working-directory: ./mysource_backend
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Deploy backend via FTP
+      - name: 🚀 Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -57,3 +50,7 @@ jobs:
           exclude: |
             node_modules/**
             .env
+            prisma/**
+            .gitignore
+            README.md
+            .github/**
