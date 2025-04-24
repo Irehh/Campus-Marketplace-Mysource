@@ -998,7 +998,7 @@ export const unlinkTelegramAccount = async (req, res) => {
   }
 };
 
-// Get active users count
+// Get aktive users count
 export const getActiveUsersCount = async (req, res) => {
   const { campus } = req.query;
 
