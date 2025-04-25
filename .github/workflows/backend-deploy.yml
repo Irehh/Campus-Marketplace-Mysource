@@ -19,11 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-
-      - name: Install backend dependencies
-        run: npm ci
-        working-directory: ./mysource_backend
+          node-version: '22.14.0'
 
       - name: Create .env file for backend
         run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
@@ -33,7 +29,7 @@ jobs:
         run: cat .env
         working-directory: ./mysource_backend
 
-      # Prisma migration step is skipped here
+      # Prisma migration step is skipped here now
 
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
