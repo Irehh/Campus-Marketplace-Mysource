@@ -9,11 +9,7 @@ export const CURRENCY_FORMAT = {
 
 // Campus options
 export const CAMPUSES = [
-  { value: "unilag", label: "University of Lagos" },
-  { value: "uniben", label: "University of Benin" },
-  { value: "ui", label: "University of Ibadan" },
-  { value: "oau", label: "Obafemi Awolowo University" },
-  { value: "uniport", label: "University of Port Harcourt" },
+  { value: "unn", label: "University of Nigeria, Nsukka" }
 ]
 
 // Product categories
