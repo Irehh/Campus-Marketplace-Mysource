@@ -17,7 +17,7 @@ export const processImage = async (file) => {
     // Get base URL for images
     const baseUrl =
       process.env.NODE_ENV === "production"
-        ? process.env.REACT_APP_API_URL || "https://your-production-domain.com"
+        ? process.env.REACT_APP_API_URL || "https://mysource.com.ng"
         : process.env.REACT_APP_API_URL || `http://localhost:${process.env.PORT || 5000}`
 
     // Process image with sharp
