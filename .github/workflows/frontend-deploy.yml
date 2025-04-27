@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
- # my source_frontend is the name of the frontend folder in the root directory
+ # my source_frontend is the name of the frontend folder in the root director
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

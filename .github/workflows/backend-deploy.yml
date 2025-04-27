@@ -29,7 +29,7 @@ jobs:
         run: cat .env
         working-directory: ./mysource_backend
 
-      # Prisma migration step is skipped here now
+      # Prisma migration step is skipped here no
 
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4

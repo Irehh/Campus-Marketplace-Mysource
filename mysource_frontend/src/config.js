@@ -1,5 +1,5 @@
 // API URL
-export const REACT_APP_API_URL = process.env.REACT_APP_API_URL|| "https://mysource.com.ng" || "http://localhost:5000"
+export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
 // Format options
 export const CURRENCY_FORMAT = {
@@ -9,7 +9,13 @@ export const CURRENCY_FORMAT = {
 
 // Campus options
 export const CAMPUSES = [
-  { value: "unn", label: "University of Nigeria, Nsukka" }
+  { value: "unn", label: "University of Nigeria, Nsukka" },
+  { value: "unizik", label: "Nnamdi Azikiwe University, Awka" },
+  { value: "unical", label: "University of Calabar" },
+  { value: "unilag", label: "University of Lagos" },
+  { value: "futo", label: "Federal University of Technology, Owerri" },
+  { value: "funaab", label: "Federal University of Agriculture, Abeokuta" },
+  { value: "other", label: "Other" },
 ]
 
 // Product categories
