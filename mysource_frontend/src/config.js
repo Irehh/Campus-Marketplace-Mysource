@@ -15,7 +15,6 @@ export const CAMPUSES = [
   { value: "unilag", label: "University of Lagos" },
   { value: "futo", label: "Federal University of Technology, Owerri" },
   { value: "funaab", label: "Federal University of Agriculture, Abeokuta" },
-  { value: "other", label: "Other" },
 ]
 
 // Product categories
