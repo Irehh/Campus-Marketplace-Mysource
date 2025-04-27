@@ -100,7 +100,7 @@ const Footer = () => {
         <div className="flex flex-wrap justify-between items-center gap-4 md:gap-0">
           <div className="flex-shrink-0">
             <Link to="/" className="text-primary font-bold text-xl">
-              Campus Market
+              Mysource
             </Link>
             <p className="text-secondary-500 text-sm mt-1">The marketplace for campus communities</p>
           </div>
@@ -112,6 +112,9 @@ const Footer = () => {
             <Link to="/businesses" className="text-secondary-600 hover:text-primary whitespace-nowrap">
               Businesses
             </Link>
+            <a href="#" className="text-secondary-600 hover:text-primary whitespace-nowrap">
+              About Us
+            </a>
             <a href="#" className="text-secondary-600 hover:text-primary whitespace-nowrap">
               Terms of Service
             </a>
