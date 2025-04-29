@@ -19,15 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # Use valid LTS version
-
-      - name: Create .env file for backend
-        run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
-        working-directory: ./mysource_backend
-
-      - name: Confirm .env loaded
-        run: cat .env
-        working-directory: ./mysource_backend
+          node-version: '20.18.3'
 
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -36,7 +28,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./mysource_backend/
-          server-dir: /home/mysofuhc/mysource/
+          server-dir: /mysource/
           exclude: |
             node_modules/**
             .env
