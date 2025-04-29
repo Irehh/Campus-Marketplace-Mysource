@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.14.0'
+          node-version: '20'  # Use valid LTS version
 
       - name: Create .env file for backend
         run: echo "${{ secrets.ENV_FILE_BACKEND }}" > .env
@@ -29,8 +29,6 @@ jobs:
         run: cat .env
         working-directory: ./mysource_backend
 
-      # Prisma migration step is skipped here no
-
       - name: Deploy backend via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -38,7 +36,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./mysource_backend/
-          server-dir: /home/mysofuhc/mysource.com.ng/
+          server-dir: /home/mysofuhc/mysource/
           exclude: |
             node_modules/**
             .env

@@ -1,41 +1,49 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/config');
+// models/pushSubscription.js
+module.exports = (sequelize, DataTypes) => {
+  const PushSubscription = sequelize.define(
+    'PushSubscription',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      endpoint: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: false,
+      },
+      p256dh: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      auth: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false,
+      },
+    },
+    {
+      tableName: 'PushSubscriptions',
+      timestamps: true,
+      updatedAt: false,
+      indexes: [
+        { fields: ['userId'] },
+      ],
+    }
+  );
 
-const PushSubscription = sequelize.define('PushSubscription', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  endpoint: {
-    type: DataTypes.STRING,
-    unique: true,
-    allowNull: false,
-  },
-  p256dh: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  auth: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: false,
-  },
-}, {
-  tableName: 'PushSubscriptions',
-  timestamps: true,
-  updatedAt: false,
-  indexes: [
-    { fields: ['userId'] },
-  ],
-});
+  PushSubscription.associate = (models) => {
+    PushSubscription.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+  };
 
-module.exports = PushSubscription;
+  return PushSubscription;
+};

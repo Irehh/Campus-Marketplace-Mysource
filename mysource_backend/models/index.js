@@ -1,66 +1,42 @@
-const { Sequelize } = require('sequelize');
+// models/index.js
+const { Sequelize, DataTypes } = require('sequelize');
 const sequelize = require('../config/config');
-const User = require('./user');
-const Product = require('./product');
-const Business = require('./business');
-const Image = require('./image');
-const Message = require('./message');
-const Comment = require('./comment');
-const View = require('./view');
-const Verification = require('./verification');
-const PushSubscription = require('./pushSubscription');
-const Favorite = require('./favorite');
+
+// Import models
+const User = require('./user')(sequelize, DataTypes);
+const Product = require('./product')(sequelize, DataTypes);
+const Business = require('./business')(sequelize, DataTypes);
+const Image = require('./image')(sequelize, DataTypes);
+const Message = require('./message')(sequelize, DataTypes);
+const Comment = require('./comment')(sequelize, DataTypes);
+const View = require('./view')(sequelize, DataTypes);
+const Verification = require('./verification')(sequelize, DataTypes);
+const PushSubscription = require('./pushSubscription')(sequelize, DataTypes);
+const Favorite = require('./favorite')(sequelize, DataTypes);
 
 // Define relationships
-// User
-User.hasMany(Product, { foreignKey: 'userId', onDelete: 'CASCADE' });
-User.hasMany(Business, { foreignKey: 'userId', onDelete: 'CASCADE' });
-User.hasMany(Message, { foreignKey: 'senderId', as: 'sentMessages', onDelete: 'CASCADE' });
-User.hasMany(Message, { foreignKey: 'receiverId', as: 'receivedMessages', onDelete: 'CASCADE' });
-User.hasMany(Comment, { foreignKey: 'userId', onDelete: 'CASCADE' });
-User.hasMany(Favorite, { foreignKey: 'userId', onDelete: 'CASCADE' });
+const models = {
+  User,
+  Product,
+  Business,
+  Image,
+  Message,
+  Comment,
+  View,
+  Verification,
+  PushSubscription,
+  Favorite,
+};
 
-// Product
-Product.belongsTo(User, { foreignKey: 'userId' });
-Product.hasMany(Image, { foreignKey: 'productId', onDelete: 'CASCADE' });
-Product.hasMany(Message, { foreignKey: 'productId', onDelete: 'SET NULL' });
-Product.hasMany(Comment, { foreignKey: 'productId', onDelete: 'CASCADE' });
-Product.hasMany(View, { foreignKey: 'productId', onDelete: 'CASCADE' });
-
-// Business
-Business.belongsTo(User, { foreignKey: 'userId' });
-Business.hasMany(Image, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-Business.hasMany(Message, { foreignKey: 'businessId', onDelete: 'SET NULL' });
-Business.hasMany(Comment, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-Business.hasMany(View, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-
-// Image
-Image.belongsTo(Product, { foreignKey: 'productId', onDelete: 'CASCADE' });
-Image.belongsTo(Business, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-
-// Message
-Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
-Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
-Message.belongsTo(Product, { foreignKey: 'productId', onDelete: 'SET NULL' });
-Message.belongsTo(Business, { foreignKey: 'businessId', onDelete: 'SET NULL' });
-
-// Comment
-Comment.belongsTo(User, { foreignKey: 'userId' });
-Comment.belongsTo(Product, { foreignKey: 'productId', onDelete: 'CASCADE' });
-Comment.belongsTo(Business, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-
-// View
-View.belongsTo(Product, { foreignKey: 'productId', onDelete: 'CASCADE' });
-View.belongsTo(Business, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-
-// PushSubscription
-PushSubscription.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
-
-// Favorite
-Favorite.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Object.values(models).forEach((model) => {
+  if (model.associate) {
+    model.associate(models);
+  }
+});
 
 module.exports = {
   sequelize,
+  Sequelize,
   User,
   Product,
   Business,

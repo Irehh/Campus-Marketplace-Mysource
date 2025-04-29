@@ -1,63 +1,75 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/config');
+// models/business.js
+module.exports = (sequelize, DataTypes) => {
+  const Business = sequelize.define(
+    'Business',
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      category: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      campus: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        allowNull: false,
+      },
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      viewCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+      },
+      isDisabled: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false,
+      },
+      disabledReason: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+    },
+    {
+      tableName: 'Businesses',
+      timestamps: true,
+      indexes: [
+        { fields: ['campus'] },
+        { fields: ['category'] },
+      ],
+    }
+  );
 
-const Business = sequelize.define('Business', {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  category: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  campus: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: false,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-    allowNull: false,
-  },
-  userId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  viewCount: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-  },
-  isDisabled: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  },
-  disabledReason: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-}, {
-  tableName: 'Businesses',
-  timestamps: true,
-  indexes: [
-    { fields: ['campus'] },
-    { fields: ['category'] },
-  ],
-});
+  Business.associate = (models) => {
+    Business.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+    Business.hasMany(models.Image, { foreignKey: 'businessId', onDelete: 'CASCADE' });
+    Business.hasMany(models.Message, { foreignKey: 'businessId', onDelete: 'SET NULL' });
+    Business.hasMany(models.Comment, { foreignKey: 'businessId', onDelete: 'CASCADE' });
+    Business.hasMany(models.View, { foreignKey: 'businessId', onDelete: 'CASCADE' });
+  };
 
-module.exports = Business;
+  return Business;
+};
