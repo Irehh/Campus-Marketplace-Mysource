@@ -1,4 +1,4 @@
-"use client"
+
 
 import { Link, useNavigate } from "react-router-dom"
 import { FiHome, FiSearch, FiShoppingBag, FiGrid, FiArrowLeft } from "react-icons/fi"

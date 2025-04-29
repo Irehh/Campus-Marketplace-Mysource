@@ -1,4 +1,4 @@
-"use client"
+
 import { FiTerminal } from "react-icons/fi"
 import { useMobile } from "../hooks/useMobile"
 import { useAuth } from "../contexts/AuthContext"

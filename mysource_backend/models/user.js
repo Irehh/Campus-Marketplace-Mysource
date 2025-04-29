@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../db');
+const sequelize = require('../config/config');
 
 const User = sequelize.define('User', {
   id: {
@@ -89,6 +89,18 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    verificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    verificationExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
 }, {
   tableName: 'Users',
   timestamps: true,

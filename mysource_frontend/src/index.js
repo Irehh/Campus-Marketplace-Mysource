@@ -1,4 +1,3 @@
-
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./index.css"
@@ -8,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "react-hot-toast"
 import { registerServiceWorker } from "./utils/pushNotifications"
 import { FavoritesProvider } from "./contexts/FavoritesContext"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 // Register service worker for PWA
 if ("serviceWorker" in navigator) {
@@ -21,13 +21,15 @@ if ("serviceWorker" in navigator) {
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <FavoritesProvider>
-          <App />
-          <Toaster position="top-right" />
-        </FavoritesProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <FavoritesProvider>
+            <App />
+            <Toaster position="top-right" />
+          </FavoritesProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
+  </React.StrictMode>,
 )

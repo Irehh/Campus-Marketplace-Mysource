@@ -1,4 +1,4 @@
-"use client"
+
 import { useGoogleLogin } from "@react-oauth/google"
 import { useAuth } from "../contexts/AuthContext"
 import { FcGoogle } from "react-icons/fc"

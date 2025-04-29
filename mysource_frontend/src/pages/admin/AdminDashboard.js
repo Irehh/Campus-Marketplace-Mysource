@@ -1,5 +1,5 @@
 // In src/pages/admin/AdminDashboard.jsx
-"use client";
+;
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";

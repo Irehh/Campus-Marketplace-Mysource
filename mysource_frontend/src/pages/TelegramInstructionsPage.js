@@ -1,4 +1,4 @@
-"use client"
+
 import { FaTelegram } from "react-icons/fa"
 import { FiCheck, FiInfo, FiMessageSquare, FiSearch, FiImage } from "react-icons/fi"
 

@@ -1,4 +1,4 @@
-// "use client"
+// 
 
 // import { useState, useEffect } from "react"
 // import { useFavorites } from "../contexts/FavoritesContext"
@@ -189,7 +189,7 @@
 
 
 // In FavoritesPage.jsx
-"use client";
+;
 
 import { useState, useEffect } from "react";
 import { useFavorites } from "../contexts/FavoritesContext";

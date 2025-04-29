@@ -1,5 +1,5 @@
 // Update the BusinessesPage to handle campus filtering correctly
-"use client"
+
 
 import { useState, useEffect } from "react"
 import axios from "axios"

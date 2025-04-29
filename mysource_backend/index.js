@@ -21,6 +21,7 @@ const pushRoutes = require('./routes/pushRoutes');
 // Import middleware
 const { errorHandler } = require('./middleware/errorMiddleware');
 const { setupMulter } = require('./middleware/uploadMiddleware');
+const { apiRateLimit } = require("./middleware/rateLimitMiddleware")
 
 // Import Telegram bot controller
 const { startBot, sendUnreadMessageNotifications } = require('./controllers/telegramController');
@@ -30,6 +31,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(apiRateLimit)
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || 'https://mysource.com.ng' || 'http://localhost:3000',
@@ -82,6 +84,7 @@ app.use((req, res, next) => {
   
   const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`);
   error.status = 404;
+  logger.error('index error', { error: err.message, stack: err.stack });
   next(error);
 });
 

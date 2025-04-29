@@ -7,6 +7,7 @@ import EventMarquee from "./EventMarquee"
 import PwaInstallPrompt from "./PwaInstallPrompt"
 import MobileNavigation from "./MobileNavigation"
 import TelegramBotButton from "./TelegramBotButton"
+import SocialMediaButtons from "./SocialMediaButtons"
 import { useAuth } from "../contexts/AuthContext"
 
 const Layout = () => {
@@ -22,6 +23,9 @@ const Layout = () => {
       <Footer />
       <PwaInstallPrompt />
 
+      {/* Social Media Buttons */}
+      <SocialMediaButtons />
+
       {/* Mobile Navigation - only visible on mobile */}
       {isAuthenticated && <MobileNavigation />}
 
@@ -32,4 +36,3 @@ const Layout = () => {
 }
 
 export default Layout
-

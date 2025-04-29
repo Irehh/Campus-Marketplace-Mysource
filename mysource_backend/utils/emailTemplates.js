@@ -82,3 +82,34 @@ The Campus Marketplace Team`,
       </div>
     `,
 });
+
+exports.emailVerification = (verifyUrl, name) => ({
+  subject: "Verify Your Email - Campus Marketplace",
+  text: `Hello ${name},
+
+Thank you for registering with Campus Marketplace. Please verify your email address by clicking the link below:
+
+${verifyUrl}
+
+This link will expire in 24 hours.
+
+If you did not create an account, please ignore this email.
+
+Best regards,
+The Campus Marketplace Team`,
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <h2 style="color: #0f766e; text-align: center;">Verify Your Email</h2>
+      <p>Hello ${name},</p>
+      <p>Thank you for registering with Campus Marketplace. Please verify your email address by clicking the button below:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verifyUrl}" style="display: inline-block; background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email</a>
+      </div>
+      <p>This link will expire in 24 hours.</p>
+      <p style="font-size: 14px; color: #666;">If you did not create an account, please ignore this email.</p>
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
+        <p>Campus Marketplace</p>
+      </div>
+    </div>
+  `,
+})

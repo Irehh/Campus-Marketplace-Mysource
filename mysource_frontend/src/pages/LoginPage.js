@@ -1,4 +1,3 @@
-"use client"
 
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
@@ -14,6 +13,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [showResendLink, setShowResendLink] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,8 +25,16 @@ const LoginPage = () => {
       navigate("/")
     } catch (error) {
       console.error("Login error:", error)
-      setError(error.response?.data?.message || "Failed to log in. Please check your credentials.")
-      toast.error(error.response?.data?.message || "Failed to log in")
+
+      // Check if the error is due to unverified email
+      if (error.response?.data?.needsVerification) {
+        setError("Please verify your email before logging in. A new verification email has been sent.")
+        setShowResendLink(true)
+      } else {
+        setError(error.response?.data?.message || "Failed to login")
+      }
+
+      toast.error(error.response?.data?.message || "Failed to login")
     } finally {
       setLoading(false)
     }
@@ -36,7 +44,16 @@ const LoginPage = () => {
     <div className="max-w-md mx-auto mt-8">
       <h1 className="text-2xl font-bold mb-4">Log In</h1>
 
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          <p>{error}</p>
+          {showResendLink && (
+            <Link to="/resend-verification" className="text-primary hover:underline block mt-2">
+              Resend verification email
+            </Link>
+          )}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -107,4 +124,3 @@ const LoginPage = () => {
 }
 
 export default LoginPage
-
