@@ -1,6 +1,6 @@
 // models/index.js
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/config');
+const sequelize = require('../config/database');
 
 // Import models
 const User = require('./user')(sequelize, DataTypes);
