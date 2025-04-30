@@ -84,7 +84,6 @@ app.use((req, res, next) => {
   
   const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`);
   error.status = 404;
-  logger.error('index error', { error: err.message, stack: err.stack });
   next(error);
 });
 

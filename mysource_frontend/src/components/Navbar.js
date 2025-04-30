@@ -1,5 +1,8 @@
 
 
+
+// "use client"
+
 // import { useState, useRef, useEffect } from "react"
 // import { Link, useNavigate } from "react-router-dom"
 // import { useAuth } from "../contexts/AuthContext"
@@ -207,7 +210,7 @@
 
 //         {/* Mobile Menu */}
 //         {isMenuOpen && (
-//           <div className="md:hidden py-4 space-y-4">
+//           <div className="md:hidden fixed top-16 right-0 bg-white shadow-lg z-50 overflow-y-auto py-4 px-4 border-l border-secondary-200 w-3/5 max-h-fit">
 //             <form onSubmit={handleSearch} className="relative">
 //               <input
 //                 type="text"
@@ -221,7 +224,7 @@
 
 //             <CampusSelector />
 
-//             <div className="space-y-2">
+//             <div className="space-y-2 mt-4">
 //               <Link
 //                 to="/products"
 //                 className="block py-2 text-secondary-700 hover:text-primary"
@@ -239,7 +242,7 @@
 //             </div>
 
 //             {isAuthenticated ? (
-//               <div className="space-y-2 pt-2 border-t border-secondary-200">
+//               <div className="space-y-2 pt-2 border-t border-secondary-200 mt-4">
 //                 <Link
 //                   to="/add-listing"
 //                   className="flex items-center py-2 text-secondary-700 hover:text-primary"
@@ -297,7 +300,7 @@
 //                 </button>
 //               </div>
 //             ) : (
-//               <div className="space-y-2 pt-2 border-t border-secondary-200">
+//               <div className="space-y-2 pt-2 border-t border-secondary-200 mt-4">
 //                 <Link
 //                   to="/login"
 //                   className="block py-2 text-secondary-700 hover:text-primary"
@@ -315,6 +318,14 @@
 //               </div>
 //             )}
 //           </div>
+//         )}
+
+//         {/* Overlay when menu is open */}
+//         {isMenuOpen && (
+//           <div
+//             className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+//             onClick={() => setIsMenuOpen(false)}
+//           ></div>
 //         )}
 //       </div>
 //     </nav>
@@ -417,7 +428,7 @@ const Navbar = () => {
   }, [])
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm overflow-x-hidden">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -483,7 +494,7 @@ const Navbar = () => {
                 >
                   <button className="flex items-center text-secondary-700 hover:text-primary">
                     <FiUser className="mr-1" />
-                    {user?.name?.split(" ")[0] || "Account"}
+                    <span className="truncate max-w-[100px]">{user?.name?.split(" ")[0] || "Account"}</span>
                   </button>
                   {dropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
@@ -512,11 +523,17 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/login" className="text-secondary-700 hover:text-primary text-sm">
+              <div className="flex items-center space-x-3">
+                <Link
+                  to="/login"
+                  className="px-4 py-1.5 text-primary border border-primary rounded-md hover:bg-primary-50 transition-colors text-sm font-medium"
+                >
                   Sign in
                 </Link>
-                <Link to="/register" className="btn btn-primary text-sm">
+                <Link
+                  to="/register"
+                  className="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary-600 transition-colors text-sm font-medium"
+                >
                   Sign up
                 </Link>
               </div>
@@ -533,7 +550,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden fixed top-16 right-0 bg-white shadow-lg z-50 overflow-y-auto py-4 px-4 border-l border-secondary-200 w-3/5 max-h-fit">
+          <div className="md:hidden fixed top-16 right-0 bg-white shadow-lg z-50 overflow-y-auto overflow-x-hidden py-4 px-4 border-l border-secondary-200 w-3/5 max-h-fit">
             <form onSubmit={handleSearch} className="relative">
               <input
                 type="text"
@@ -550,14 +567,14 @@ const Navbar = () => {
             <div className="space-y-2 mt-4">
               <Link
                 to="/products"
-                className="block py-2 text-secondary-700 hover:text-primary"
+                className="block py-2 text-secondary-700 hover:text-primary break-words"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Products
               </Link>
               <Link
                 to="/businesses"
-                className="block py-2 text-secondary-700 hover:text-primary"
+                className="block py-2 text-secondary-700 hover:text-primary break-words"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Businesses
@@ -568,19 +585,21 @@ const Navbar = () => {
               <div className="space-y-2 pt-2 border-t border-secondary-200 mt-4">
                 <Link
                   to="/add-listing"
-                  className="flex items-center py-2 text-secondary-700 hover:text-primary"
+                  className="flex items-center py-2 text-secondary-700 hover:text-primary break-words"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FiPlus className="mr-2" /> Add Listing
+                  <FiPlus className="mr-2 flex-shrink-0" />
+                  <span className="break-words">Add Listing</span>
                 </Link>
                 {isAuthenticated && (
                   <>
                     <Link
                       to="/favorites"
-                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
+                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative break-words"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <FiHeart className="mr-2" /> Favorites
+                      <FiHeart className="mr-2 flex-shrink-0" />
+                      <span className="break-words">Favorites</span>
                       {favorites.length > 0 && (
                         <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                           {favorites.length}
@@ -589,10 +608,11 @@ const Navbar = () => {
                     </Link>
                     <Link
                       to="/messages"
-                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative"
+                      className="flex items-center py-2 text-secondary-700 hover:text-primary relative break-words"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <FiMessageCircle className="mr-2" /> Messages
+                      <FiMessageCircle className="mr-2 flex-shrink-0" />
+                      <span className="break-words">Messages</span>
                       {unreadCount > 0 && (
                         <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
                           {unreadCount}
@@ -603,37 +623,40 @@ const Navbar = () => {
                 )}
                 <Link
                   to="/dashboard"
-                  className="flex items-center py-2 text-secondary-700 hover:text-primary"
+                  className="flex items-center py-2 text-secondary-700 hover:text-primary break-words"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FiUser className="mr-2" /> Dashboard
+                  <FiUser className="mr-2 flex-shrink-0" />
+                  <span className="break-words">Dashboard</span>
                 </Link>
                 <Link
                   to="/profile"
-                  className="flex items-center py-2 text-secondary-700 hover:text-primary"
+                  className="flex items-center py-2 text-secondary-700 hover:text-primary break-words"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FiUser className="mr-2" /> Profile
+                  <FiUser className="mr-2 flex-shrink-0" />
+                  <span className="break-words">Profile</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center py-2 text-secondary-700 hover:text-primary w-full text-left"
+                  className="flex items-center py-2 text-secondary-700 hover:text-primary w-full text-left break-words"
                 >
-                  <FiLogOut className="mr-2" /> Sign out
+                  <FiLogOut className="mr-2 flex-shrink-0" />
+                  <span className="break-words">Sign out</span>
                 </button>
               </div>
             ) : (
-              <div className="space-y-2 pt-2 border-t border-secondary-200 mt-4">
+              <div className="space-y-3 pt-4 border-t border-secondary-200 mt-4">
                 <Link
                   to="/login"
-                  className="block py-2 text-secondary-700 hover:text-primary"
+                  className="block w-full py-2 px-4 text-center text-primary border border-primary rounded-md hover:bg-primary-50 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign in
                 </Link>
                 <Link
                   to="/register"
-                  className="block py-2 text-secondary-700 hover:text-primary"
+                  className="block w-full py-2 px-4 text-center bg-primary text-white rounded-md hover:bg-primary-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign up

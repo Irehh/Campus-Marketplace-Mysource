@@ -9,3 +9,5 @@ mysource_backend/uploads/
 mysource_backend/.env.production
 bcopy/
 fcopy/
+mysource_backend/package-lock.json
+mysource_frontend/package-lock.json

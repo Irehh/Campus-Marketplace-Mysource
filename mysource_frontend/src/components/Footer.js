@@ -129,7 +129,7 @@ const Footer = () => {
             </Link>
 
             {/* Social Media Links */}
-            <a
+            {/* <a
               href={socialLinks.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
@@ -146,7 +146,7 @@ const Footer = () => {
               aria-label="Telegram Group"
             >
               <FaTelegram className="mr-1" /> Telegram
-            </a>
+            </a> */}
 
             {/* Always show install button */}
             <button
