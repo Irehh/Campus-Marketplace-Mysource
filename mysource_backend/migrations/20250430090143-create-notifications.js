@@ -1,22 +1,62 @@
-'use strict';
-
-/** @type {import('sequelize-cli').Migration} */
+// migrations/YYYYMMDDHHMMSS-create-notifications.js
 module.exports = {
-  async up (queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('Notifications', {
+      id: {
+        type: Sequelize.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      title: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      message: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      isRead: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+      data: {
+        type: Sequelize.JSON,
+        allowNull: true,
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
+      },
+    });
+
+    await queryInterface.addConstraint('Notifications', {
+      fields: ['userId'],
+      type: 'foreign key',
+      name: 'Notifications_userId_Users_fk',
+      references: {
+        table: 'Users',
+        field: 'id',
+      },
+      onDelete: 'CASCADE',
+    });
   },
 
-  async down (queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
-  }
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeConstraint('Notifications', 'Notifications_userId_Users_fk');
+    await queryInterface.dropTable('Notifications');
+  },
 };

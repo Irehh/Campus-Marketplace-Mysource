@@ -15,7 +15,6 @@ const PushSubscription = require('./pushSubscription')(sequelize, DataTypes);
 const Favorite = require('./favorite')(sequelize, DataTypes);
 const Conversation = require('./conversation')(sequelize, DataTypes);
 const Notification = require('./notification')(sequelize, DataTypes);
-const Event = require('./event')(sequelize, DataTypes);
 
 // Define relationships
 const models = {
@@ -31,7 +30,6 @@ const models = {
   Favorite,
   Conversation,
   Notification,
-  Event,
 };
 
 Object.values(models).forEach((model) => {
@@ -54,6 +52,5 @@ module.exports = {
   PushSubscription,
   Favorite,
   Conversation,
-  Notification,
-  Event,
+  Notification
 };
