@@ -1,131 +1,3 @@
-
-// import { useState } from "react"
-// import { useNavigate, Link } from "react-router-dom"
-// import { useAuth } from "../contexts/AuthContext"
-// import GoogleLogin from "../components/GoogleLogin"
-// import toast from "react-hot-toast"
-// import { FiMail, FiLock } from "react-icons/fi"
-
-// const LoginPage = () => {
-//   const [email, setEmail] = useState("")
-//   const [password, setPassword] = useState("")
-//   const [error, setError] = useState("")
-//   const [loading, setLoading] = useState(false)
-//   const { login } = useAuth()
-//   const navigate = useNavigate()
-//   const [showResendLink, setShowResendLink] = useState(false)
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault()
-//     setError("")
-//     setLoading(true)
-
-//     try {
-//       await login({ email, password })
-//       navigate("/")
-//     } catch (error) {
-//       console.error("Login error:", error)
-
-//       // Check if the error is due to unverified email
-//       if (error.response?.data?.needsVerification) {
-//         setError("Please verify your email before logging in. A new verification email has been sent.")
-//         setShowResendLink(true)
-//       } else {
-//         setError(error.response?.data?.message || "Failed to login")
-//       }
-
-//       toast.error(error.response?.data?.message || "Failed to login")
-//     } finally {
-//       setLoading(false)
-//     }
-//   }
-
-//   return (
-//     <div className="max-w-md mx-auto mt-8">
-//       <h1 className="text-2xl font-bold mb-4">Log In</h1>
-
-//       {error && (
-//         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-//           <p>{error}</p>
-//           {showResendLink && (
-//             <Link to="/resend-verification" className="text-primary hover:underline block mt-2">
-//               Resend verification email
-//             </Link>
-//           )}
-//         </div>
-//       )}
-
-//       <form onSubmit={handleSubmit} className="space-y-4">
-//         <div>
-//           <label htmlFor="email" className="label">
-//             Email
-//           </label>
-//           <div className="relative">
-//             <input
-//               type="email"
-//               id="email"
-//               value={email}
-//               onChange={(e) => setEmail(e.target.value)}
-//               className="pl-10 input"
-//               required
-//               disabled={loading}
-//             />
-//             <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-//           </div>
-//         </div>
-//         <div>
-//           <div className="flex justify-between items-center">
-//             <label htmlFor="password" className="label">
-//               Password
-//             </label>
-//             <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-//               Forgot password?
-//             </Link>
-//           </div>
-//           <div className="relative">
-//             <input
-//               type="password"
-//               id="password"
-//               value={password}
-//               onChange={(e) => setPassword(e.target.value)}
-//               className="pl-10 input"
-//               required
-//               disabled={loading}
-//             />
-//             <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-//           </div>
-//         </div>
-//         <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-//           {loading ? "Logging in..." : "Log In"}
-//         </button>
-//       </form>
-
-//       <div className="mt-6 relative">
-//         <div className="absolute inset-0 flex items-center">
-//           <div className="w-full border-t border-gray-300"></div>
-//         </div>
-//         <div className="relative flex justify-center text-sm">
-//           <span className="px-2 bg-white text-gray-500">Or continue with</span>
-//         </div>
-//       </div>
-
-//       <div className="mt-6">
-//         <GoogleLogin />
-//       </div>
-
-//       <p className="mt-6 text-center text-sm text-gray-600">
-//         Don't have an account?{" "}
-//         <Link to="/register" className="text-primary hover:underline font-medium">
-//           Sign up
-//         </Link>
-//       </p>
-//     </div>
-//   )
-// }
-
-// export default LoginPage
-
-
 "use client"
 
 import { useState } from "react"
@@ -133,54 +5,36 @@ import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import GoogleLogin from "../components/GoogleLogin"
 import toast from "react-hot-toast"
-import { FiMail, FiLock } from "react-icons/fi"
-import Turnstile from "../components/Turnstile"
+import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi"
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  // const [turnstileToken, setTurnstileToken] = useState(null)
-  // const [turnstileError, setTurnstileError] = useState(null)
   const { login } = useAuth()
   const navigate = useNavigate()
   const [showResendLink, setShowResendLink] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError("")
-
-    // Validate turnstile token
-    // if (!turnstileToken) {
-    //   setError("Please complete the security verification")
-    //   return
-    // }
-
     setLoading(true)
 
     try {
       await login({
         email,
         password,
-        // turnstileToken, // Include the token in the login request
       })
       navigate("/")
     } catch (error) {
       console.error("Login error:", error)
 
-      // Reset turnstile on error
-      // if (window.resetTurnstile) {
-      //   window.resetTurnstile()
-      // }
-      // setTurnstileToken(null)
-
       // Check if the error is due to unverified email
       if (error.response?.data?.needsVerification) {
         setError("Please verify your email before logging in. A new verification email has been sent.")
         setShowResendLink(true)
-      } else if (error.response?.data?.turnstileError) {
-        setError("Security verification failed. Please try again.")
       } else {
         setError(error.response?.data?.message || "Failed to login")
       }
@@ -191,25 +45,9 @@ const LoginPage = () => {
     }
   }
 
-  // const handleTurnstileVerify = (token) => {
-  //   setTurnstileToken(token)
-  //   setTurnstileError(null)
-  //   // Clear error if it exists
-  //   if (error) {
-  //     setError("")
-  //   }
-  // }
-
-  // const handleTurnstileError = (errorMsg) => {
-  //   console.warn("Turnstile error:", errorMsg)
-  //   setTurnstileError(errorMsg)
-  //   setTurnstileToken(null)
-  // }
-
-  // const handleTurnstileExpire = () => {
-  //   setTurnstileToken(null)
-  //   setTurnstileError("Verification expired. Please verify again.")
-  // }
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
 
   return (
     <div className="max-w-md mx-auto mt-8">
@@ -255,29 +93,26 @@ const LoginPage = () => {
           </div>
           <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 input"
+              className="pl-10 pr-10 input"
               required
               disabled={loading}
             />
             <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              tabIndex="-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
           </div>
         </div>
-
-        {/* <div className="mt-4">
-          <Turnstile
-            onVerify={handleTurnstileVerify}
-            onError={handleTurnstileError}
-            onExpire={handleTurnstileExpire}
-            theme="light"
-            action="login"
-            className="flex justify-center"
-          />
-          {turnstileError && <p className="text-red-500 text-sm mt-1 text-center">{turnstileError}</p>}
-        </div> */}
 
         <button type="submit" className="btn btn-primary w-full" disabled={loading}>
           {loading ? "Logging in..." : "Log In"}

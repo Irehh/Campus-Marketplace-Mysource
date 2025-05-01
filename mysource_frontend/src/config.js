@@ -11,7 +11,7 @@ export const CURRENCY_FORMAT = {
 // Campus options
 export const CAMPUSES = [
   { value: "unilag", label: "University of Lagos" },
-  { value: "uniben", label: "University of Benin" },
+  { value: "unn", label: "University of Nigeria, Nsukka" },
   { value: "ui", label: "University of Ibadan" },
   { value: "oau", label: "Obafemi Awolowo University" },
   { value: "uniport", label: "University of Port Harcourt" },
@@ -47,9 +47,9 @@ export const SOCIAL_MEDIA_LINKS = {
     whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
     telegram: "https://t.me/unilagmarketplace",
   },
-  uniben: {
-    whatsapp: "https://chat.whatsapp.com/KLgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/unibenmarketplace",
+  unn: {
+    whatsapp: "https://chat.whatsapp.com/",
+    telegram: "https://t.me/+JtybfwFqQT0wMDI0",
   },
   ui: {
     whatsapp: "https://chat.whatsapp.com/LKgCBGv5TLt9jyFgCkzRQM",

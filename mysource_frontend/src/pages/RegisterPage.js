@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext"
 import toast from "react-hot-toast"
 import GoogleLogin from "../components/GoogleLogin"
 import Turnstile from "../components/Turnstile"
+import { FiEye, FiEyeOff } from "react-icons/fi"
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +21,8 @@ const RegisterPage = () => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
   const [turnstileError, setTurnstileError] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
   const { login } = useAuth()
 
@@ -122,6 +125,14 @@ const RegisterPage = () => {
     setTurnstileError("Verification expired. Please try again.")
   }
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword)
+  }
+
   return (
     <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4">Create an Account</h1>
@@ -195,15 +206,26 @@ const RegisterPage = () => {
               <label htmlFor="password" className="label">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`input ${errors.password ? "border-red-500" : ""}`}
-                disabled={loading}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`input pr-10 ${errors.password ? "border-red-500" : ""}`}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex="-1"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
               {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
             </div>
 
@@ -211,15 +233,26 @@ const RegisterPage = () => {
               <label htmlFor="confirmPassword" className="label">
                 Confirm Password
               </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`input ${errors.confirmPassword ? "border-red-500" : ""}`}
-                disabled={loading}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`input pr-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={toggleConfirmPasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  tabIndex="-1"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                >
+                  {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                </button>
+              </div>
               {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
             </div>
 
