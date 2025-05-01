@@ -78,6 +78,10 @@ app.use('/api/push', pushRoutes);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Welcome to the marketplace' });
+});
+
 
 // Catch-all for undefined routes
 app.use((req, res, next) => {

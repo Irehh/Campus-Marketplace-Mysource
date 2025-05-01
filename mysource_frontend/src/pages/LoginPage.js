@@ -141,8 +141,8 @@ const LoginPage = () => {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState(null)
-  const [turnstileError, setTurnstileError] = useState(null)
+  // const [turnstileToken, setTurnstileToken] = useState(null)
+  // const [turnstileError, setTurnstileError] = useState(null)
   const { login } = useAuth()
   const navigate = useNavigate()
   const [showResendLink, setShowResendLink] = useState(false)
@@ -152,10 +152,10 @@ const LoginPage = () => {
     setError("")
 
     // Validate turnstile token
-    if (!turnstileToken) {
-      setError("Please complete the security verification")
-      return
-    }
+    // if (!turnstileToken) {
+    //   setError("Please complete the security verification")
+    //   return
+    // }
 
     setLoading(true)
 
@@ -163,17 +163,17 @@ const LoginPage = () => {
       await login({
         email,
         password,
-        turnstileToken, // Include the token in the login request
+        // turnstileToken, // Include the token in the login request
       })
       navigate("/")
     } catch (error) {
       console.error("Login error:", error)
 
       // Reset turnstile on error
-      if (window.resetTurnstile) {
-        window.resetTurnstile()
-      }
-      setTurnstileToken(null)
+      // if (window.resetTurnstile) {
+      //   window.resetTurnstile()
+      // }
+      // setTurnstileToken(null)
 
       // Check if the error is due to unverified email
       if (error.response?.data?.needsVerification) {
@@ -191,25 +191,25 @@ const LoginPage = () => {
     }
   }
 
-  const handleTurnstileVerify = (token) => {
-    setTurnstileToken(token)
-    setTurnstileError(null)
-    // Clear error if it exists
-    if (error) {
-      setError("")
-    }
-  }
+  // const handleTurnstileVerify = (token) => {
+  //   setTurnstileToken(token)
+  //   setTurnstileError(null)
+  //   // Clear error if it exists
+  //   if (error) {
+  //     setError("")
+  //   }
+  // }
 
-  const handleTurnstileError = (errorMsg) => {
-    console.warn("Turnstile error:", errorMsg)
-    setTurnstileError(errorMsg)
-    setTurnstileToken(null)
-  }
+  // const handleTurnstileError = (errorMsg) => {
+  //   console.warn("Turnstile error:", errorMsg)
+  //   setTurnstileError(errorMsg)
+  //   setTurnstileToken(null)
+  // }
 
-  const handleTurnstileExpire = () => {
-    setTurnstileToken(null)
-    setTurnstileError("Verification expired. Please verify again.")
-  }
+  // const handleTurnstileExpire = () => {
+  //   setTurnstileToken(null)
+  //   setTurnstileError("Verification expired. Please verify again.")
+  // }
 
   return (
     <div className="max-w-md mx-auto mt-8">
@@ -267,7 +267,7 @@ const LoginPage = () => {
           </div>
         </div>
 
-        <div className="mt-4">
+        {/* <div className="mt-4">
           <Turnstile
             onVerify={handleTurnstileVerify}
             onError={handleTurnstileError}
@@ -277,7 +277,7 @@ const LoginPage = () => {
             className="flex justify-center"
           />
           {turnstileError && <p className="text-red-500 text-sm mt-1 text-center">{turnstileError}</p>}
-        </div>
+        </div> */}
 
         <button type="submit" className="btn btn-primary w-full" disabled={loading}>
           {loading ? "Logging in..." : "Log In"}
