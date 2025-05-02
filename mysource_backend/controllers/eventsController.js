@@ -17,6 +17,7 @@ exports.eventsHandler = (req, res) => {
 
   // Send initial connection established message
   res.write(`data: ${JSON.stringify({ message: 'Connection established' })}\n\n`);
+  res.write(`data: ${JSON.stringify({ message: 'Try our Telegram Bot 🤖' })}\n\n`);
 
   // Send recent events to new clients
   recentEvents.forEach((event) => {

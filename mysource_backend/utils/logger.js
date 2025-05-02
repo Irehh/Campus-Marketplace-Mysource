@@ -63,8 +63,9 @@ const writeToLog = (filePath, message) => {
 
 // Create the logger object with all functions
 const logger = {
-  info,
+  
   error,
+  info,
   warn,
   debug,
   writeToLog,

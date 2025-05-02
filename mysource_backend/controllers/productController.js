@@ -1,6 +1,8 @@
 const { Product, User, Image, View, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { processImage } = require('../utils/imageUtils');
+const { logger } = require('../utils/logger');
+const { emitEvent } = require('../utils/eventEmitter'); // Assuming you have an event emitter setup
 
 // Create a new product
 exports.createProduct = async (req, res) => {
@@ -18,7 +20,7 @@ exports.createProduct = async (req, res) => {
       const product = await Product.create(
         {
           description,
-          price: price ? Number.parseFloat(price) : null,
+          price: price ? Number.parseFloat(price) : 'On Request',
           category,
           campus,
           userId,
@@ -44,6 +46,12 @@ exports.createProduct = async (req, res) => {
         await Promise.all(imagePromises);
       }
 
+      // Emit event for new product creation (if using event system)
+      emitEvent("newProduct", {
+        message: `New product from ${req.user.name}`,
+        campus: req.user.campus,
+      });
+
       // Fetch the created product with relations
       return await Product.findOne({
         where: { id: product.id },
@@ -61,6 +69,7 @@ exports.createProduct = async (req, res) => {
     res.status(201).json(createdProduct);
   } catch (error) {
     console.error('Error creating product:', error);
+    logger.error('Error creating product', { error: error.message, stack: error.stack });
     res.status(500).json({ message: 'Failed to create product' });
   }
 };

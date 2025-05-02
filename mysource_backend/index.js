@@ -134,7 +134,7 @@ if (process.env.ENABLE_TELEGRAM === 'true') {
 app.listen(PORT, () => {
   console.info(`Server running on port ${PORT}`);
   console.info(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`Database URL: ${process.env.DATABASE_URL}`);
+  console.info(`CORS Origin: ${process.env.CORS_ORIGIN}`);
 });
 
 // Handle graceful shutdown

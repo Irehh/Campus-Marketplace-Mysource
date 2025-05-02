@@ -6,6 +6,7 @@ const { sendEmail } = require("../utils/emailUtils")
 const emailTemplates = require("../utils/emailTemplates")
 const { User } = require("../models")
 const { Op } = require("sequelize")
+const logger = require("../utils/logger")
 
 // Register a new user
 exports.register = async (req, res) => {
@@ -24,6 +25,10 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" })
     }
 
+      // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex")
     const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
@@ -32,7 +37,7 @@ exports.register = async (req, res) => {
     const user = await User.create({
       name,
       email,
-      password, // Will be hashed by the beforeCreate hook
+      password: hashedPassword, // Will be hashed by the beforeCreate hook
       campus: "default", // Will be updated when user selects campus
       needsCampusSelection: true,
       isVerified: false,
@@ -76,37 +81,44 @@ exports.register = async (req, res) => {
 
 // Verify email
 exports.verifyEmail = async (req, res) => {
-  const { token } = req.params
+  const { token } = req.params;
 
   if (!token) {
-    return res.status(400).json({ message: "Verification token is required" })
+    return res.status(400).json({ message: "Verification token is required" });
   }
 
   try {
-    // Find user with this token
     const user = await User.findOne({
       where: {
         verificationToken: token,
         verificationExpiry: {
-          [Op.gt]: new Date(),
+          [Op.gt]: new Date(), // Check if token is not expired
         },
       },
-    })
+    });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired verification token" })
+      return res.status(400).json({ message: "Invalid or expired verification token" });
     }
 
-    // Update user to verified
-    user.isVerified = true
-    user.verificationToken = null
-    user.verificationExpiry = null
-    await user.save()
+    // Check if token is still valid
+    if (user.verificationExpiry && user.verificationExpiry < new Date()) {
+      return res.status(400).json({ message: "Verification token has expired" });
+    }
 
-    // Generate JWT for auto-login
+    if (user.isVerified) {
+      return res.status(200).json({ message: "Email already verified" });
+    }
+
+    // Proceed to verify
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationExpiry = null;
+    await user.save();
+
     const jwtToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    })
+    });
 
     res.json({
       message: "Email verified successfully!",
@@ -117,12 +129,12 @@ exports.verifyEmail = async (req, res) => {
         email: user.email,
         isVerified: true,
       },
-    })
+    });
   } catch (error) {
-    console.error("Email verification error:", error)
-    res.status(500).json({ message: "Failed to verify email" })
+    console.error("Email verification error:", error);
+    res.status(500).json({ message: "Failed to verify email" });
   }
-}
+};
 
 // Login user
 exports.login = async (req, res) => {
