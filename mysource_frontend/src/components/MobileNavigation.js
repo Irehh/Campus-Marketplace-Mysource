@@ -61,9 +61,9 @@ const MobileNavigation = () => {
         </Link>
 
         <Link
-          to={isAuthenticated ? "/profile" : "/login"}
+          to={isAuthenticated ? "/dashboard" : "/login"}
           className={`flex flex-col items-center justify-center w-1/5 ${
-            isActive("/profile") || isActive("/login") ? "text-primary" : "text-gray-500"
+            isActive("/dashboard") || isActive("/login") ? "text-primary" : "text-gray-500"
           }`}
         >
           <FiUser size={20} />

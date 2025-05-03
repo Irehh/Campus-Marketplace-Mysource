@@ -16,8 +16,10 @@ exports.eventsHandler = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   // Send initial connection established message
-  res.write(`data: ${JSON.stringify({ message: 'Connection established' })}\n\n`);
+  
   res.write(`data: ${JSON.stringify({ message: 'Try our Telegram Bot 🤖' })}\n\n`);
+  res.write(`data: ${JSON.stringify({ message: 'Get notification on Telegram 🔔' })}\n\n`);
+  res.write(`data: ${JSON.stringify({ message: 'Post product like messages on Telegram 💯' })}\n\n`);
 
   // Send recent events to new clients
   recentEvents.forEach((event) => {

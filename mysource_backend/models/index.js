@@ -13,7 +13,6 @@ const View = require('./view')(sequelize, DataTypes);
 const Verification = require('./verification')(sequelize, DataTypes);
 const PushSubscription = require('./pushSubscription')(sequelize, DataTypes);
 const Favorite = require('./favorite')(sequelize, DataTypes);
-const Conversation = require('./conversation')(sequelize, DataTypes);
 const Notification = require('./notification')(sequelize, DataTypes);
 
 // Define relationships
@@ -28,7 +27,6 @@ const models = {
   Verification,
   PushSubscription,
   Favorite,
-  Conversation,
   Notification,
 };
 
@@ -51,6 +49,5 @@ module.exports = {
   Verification,
   PushSubscription,
   Favorite,
-  Conversation,
   Notification
 };

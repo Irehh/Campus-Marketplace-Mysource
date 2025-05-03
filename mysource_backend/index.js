@@ -56,7 +56,7 @@ app.use(
 );
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'Uploads')));
+app.use('/Uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'Uploads')));
 
 // Setup multer for file uploads
 setupMulter(app);

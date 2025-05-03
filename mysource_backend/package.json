@@ -1,6 +1,6 @@
 {
   "name": "campus-marketplace-backend",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Express.js backend for Campus Marketplace",
   "main": "index.js",
   "type": "commonjs",
