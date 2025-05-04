@@ -1,4 +1,4 @@
-const { Favorite, Product, Business, User } = require('../models');
+const { Favorite, Product, Business, User, Image } = require('../models');
 const { Op } = require('sequelize');
 
 // Get user's favorites with associated products and businesses

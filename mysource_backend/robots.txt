@@ -1,0 +1,18 @@
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /private/
+Disallow: /uploads/
+
+# Do not allow indexing of backend-related files or sensitive areas
+Disallow: /*.env$
+Disallow: /*.js$
+Disallow: /*.ts$
+Disallow: /*.json$
+
+# Prevent access to potential log or config files
+Disallow: /logs/
+Disallow: /config/
+
+# No sitemap needed for backend

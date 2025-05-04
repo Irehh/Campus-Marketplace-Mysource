@@ -34,19 +34,18 @@ const PORT = process.env.PORT || 5000;
 app.use(apiRateLimit)
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'https://mysource.com.ng' || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
-app.use((req, res, next) => {
-  if (!req.secure && req.get('X-Forwarded-Proto') !== 'https') {
-    return res.redirect(`https://${req.get('host')}${req.url}`);
-  }
-  next();
-});
+if (process.env.NODE_ENV === 'production' && !req.secure && req.get('X-Forwarded-Proto') !== 'https') {
+  return res.redirect(`https://${req.get('host')}${req.url}`);
+}
+next();
+
 
 // Optional: Customize Morgan logging (only log errors, not all requests)
 app.use(
@@ -54,6 +53,13 @@ app.use(
     skip: (req, res) => res.statusCode < 400,
   })
 );
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send(`User-agent: *
+Disallow: /`);
+});
+
 
 // Serve static files from uploads directory
 app.use('/Uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'Uploads')));
