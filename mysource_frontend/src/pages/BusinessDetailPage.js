@@ -267,7 +267,7 @@ const BusinessDetailPage = () => {
             <div className="grid grid-cols-1 gap-2">
               <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100 relative">
                 <img
-                  src={business.Images[selectedImage].url || "/placeholder.svg"}
+                  src={business.Images[selectedImage].url || "/images/placeholder.png"}
                   alt={business.name}
                   className="w-full h-full object-contain"
                 />
@@ -285,7 +285,7 @@ const BusinessDetailPage = () => {
                 {business.Images.map((image, index) => (
                   <div key={image.id} className="relative group">
                     <img
-                      src={image.thumbnailUrl || "/placeholder.svg"}
+                      src={image.thumbnailUrl || "/images/placeholder.png"}
                       alt={`Thumbnail ${index + 1}`}
                       className={`w-[55px] h-[55px] object-cover rounded cursor-pointer ${selectedImage === index ? "border-2 border-primary" : ""}`}
                       onClick={() => setSelectedImage(index)}

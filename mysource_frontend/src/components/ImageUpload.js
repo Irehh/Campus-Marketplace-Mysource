@@ -47,7 +47,7 @@ const ImageUpload = ({ onChange, maxImages = 2, minImages = 1 }) => {
         {previews.map((preview, index) => (
           <div key={index} className="relative w-24 h-24 border rounded overflow-hidden">
             <img
-              src={preview || "/placeholder.svg"}
+              src={preview || "/images/placeholder.png"}
               alt={`Preview ${index + 1}`}
               className="w-full h-full object-cover"
             />

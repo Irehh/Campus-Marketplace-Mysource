@@ -220,7 +220,7 @@ const AdminBusinesses = () => {
             <div key={business.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
               <div className="relative">
                 <img
-                  src={business.images && business.images.length > 0 ? business.images[0].url : "/placeholder.svg"}
+                  src={business.images && business.images.length > 0 ? business.images[0].url : "/images/placeholder.png"}
                   alt={business.name}
                   className="w-full h-40 object-cover"
                 />

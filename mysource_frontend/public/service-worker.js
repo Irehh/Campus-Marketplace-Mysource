@@ -431,8 +431,8 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => {
             // If offline and no cached image, return a placeholder
-            if (url.pathname.indexOf("/Uploads/") > -1) {
-              return caches.match("/icons/placeholder.png")
+            if (url.pathname.indexOf("/uploads/") > -1) {
+              return caches.match("/images/placeholder.png")
             }
           })
       }),

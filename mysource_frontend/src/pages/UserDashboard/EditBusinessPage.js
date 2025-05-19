@@ -248,7 +248,7 @@ const EditBusinessPage = () => {
                     imagesToDelete.includes(image.id) ? "opacity-50" : ""
                   }`}
                 >
-                  <img src={image.url || "/placeholder.svg"} alt="Business" className="w-full h-full object-cover" />
+                  <img src={image.url || "/images/placeholder.png"} alt="Business" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() =>
@@ -269,7 +269,7 @@ const EditBusinessPage = () => {
               {newImages.map((file, index) => (
                 <div key={index} className="relative rounded-md overflow-hidden h-32">
                   <img
-                    src={URL.createObjectURL(file) || "/placeholder.svg"}
+                    src={URL.createObjectURL(file) || "/images/placeholder.png"}
                     alt={`New ${index + 1}`}
                     className="w-full h-full object-cover"
                   />

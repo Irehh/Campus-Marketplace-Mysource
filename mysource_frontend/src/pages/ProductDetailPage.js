@@ -201,7 +201,7 @@ const ProductDetailPage = () => {
             <div className="grid grid-cols-1 gap-2">
               <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100 relative">
                 <img
-                  src={product.Images[selectedImage].url || "/placeholder.svg"}
+                  src={product.Images[selectedImage].url || "/images/placeholder.png"}
                   alt={product.description}
                   className="w-full h-full object-contain"
                 />
@@ -219,7 +219,7 @@ const ProductDetailPage = () => {
                 {product.Images.map((image, index) => (
                   <img
                     key={image.id}
-                    src={image.thumbnailUrl || "/placeholder.svg"}
+                    src={image.thumbnailUrl || "/images/placeholder.png"}
                     alt={`Thumbnail ${index + 1}`}
                     className={`w-[55px] h-[55px] object-cover rounded cursor-pointer ${selectedImage === index ? "border-2 border-primary" : ""}`}
                     onClick={() => setSelectedImage(index)}

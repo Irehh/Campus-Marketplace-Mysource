@@ -101,7 +101,7 @@ const UserDashboardPage = () => {
   }
 
   const renderListingCard = (item, type) => {
-    const imageUrl = item.images && item.images.length > 0 ? item.images[0].url : "/placeholder.svg"
+    const imageUrl = item.images && item.images.length > 0 ? item.images[0].url : "/images/placeholder.png"
     const editUrl = type === "product" ? `/edit-product/${item.id}` : `/edit-business/${item.id}`
     const detailUrl = type === "product" ? `/products/${item.id}` : `/businesses/${item.id}`
     const isDisabled = item.isDisabled === true
@@ -110,7 +110,7 @@ const UserDashboardPage = () => {
       <div key={item.id} className={`bg-white rounded-lg shadow-sm overflow-hidden ${isDisabled ? "opacity-60" : ""}`}>
         <div className="relative h-32">
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={imageUrl || "/images/placeholder.png"}
             alt={item.name || item.description}
             className="w-full h-full object-cover"
           />
