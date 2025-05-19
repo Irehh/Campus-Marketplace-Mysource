@@ -13,7 +13,7 @@ const ProductCard = ({ product }) => {
     <Link to={`/products/${product.id}`} className="block bg-white shadow rounded-lg overflow-hidden">
       <div className="w-full h-[166px] overflow-hidden relative">
         <img
-          src={product.images && product.images.length > 0 ? product.images[0].url : "/placeholder.jpg"}
+          src={product.Images && product.Images.length > 0 ? product.Images[0].url : "/images/placeholder.png"}
           alt={shortDescription}
           className="w-full h-full object-cover"
         />

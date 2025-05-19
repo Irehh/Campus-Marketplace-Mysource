@@ -13,7 +13,7 @@ const BusinessCard = ({ business }) => {
     <Link to={`/businesses/${business.id}`} className="block bg-white shadow rounded-lg overflow-hidden">
       <div className="w-full h-[166px] overflow-hidden relative">
         <img
-          src={business.images && business.images.length > 0 ? business.images[0].url : "/placeholder.jpg"}
+          src={business.Images && business.Images.length > 0 ? business.Images[0].url : "images/placeholder.png"}
           alt={business.name}
           className="w-full h-full object-cover"
         />

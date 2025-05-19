@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import axios from "axios"
@@ -24,6 +22,7 @@ import { formatDistanceToNow } from "date-fns"
 import CommentSection from "../components/CommentSection"
 import toast from "react-hot-toast"
 import { useFavorites } from "../contexts/FavoritesContext"
+import { SOCIAL_MEDIA_LINKS } from "../config" // Import SOCIAL_MEDIA_LINKS
 
 const ProductDetailPage = () => {
   const { id } = useParams()
@@ -43,15 +42,6 @@ const ProductDetailPage = () => {
   // Check if user is an admin
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
   const isFav = isFavorite(id, "product")
-
-  // Mapping of campus codes to telegram channels
-  const campusChannels = {
-    unilag: "unilag_marketplace",
-    uniben: "uniben_marketplace",
-    ui: "ui_marketplace",
-    oau: "oau_marketplace",
-    uniport: "uniport_marketplace",
-  }
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -76,8 +66,10 @@ const ProductDetailPage = () => {
 
         // Set telegram channel based on campus
         const campus = response.data.campus
-        if (campusChannels[campus]) {
-          setTelegramChannel(campusChannels[campus])
+        const campusLinks = SOCIAL_MEDIA_LINKS[campus] || SOCIAL_MEDIA_LINKS.default
+        if (campusLinks.telegram) {
+          const channelName = campusLinks.telegram.split("/").pop().replace("+", "")
+          setTelegramChannel(channelName)
         }
       } catch (error) {
         console.error("Error fetching product:", error)
@@ -205,11 +197,11 @@ const ProductDetailPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          {product.images && product.images.length > 0 ? (
+          {product.Images && product.Images.length > 0 ? (
             <div className="grid grid-cols-1 gap-2">
               <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100 relative">
                 <img
-                  src={product.images[selectedImage].url || "/placeholder.svg"}
+                  src={product.Images[selectedImage].url || "/placeholder.svg"}
                   alt={product.description}
                   className="w-full h-full object-contain"
                 />
@@ -224,7 +216,7 @@ const ProductDetailPage = () => {
                 </button>
               </div>
               <div className="grid grid-cols-4 gap-1">
-                {product.images.map((image, index) => (
+                {product.Images.map((image, index) => (
                   <img
                     key={image.id}
                     src={image.thumbnailUrl || "/placeholder.svg"}
@@ -240,12 +232,8 @@ const ProductDetailPage = () => {
               <p>No image available</p>
               <button
                 onClick={handleToggleFavorite}
-                className={`absolute top-2 right-2 z-10 rounded-full flex items-center justify-center 
-                  ${isFav ? "bg-red-500 text-white" : "bg-white text-gray-600"} 
-                  w-8 h-8 hover:scale-110 transition-all duration-200 shadow-md`}
-                aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
-              >
-                <FiHeart className={isFav ? "fill-current" : ""} />
+                className  className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </button>
             </div>
           )}
@@ -282,28 +270,28 @@ const ProductDetailPage = () => {
             <p className="text-xs whitespace-pre-line max-h-[60px] overflow-y-auto">{product.description}</p>
           </div>
 
-          {(product.user?.phone || product.user?.website) && (
+          {(product.User?.phone || product.User?.website) && (
             <div className="mt-2 space-y-1">
-              {product.user.website && (
+              {product.User.website && (
                 <a
                   href={
-                    product.user.website.startsWith("http") ? product.user.website : `https://${product.user.website}`
+                    product.User.website.startsWith("http") ? product.User.website : `https://${product.User.website}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-xs text-primary hover:underline"
                 >
                   <FiLink size={12} className="mr-1" />
-                  {product.user.website}
+                  {product.User.website}
                 </a>
               )}
-              {product.user.phone && (
+              {product.User.phone && (
                 <a
-                  href={`tel:${product.user.phone}`}
+                  href={`tel:${product.User.phone}`}
                   className="flex items-center text-xs text-primary hover:underline"
                 >
                   <FiPhone size={12} className="mr-1" />
-                  {product.user.phone}
+                  {product.User.phone}
                 </a>
               )}
             </div>
@@ -312,7 +300,7 @@ const ProductDetailPage = () => {
           <div className="border-t border-gray-200 pt-2 mt-2">
             <div className="flex justify-between items-center">
               <h2 className="text-xs font-semibold">Seller</h2>
-              <span className="text-xs">{product.user?.name || "Anonymous"}</span>
+              <span className="text-xs">{product.User?.name || "Anonymous"}</span>
             </div>
           </div>
 
@@ -327,7 +315,6 @@ const ProductDetailPage = () => {
               </button>
             )}
 
-            {/* Always show contact admin button if there's an admin for the campus */}
             {campusAdmin && campusAdmin.website && (
               <a
                 href={campusAdmin.website.startsWith("http") ? campusAdmin.website : `https://${campusAdmin.website}`}
@@ -356,7 +343,6 @@ const ProductDetailPage = () => {
               {showComments ? "Hide Comments" : "Show Comments"}
             </button>
 
-            {/* Admin controls */}
             {isAdmin && !product.isDisabled && (
               <button
                 onClick={() => setShowDisableForm(!showDisableForm)}
@@ -378,7 +364,6 @@ const ProductDetailPage = () => {
             )}
           </div>
 
-          {/* Disable product form */}
           {showDisableForm && (
             <div className="mt-3 p-3 border border-red-200 rounded-md bg-red-50">
               <h3 className="text-sm font-medium text-red-700 mb-2">Disable Product</h3>
@@ -418,13 +403,11 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {/* Suggested Products */}
       <div className="mt-4 border-t border-gray-200 pt-2">
         <h2 className="text-base font-semibold mb-1">You might also like</h2>
         <SuggestedProducts currentProductId={product.id} category={product.category} campus={product.campus} />
       </div>
 
-      {/* Comments Section */}
       {showComments && (
         <div className="mt-4 border-t border-gray-200 pt-2">
           <CommentSection itemId={product.id} itemType="product" />
@@ -435,4 +418,3 @@ const ProductDetailPage = () => {
 }
 
 export default ProductDetailPage
-

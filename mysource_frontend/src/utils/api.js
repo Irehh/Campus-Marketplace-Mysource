@@ -1,218 +1,213 @@
 import axios from "axios"
-import {
-  savePendingMessage,
-  savePendingProduct,
-  savePendingBusiness,
-  cacheData,
-  getCachedData,
-  triggerBackgroundSync,
-  isOnline,
-} from "./indexedDB"
+import { savePendingMessage, savePendingProduct, savePendingBusiness, isOnline } from "./indexedDB"
+// import { strategicFetch } from "./cacheStrategy" // Commenting out strategic fetch for now
+
+// Create a request tracker to prevent duplicate requests
+const pendingRequests = new Map()
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
 })
 
-// Add a request interceptor to include the auth token
+// Request interceptor for adding auth token
 api.interceptors.request.use(
   (config) => {
+    // Skip interceptor for image requests to prevent issues
+    if (
+      config.url &&
+      (config.url.includes("/uploads/") ||
+        config.url.endsWith(".jpg") ||
+        config.url.endsWith(".png") ||
+        config.url.endsWith(".webp") ||
+        config.url.endsWith(".jpeg") ||
+        config.url.endsWith(".gif"))
+    ) {
+      return config
+    }
+
     const token = localStorage.getItem("token")
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error) => Promise.reject(error),
+  (error) => {
+    return Promise.reject(error)
+  },
 )
 
-// Add a response interceptor to handle common errors
+// Response interceptor for handling common errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response
+  },
   (error) => {
-    // Handle 401 Unauthorized errors (token expired)
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem("token")
-      window.location.href = "/login"
+    // Don't handle errors for image requests
+    if (
+      error.config &&
+      error.config.url &&
+      (error.config.url.includes("/uploads/") ||
+        error.config.url.endsWith(".jpg") ||
+        error.config.url.endsWith(".png") ||
+        error.config.url.endsWith(".webp") ||
+        error.config.url.endsWith(".jpeg") ||
+        error.config.url.endsWith(".gif"))
+    ) {
+      return Promise.reject(error)
+    }
+
+    if (error.response) {
+      // Handle 401 Unauthorized errors
+      if (error.response.status === 401) {
+        // Clear token and redirect to login if not already there
+        if (localStorage.getItem("token")) {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+
+          // Only redirect if not already on login page
+          if (!window.location.pathname.includes("/login")) {
+            window.location.href = "/login"
+          }
+        }
+      }
     }
     return Promise.reject(error)
   },
 )
 
-// Enhanced API methods with offline support
-const enhancedApi = {
-  // Original axios instance
-  axios: api,
-
-  // GET request with offline cache
-  async get(url, config = {}) {
-    // Try to get from network first
-    if (isOnline()) {
-      try {
-        const response = await api.get(url, config)
-
-        // Cache the successful response
-        const cacheKey = `GET:${url}:${JSON.stringify(config.params || {})}`
-        await cacheData(cacheKey, response.data)
-
-        return response
-      } catch (error) {
-        console.error("Network request failed, trying cache:", error)
-
-        // If network request fails, try to get from cache
-        const cacheKey = `GET:${url}:${JSON.stringify(config.params || {})}`
-        const cachedData = await getCachedData(cacheKey)
-
-        if (cachedData) {
-          // Return cached data in a format similar to axios response
-          return {
-            data: cachedData,
-            status: 200,
-            statusText: "OK (Cached)",
-            headers: {},
-            config,
-            fromCache: true,
-          }
-        }
-
-        // If no cached data, rethrow the error
-        throw error
-      }
-    } else {
-      // If offline, try to get from cache directly
-      const cacheKey = `GET:${url}:${JSON.stringify(config.params || {})}`
-      const cachedData = await getCachedData(cacheKey)
-
-      if (cachedData) {
-        // Return cached data
-        return {
-          data: cachedData,
-          status: 200,
-          statusText: "OK (Cached)",
-          headers: {},
-          config,
-          fromCache: true,
-        }
-      }
-
-      // If no cached data, throw a network error
-      throw new Error("You are offline and no cached data is available")
-    }
-  },
-
-  // POST request with offline support
-  async post(url, data, config = {}) {
-    if (isOnline()) {
-      // If online, send normally
-      return api.post(url, data, config)
-    } else {
-      // If offline, store for later sync
-      const token = localStorage.getItem("token")
-
-      if (url.includes("/messages")) {
-        // Store message for later sync
-        await savePendingMessage(data, token)
-        await triggerBackgroundSync("sync-messages")
-
-        // Return a mock response
-        return {
-          data: {
-            id: "pending-" + Date.now(),
-            ...data,
-            createdAt: new Date().toISOString(),
-            pendingSync: true,
-          },
-          status: 202,
-          statusText: "Accepted (Pending Sync)",
-          config,
-          offline: true,
-        }
-      } else if (url.includes("/products")) {
-        // Store product for later sync
-        await savePendingProduct(data, token)
-        await triggerBackgroundSync("sync-products")
-
-        // Return a mock response
-        return {
-          data: {
-            id: "pending-" + Date.now(),
-            ...data,
-            createdAt: new Date().toISOString(),
-            pendingSync: true,
-          },
-          status: 202,
-          statusText: "Accepted (Pending Sync)",
-          config,
-          offline: true,
-        }
-      } else if (url.includes("/businesses")) {
-        // Store business for later sync
-        await savePendingBusiness(data, token)
-        await triggerBackgroundSync("sync-businesses")
-
-        // Return a mock response
-        return {
-          data: {
-            id: "pending-" + Date.now(),
-            ...data,
-            createdAt: new Date().toISOString(),
-            pendingSync: true,
-          },
-          status: 202,
-          statusText: "Accepted (Pending Sync)",
-          config,
-          offline: true,
-        }
-      }
-
-      // For other endpoints, throw an error
-      throw new Error("You are offline. This action will be available when you reconnect.")
-    }
-  },
-
-  // PUT request (no offline support yet)
-  put(url, data, config = {}) {
-    return api.put(url, data, config)
-  },
-
-  // DELETE request (no offline support yet)
-  delete(url, config = {}) {
-    return api.delete(url, config)
-  },
+// Helper function to create a request key
+const createRequestKey = (method, url, data) => {
+  return `${method}:${url}:${JSON.stringify(data || {})}`
 }
 
-// DEVELOPMENT ONLY: Log API calls
-if (process.env.NODE_ENV !== "production") {
-  // Add request logging
-  api.interceptors.request.use(
-    (config) => {
-      console.log(`%c[API Request] ${config.method.toUpperCase()} ${config.url}`, "color: #3498db", config)
-      return config
-    },
-    (error) => {
-      console.error(`%c[API Request Error]`, "color: #e74c3c", error)
-      return Promise.reject(error)
-    },
-  )
+// Function to handle offline requests
+const handleOfflineRequest = async (method, url, data, options = {}) => {
+  // This is the only part related to offline functionality (PWA)
+  // We'll keep it but make it a no-op when online
+  if (!isOnline()) {
+    console.log("Device is offline, saving request for later")
 
-  // Add response logging
-  api.interceptors.response.use(
-    (response) => {
-      console.log(
-        `%c[API Response] ${response.status} ${response.config.method.toUpperCase()} ${response.config.url}`,
-        "color: #2ecc71",
-        response,
-      )
-      return response
-    },
-    (error) => {
-      console.error(`%c[API Response Error] ${error.response?.status || "Network Error"}`, "color: #e74c3c", error)
-      return Promise.reject(error)
-    },
-  )
+    // Save different types of requests to IndexedDB
+    if (url.includes("/messages")) {
+      await savePendingMessage({ method, url, data })
+    } else if (url.includes("/products")) {
+      await savePendingProduct({ method, url, data })
+    } else if (url.includes("/businesses")) {
+      await savePendingBusiness({ method, url, data })
+    }
+
+    throw new Error("Device is offline. Your request will be sent when you're back online.")
+  }
+
+  // If online, continue with the request
+  return null
 }
 
-export default enhancedApi
+// Export the api instance
+export default api
 
+// Export request methods that handle offline scenarios
+export const apiGet = async (url, options = {}) => {
+  try {
+    // For image requests, use direct axios without any special handling
+    if (
+      url.includes("/uploads/") ||
+      url.endsWith(".jpg") ||
+      url.endsWith(".png") ||
+      url.endsWith(".webp") ||
+      url.endsWith(".jpeg") ||
+      url.endsWith(".gif")
+    ) {
+      return axios.get(url, options)
+    }
+
+    // Check if offline and handle accordingly
+    const offlineError = await handleOfflineRequest("GET", url, null, options)
+    if (offlineError) return offlineError
+
+    // Create a key for this request to prevent duplicates
+    const requestKey = createRequestKey("GET", url)
+
+    // Check if this exact request is already in progress
+    if (pendingRequests.has(requestKey)) {
+      return pendingRequests.get(requestKey)
+    }
+
+    // Make the request and store the promise
+    const promise = api.get(url, options)
+    pendingRequests.set(requestKey, promise)
+
+    // Clean up after the request is complete
+    promise.finally(() => {
+      pendingRequests.delete(requestKey)
+    })
+
+    return promise
+  } catch (error) {
+    console.error("API GET Error:", error)
+    throw error
+  }
+}
+
+export const apiPost = async (url, data, options = {}) => {
+  try {
+    // Check if offline and handle accordingly
+    const offlineError = await handleOfflineRequest("POST", url, data, options)
+    if (offlineError) return offlineError
+
+    return api.post(url, data, options)
+  } catch (error) {
+    console.error("API POST Error:", error)
+    throw error
+  }
+}
+
+export const apiPut = async (url, data, options = {}) => {
+  try {
+    // Check if offline and handle accordingly
+    const offlineError = await handleOfflineRequest("PUT", url, data, options)
+    if (offlineError) return offlineError
+
+    return api.put(url, data, options)
+  } catch (error) {
+    console.error("API PUT Error:", error)
+    throw error
+  }
+}
+
+export const apiDelete = async (url, options = {}) => {
+  try {
+    // Check if offline and handle accordingly
+    const offlineError = await handleOfflineRequest("DELETE", url, null, options)
+    if (offlineError) return offlineError
+
+    return api.delete(url, options)
+  } catch (error) {
+    console.error("API DELETE Error:", error)
+    throw error
+  }
+}
+
+// Direct image URL function that bypasses all interceptors
+export const getDirectImageUrl = (imagePath) => {
+  if (!imagePath) return null
+
+  // If it's already a full URL, return it
+  if (imagePath.startsWith("http")) return imagePath
+
+  // If it's a relative path, construct the full URL
+  const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:5000"
+
+  // Remove /api if it's in the baseUrl since images are at the root
+  const imageBaseUrl = baseUrl.endsWith("/api") ? baseUrl.slice(0, -4) : baseUrl
+
+  // Ensure path starts with /uploads/
+  const normalizedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`
+
+  const path = normalizedPath.includes("/uploads/") ? normalizedPath : `/uploads${normalizedPath}`
+
+  return `${imageBaseUrl}${path}`
+}

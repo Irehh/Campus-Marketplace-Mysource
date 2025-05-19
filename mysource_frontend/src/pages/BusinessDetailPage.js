@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import axios from "axios"
@@ -25,6 +23,7 @@ import { formatDistanceToNow } from "date-fns"
 import CommentSection from "../components/CommentSection"
 import toast from "react-hot-toast"
 import { useFavorites } from "../contexts/FavoritesContext"
+import { SOCIAL_MEDIA_LINKS } from "../config" // Import SOCIAL_MEDIA_LINKS
 
 const BusinessDetailPage = () => {
   const { id } = useParams()
@@ -43,15 +42,6 @@ const BusinessDetailPage = () => {
   // Check if user is an admin
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN"
   const isFav = isFavorite(id, "business")
-
-  // Mapping of campus codes to telegram channels
-  const campusChannels = {
-    unilag: "unilag_marketplace",
-    uniben: "uniben_marketplace",
-    ui: "ui_marketplace",
-    oau: "oau_marketplace",
-    uniport: "uniport_marketplace",
-  }
 
   useEffect(() => {
     const fetchBusiness = async () => {
@@ -76,8 +66,11 @@ const BusinessDetailPage = () => {
 
         // Set telegram channel based on campus
         const campus = response.data.campus
-        if (campusChannels[campus]) {
-          setTelegramChannel(campusChannels[campus])
+        const campusLinks = SOCIAL_MEDIA_LINKS[campus] || SOCIAL_MEDIA_LINKS.default
+        if (campusLinks.telegram) {
+          // Extract channel name from URL (e.g., https://t.me/unilagmarketplace -> unilagmarketplace)
+          const channelName = campusLinks.telegram.split("/").pop().replace("+", "")
+          setTelegramChannel(channelName)
         }
       } catch (error) {
         console.error("Error fetching business:", error)
@@ -131,12 +124,12 @@ const BusinessDetailPage = () => {
       // Update local state after deletion
       setBusiness((prev) => ({
         ...prev,
-        images: prev.images.filter((img) => img.id !== imageId),
+        Images: prev.Images.filter((img) => img.id !== imageId),
       }))
 
       // Reset selected image if needed
-      if (selectedImage >= business.images.length - 1) {
-        setSelectedImage(Math.max(0, business.images.length - 2))
+      if (selectedImage >= business.Images.length - 1) {
+        setSelectedImage(Math.max(0, business.Images.length - 2))
       }
     } catch (error) {
       console.error("Error deleting image:", error)
@@ -149,7 +142,7 @@ const BusinessDetailPage = () => {
     if (!files.length) return
 
     // Don't allow more than 4 images total
-    if (business.images.length + files.length > 4) {
+    if (business.Images.length + files.length > 4) {
       toast.error("Maximum 4 images allowed")
       return
     }
@@ -170,7 +163,7 @@ const BusinessDetailPage = () => {
       // Update local state with new images
       setBusiness((prev) => ({
         ...prev,
-        images: [...prev.images, ...response.data],
+        Images: [...prev.Images, ...response.data],
       }))
     } catch (error) {
       console.error("Error adding images:", error)
@@ -270,11 +263,11 @@ const BusinessDetailPage = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          {business.images && business.images.length > 0 ? (
+          {business.Images && business.Images.length > 0 ? (
             <div className="grid grid-cols-1 gap-2">
               <div className="w-full h-[166px] overflow-hidden rounded-lg bg-gray-100 relative">
                 <img
-                  src={business.images[selectedImage].url || "/placeholder.svg"}
+                  src={business.Images[selectedImage].url || "/placeholder.svg"}
                   alt={business.name}
                   className="w-full h-full object-contain"
                 />
@@ -289,7 +282,7 @@ const BusinessDetailPage = () => {
                 </button>
               </div>
               <div className="grid grid-cols-4 gap-1">
-                {business.images.map((image, index) => (
+                {business.Images.map((image, index) => (
                   <div key={image.id} className="relative group">
                     <img
                       src={image.thumbnailUrl || "/placeholder.svg"}
@@ -307,7 +300,7 @@ const BusinessDetailPage = () => {
                     )}
                   </div>
                 ))}
-                {isOwner && business.images.length < 4 && (
+                {isOwner && business.Images.length < 4 && (
                   <label className="w-[55px] h-[55px] border border-dashed rounded flex items-center justify-center text-gray-500 cursor-pointer hover:border-primary">
                     <span className="text-2xl">+</span>
                     <input
@@ -316,7 +309,7 @@ const BusinessDetailPage = () => {
                       accept="image/*"
                       multiple
                       onChange={handleAddImages}
-                      max={4 - business.images.length}
+                      max={4 - business.Images.length}
                     />
                   </label>
                 )}
@@ -376,30 +369,30 @@ const BusinessDetailPage = () => {
             <p className="text-xs whitespace-pre-line max-h-[60px] overflow-y-auto">{business.description}</p>
           </div>
 
-          {(business.user?.phone || business.user?.website) && (
+          {(business.User?.phone || business.User?.website) && (
             <div className="mt-2 space-y-1">
-              {business.user.website && (
+              {business.User.website && (
                 <a
                   href={
-                    business.user.website.startsWith("http")
-                      ? business.user.website
-                      : `https://${business.user.website}`
+                    business.User.website.startsWith("http")
+                      ? business.User.website
+                      : `https://${business.User.website}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center text-xs text-primary hover:underline"
                 >
                   <FiLink size={12} className="mr-1" />
-                  {business.user.website}
+                  {business.User.website}
                 </a>
               )}
-              {business.user.phone && (
+              {business.User.phone && (
                 <a
-                  href={`tel:${business.user.phone}`}
+                  href={`tel:${business.User.phone}`}
                   className="flex items-center text-xs text-primary hover:underline"
                 >
                   <FiPhone size={12} className="mr-1" />
-                  {business.user.phone}
+                  {business.User.phone}
                 </a>
               )}
             </div>
@@ -539,4 +532,3 @@ const BusinessDetailPage = () => {
 }
 
 export default BusinessDetailPage
-

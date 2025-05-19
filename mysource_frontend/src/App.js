@@ -39,12 +39,23 @@ import AdminProducts from "./pages/admin/AdminProducts"
 import AdminBusinesses from "./pages/admin/AdminBusinesses"
 import AdminRoute from "./components/AdminRoute"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { checkForNewVersion, clearCachesAndReload } from "./utils/cacheBuster"
+import DevTools from "./components/DevTools"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
   const [showCampusSelection, setShowCampusSelection] = useState(false)
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [showInstallBanner, setShowInstallBanner] = useState(false)
+
+  // Check for new version
+  useEffect(() => {
+    checkForNewVersion((oldVersion, newVersion) => {
+      console.log(`App updated from ${oldVersion} to ${newVersion}`)
+      setShowUpdateBanner(true)
+    })
+  }, [])
 
   // Check if user needs to select a campus
   useEffect(() => {
@@ -103,6 +114,10 @@ function App() {
     localStorage.setItem("dismissedInstall", "true")
   }
 
+  const handleUpdate = () => {
+    clearCachesAndReload()
+  }
+
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <ErrorBoundary>
@@ -127,6 +142,30 @@ function App() {
                 className="px-3 py-1 text-xs bg-white text-primary font-medium rounded-md"
               >
                 Install
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* App Update Banner */}
+        {showUpdateBanner && (
+          <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white p-3 flex justify-between items-center z-50">
+            <div>
+              <p className="font-medium">New version available!</p>
+              <p className="text-xs">Update to get the latest features and fixes</p>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowUpdateBanner(false)}
+                className="px-3 py-1 text-xs bg-transparent border border-white rounded-md"
+              >
+                Later
+              </button>
+              <button
+                onClick={handleUpdate}
+                className="px-3 py-1 text-xs bg-white text-green-600 font-medium rounded-md"
+              >
+                Update now
               </button>
             </div>
           </div>
@@ -180,6 +219,8 @@ function App() {
           </Route>
         </Routes>
       </ErrorBoundary>
+      {/* Development Tools */}
+      <DevTools />
     </GoogleOAuthProvider>
   )
 }
