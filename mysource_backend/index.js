@@ -20,6 +20,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const pushRoutes = require('./routes/pushRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 const bidRoutes = require('./routes/bidRoutes');
+const walletRoutes = require('./routes/walletRoutes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorMiddleware');

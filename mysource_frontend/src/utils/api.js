@@ -1,6 +1,5 @@
 import axios from "axios"
 import { savePendingMessage, savePendingProduct, savePendingBusiness, isOnline } from "./indexedDB"
-// import { strategicFetch } from "./cacheStrategy" // Commenting out strategic fetch for now
 
 // Create a request tracker to prevent duplicate requests
 const pendingRequests = new Map()

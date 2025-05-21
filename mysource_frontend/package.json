@@ -1,6 +1,6 @@
 {
-  "name": "campus-marketplace-frontend",
-  "version": "1.4.0",
+  "name": "campus-marketplace",
+  "version": "1.6.0",
   "private": true,
   "homepage": "./",
   "dependencies": {

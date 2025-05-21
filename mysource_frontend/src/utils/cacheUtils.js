@@ -51,7 +51,7 @@ export const preloadCommonPages = async () => {
     if ("caches" in window) {
       const pagesToPreload = ["/", "/products", "/businesses", "/search"]
 
-      const cache = await caches.open("campus-marketplace-dynamic-v1")
+      const cache = await caches.open("campus-marketplace-dynamic-v3")
 
       for (const page of pagesToPreload) {
         try {

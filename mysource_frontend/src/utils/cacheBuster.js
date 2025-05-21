@@ -1,5 +1,5 @@
 // Cache busting utility to force browser to load latest assets
-const VERSION = process.env.REACT_APP_VERSION || "1.0.1"
+const VERSION = process.env.REACT_APP_VERSION || "1.6.0"
 
 // Generate a timestamp for the current session
 const SESSION_ID = new Date().getTime()

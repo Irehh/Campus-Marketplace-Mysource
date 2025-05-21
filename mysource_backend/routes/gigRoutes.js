@@ -3,15 +3,13 @@ const router = express.Router()
 const gigController = require("../controllers/gigController")
 const bidController = require("../controllers/bidController")
 const { authenticate, optionalAuth } = require("../middleware/authMiddleware")
-const upload = require("../middleware/uploadMiddleware")
-
 // Public routes with optional authentication
 router.get("/", optionalAuth, gigController.getGigs)
 router.get("/:id", optionalAuth, gigController.getGigById)
 
 // Protected routes
-router.post("/", authenticate, upload.array("images", 5), gigController.createGig)
-router.put("/:id", authenticate, upload.array("images", 5), gigController.updateGig)
+router.post("/", authenticate, gigController.createGig)
+router.put("/:id", authenticate, gigController.updateGig)
 router.delete("/:id", authenticate, gigController.deleteGig)
 
 // User gigs

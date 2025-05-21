@@ -22,9 +22,9 @@ router.post("/:id/accept", bidController.acceptBid)
 router.post("/:id/reject", bidController.rejectBid)
 
 // Get all bids for a gig (for gig owner)
-router.get("/gig/:gigId", bidController.getGigBids)
+router.get("/gig/:gigId", bidController.getBidsByGig)
 
 // Get user's bids
-router.get("/user", bidController.getUserBids)
+router.get("/user", bidController.getBidsByUser)
 
 module.exports = router
