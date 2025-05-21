@@ -1,7 +1,6 @@
-// models/view.js
 module.exports = (sequelize, DataTypes) => {
   const View = sequelize.define(
-    'View',
+    "View",
     {
       id: {
         type: DataTypes.INTEGER,
@@ -20,29 +19,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      createdAt: {
+      gigId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      timestamp: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
-        allowNull: false,
       },
     },
     {
-      tableName: 'Views',
-      timestamps: true,
-      updatedAt: false,
-      indexes: [
-        { unique: true, fields: ['visitorId', 'productId'] },
-        { unique: true, fields: ['visitorId', 'businessId'] },
-        { fields: ['productId'] },
-        { fields: ['businessId'] },
-      ],
-    }
-  );
+      tableName: "Views",
+      timestamps: false,
+    },
+  )
 
   View.associate = (models) => {
-    View.belongsTo(models.Product, { foreignKey: 'productId', onDelete: 'CASCADE' });
-    View.belongsTo(models.Business, { foreignKey: 'businessId', onDelete: 'CASCADE' });
-  };
+    View.belongsTo(models.Product, { foreignKey: "productId", onDelete: "CASCADE" })
+    View.belongsTo(models.Business, { foreignKey: "businessId", onDelete: "CASCADE" })
+    View.belongsTo(models.Gig, { foreignKey: "gigId", onDelete: "CASCADE" })
+  }
 
-  return View;
-};
+  return View
+}

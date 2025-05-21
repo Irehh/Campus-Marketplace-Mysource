@@ -1,7 +1,6 @@
 // API URL
 export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
-
 // Format options
 export const CURRENCY_FORMAT = {
   style: "currency",
@@ -11,7 +10,7 @@ export const CURRENCY_FORMAT = {
 // Campus options
 export const CAMPUSES = [
   { value: "unilag", label: "University of Lagos" },
-  { value: "unn", label: "University of Nigeria, Nsukka" },
+  { value: "uniben", label: "University of Benin" },
   { value: "ui", label: "University of Ibadan" },
   { value: "oau", label: "Obafemi Awolowo University" },
   { value: "uniport", label: "University of Port Harcourt" },
@@ -47,9 +46,9 @@ export const SOCIAL_MEDIA_LINKS = {
     whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
     telegram: "https://t.me/unilagmarketplace",
   },
-  unn: {
-    whatsapp: "https://chat.whatsapp.com/",
-    telegram: "https://t.me/+JtybfwFqQT0wMDI0",
+  uniben: {
+    whatsapp: "https://chat.whatsapp.com/KLgCBGv5TLt9jyFgCkzRQM",
+    telegram: "https://t.me/unibenmarketplace",
   },
   ui: {
     whatsapp: "https://chat.whatsapp.com/LKgCBGv5TLt9jyFgCkzRQM",
@@ -63,4 +62,41 @@ export const SOCIAL_MEDIA_LINKS = {
     whatsapp: "https://chat.whatsapp.com/NKgCBGv5TLt9jyFgCkzRQM",
     telegram: "https://t.me/uniportmarketplace",
   },
+}
+
+// Gig categories
+export const GIG_CATEGORIES = [
+  { value: "design", label: "Design & Creative" },
+  { value: "development", label: "Development & IT" },
+  { value: "writing", label: "Writing & Translation" },
+  { value: "marketing", label: "Marketing" },
+  { value: "tutoring", label: "Tutoring & Education" },
+  { value: "other", label: "Other" },
+]
+
+// Transaction types
+export const TRANSACTION_TYPES = [
+  { value: "all", label: "All Transactions" },
+  { value: "deposit", label: "Deposits" },
+  { value: "withdrawal", label: "Withdrawals" },
+  { value: "escrow", label: "Escrow" },
+  { value: "release", label: "Payments" },
+  { value: "refund", label: "Refunds" },
+  { value: "fee", label: "Fees" },
+]
+
+// Transaction statuses
+export const TRANSACTION_STATUSES = [
+  { value: "all", label: "All Statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "completed", label: "Completed" },
+  { value: "failed", label: "Failed" },
+  { value: "cancelled", label: "Cancelled" },
+]
+
+// Wallet constants
+export const WALLET_CONSTANTS = {
+  MINIMUM_WITHDRAWAL: 1000,
+  WITHDRAWAL_FEE: 200,
+  MINIMUM_DEPOSIT: 100,
 }

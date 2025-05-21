@@ -10,11 +10,14 @@ import { FiSearch, FiShoppingBag, FiGrid } from "react-icons/fi"
 import { BsTelegram } from "react-icons/bs"
 import { useAuth } from "../contexts/AuthContext"
 import { useCacheUpdateListener } from "../utils/cacheUpdateListener"
+import { FiDollarSign, FiUsers, FiEye } from "react-icons/fi"
+import { formatCurrency } from "../utils/format"
 
 const HomePage = () => {
   const { isAuthenticated, user } = useAuth()
   const [products, setProducts] = useState([])
   const [businesses, setBusinesses] = useState([])
+  const [gigs, setGigs] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [userCampus, setUserCampus] = useState("")
@@ -36,14 +39,16 @@ const HomePage = () => {
       const campus = isAuthenticated ? user.campus : Cookies.get("userCampus") || ""
       setUserCampus(campus)
 
-      // Fetch products and businesses in parallel
-      const [productsRes, businessesRes] = await Promise.all([
+      // Fetch products, businesses, and gigs in parallel
+      const [productsRes, businessesRes, gigsRes] = await Promise.all([
         axios.get(`/api/products?campus=${campus}&limit=4`),
         axios.get(`/api/businesses?campus=${campus}&limit=3`),
+        axios.get(`/api/gigs?campus=${campus}&limit=4`),
       ])
 
       setProducts(productsRes.data.products)
       setBusinesses(businessesRes.data.businesses)
+      setGigs(gigsRes.data.data || [])
     } catch (error) {
       console.error("Error fetching data:", error)
     } finally {
@@ -64,6 +69,11 @@ const HomePage = () => {
 
   useCacheUpdateListener("homepage-businesses", () => {
     console.log("Businesses updated in cache, refreshing...")
+    fetchData()
+  })
+
+  useCacheUpdateListener("homepage-gigs", () => {
+    console.log("Gigs updated in cache, refreshing...")
     fetchData()
   })
 
@@ -209,6 +219,67 @@ const HomePage = () => {
             <p className="text-secondary-600 text-sm">No businesses found.</p>
             <Link to="/add-listing" className="text-primary hover:underline mt-1 inline-block text-xs">
               Be the first to add a business!
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {/* Featured Gigs */}
+      <section>
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-lg font-bold flex items-center">
+            <FiDollarSign className="mr-2" /> Campus Gigs
+          </h2>
+          <div className="flex items-center gap-2">
+            {refreshing && (
+              <span className="text-xs text-secondary-500 flex items-center">
+                <div className="animate-spin h-3 w-3 border-t-2 border-b-2 border-primary rounded-full mr-1"></div>
+                Updating...
+              </span>
+            )}
+            <Link to="/gigs" className="text-primary hover:underline text-xs">
+              View all
+            </Link>
+          </div>
+        </div>
+
+        {gigs && gigs.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {gigs.map((gig) => (
+              <Link
+                key={gig.id}
+                to={`/gigs/${gig.id}`}
+                className="block bg-white shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              >
+                <div className="p-3">
+                  <h3 className="text-sm font-medium text-gray-900 truncate">
+                    {gig.description ? gig.description.substring(0, 50) + "..." : "Gig"}
+                  </h3>
+                  <p className="text-sm font-medium text-primary mt-1">{formatCurrency(gig.budget)}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs bg-primary-100 text-primary-800 px-2 py-0.5 rounded-full">
+                      {gig.category}
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500 flex items-center">
+                        <FiEye className="mr-1" size={10} />
+                        {gig.views || 0}
+                      </span>
+                      <span className="text-xs text-gray-500 flex items-center">
+                        <FiUsers className="mr-1" size={10} />
+                        {gig.bidCount || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 bg-secondary-50 rounded-lg">
+            <p className="text-secondary-600 text-sm">No gigs found.</p>
+            <Link to="/gigs/create" className="text-primary hover:underline mt-1 inline-block text-xs">
+              Be the first to post a gig!
             </Link>
           </div>
         )}

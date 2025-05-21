@@ -41,6 +41,16 @@ import AdminRoute from "./components/AdminRoute"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { checkForNewVersion, clearCachesAndReload } from "./utils/cacheBuster"
 import DevTools from "./components/DevTools"
+import GigsPage from "./pages/GigsPage"
+import GigDetailPage from "./pages/GigDetailPage"
+import CreateGigPage from "./pages/CreateGigPage"
+import EditGigPage from "./pages/EditGigPage"
+import WalletPage from "./pages/WalletPage"
+import TransactionsPage from "./pages/TransactionsPage"
+import DepositPage from "./pages/DepositPage"
+import WithdrawPage from "./pages/WithdrawPage"
+import VerifyPaymentPage from "./pages/VerifyPaymentPage"
+import MyBidsPage from "./pages/MyBidsPage"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
@@ -181,6 +191,8 @@ function App() {
             <Route path="products/:id" element={<ProductDetailPage />} />
             <Route path="businesses" element={<BusinessesPage />} />
             <Route path="businesses/:id" element={<BusinessDetailPage />} />
+            <Route path="gigs" element={<GigsPage />} />
+            <Route path="gigs/:id" element={<GigDetailPage />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
@@ -205,6 +217,14 @@ function App() {
               <Route path="edit-product/:id" element={<EditProductPage />} />
               <Route path="edit-business/:id" element={<EditBusinessPage />} />
               <Route path="favorites" element={<FavoritesPage />} />
+              <Route path="gigs/create" element={<CreateGigPage />} />
+              <Route path="gigs/:id/edit" element={<EditGigPage />} />
+              <Route path="wallet" element={<WalletPage />} />
+              <Route path="transactions" element={<TransactionsPage />} />
+              <Route path="wallet/deposit" element={<DepositPage />} />
+              <Route path="wallet/withdraw" element={<WithdrawPage />} />
+              <Route path="wallet/verify-payment" element={<VerifyPaymentPage />} />
+              <Route path="my-bids" element={<MyBidsPage />} />
             </Route>
 
             {/* Admin Routes */}

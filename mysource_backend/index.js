@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const { fileURLToPath } = require("url")
 require('express-async-errors');
 
 // Import routes
@@ -17,6 +18,8 @@ const messageRoutes = require('./routes/messageRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const pushRoutes = require('./routes/pushRoutes');
+const gigRoutes = require('./routes/gigRoutes');
+const bidRoutes = require('./routes/bidRoutes');
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorMiddleware');
@@ -63,9 +66,12 @@ app.get('/robots.txt', (req, res) => {
 Disallow: /`);
 });
 
+// Special handling for Paystack webhook
+app.use("/api/wallet/webhook", express.raw({ type: "application/json" }))
+
 
 // Serve static files from uploads directory
-app.use('/Uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'Uploads')));
+app.use('/uploads', express.static(path.join(__dirname, process.env.UPLOAD_DIR || 'uploads')));
 
 // Setup multer for file uploads
 setupMulter(app);
@@ -82,6 +88,9 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/push', pushRoutes);
+app.use("/api/gigs", gigRoutes)
+app.use("/api/bids", bidRoutes)
+app.use("/api/wallet", walletRoutes)
 
 // Health check route
 app.get('/health', (req, res) => {
