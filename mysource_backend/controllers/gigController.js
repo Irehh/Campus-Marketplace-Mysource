@@ -9,102 +9,24 @@ const { sendEmail } = require("../utils/emailUtils")
 const emailTemplates = require("../utils/emailTemplates")
 
 // Create a new gig
-// exports.createGig = async (req, res) => {
-//   const t = await sequelize.transaction()
-
-//   try {
-//     const { title, description, budget, duration, category, skills, campus } = req.body
-
-//     // Create the gig
-//     const gig = await Gig.create(
-//       {
-//         description: description || "", // Ensure description is never null
-//         budget: Number(budget) || 0,
-//         duration: Number(duration) || 1,
-//         category: category || "other", // Ensure category is never null
-//         skills: skills ? skills.split(",") : [],
-//         campus: campus || req.user.campus || "",
-//         userId: req.user.id,
-//         status: "open",
-//         views: 0,
-//       },
-//       { transaction: t },
-//     )
-
-//     // Handle image uploads if any
-//     if (req.files && req.files.length > 0) {
-//       const imagePromises = req.files.map(async (file) => {
-//         const imageData = await processImage(file)
-//         return Image.create(
-//           {
-//             url: imageData.url,
-//             thumbnailUrl: imageData.thumbnailUrl,
-//             gigId: gig.id,
-//           },
-//           { transaction: t },
-//         )
-//       })
-
-//       await Promise.all(imagePromises)
-//     }
-
-//     await t.commit()
-
-//     // Fetch the gig with its images
-//     const gigWithImages = await Gig.findByPk(gig.id, {
-//       include: [
-//         { model: Image },
-//         {
-//           model: User,
-//           as: "client",
-//           attributes: ["id", "name", "email", "campus"],
-//         },
-//       ],
-//     })
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Gig created successfully",
-//       data: gigWithImages,
-//     })
-//   } catch (error) {
-//     await t.rollback()
-//     logger.error("Error creating gig:", error)
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to create gig",
-//       error: error.message,
-//     })
-//   }
-// }
-
 exports.createGig = async (req, res) => {
   const t = await sequelize.transaction()
 
   try {
-    // Extract data from request body
-    const { description, budget, duration, category, skills, campus } = req.body
+    const { title, description, budget, duration, category, skills, campus } = req.body
 
-    // Validate required fields
-    if (!description || !category) {
-      await t.rollback()
-      return res.status(400).json({
-        success: false,
-        message: "Description and category are required fields",
-      })
-    }
-
-    // Create gig record
+    // Create the gig
     const gig = await Gig.create(
       {
-        description,
-        budget: Number.parseFloat(budget) || 0,
-        duration: Number.parseInt(duration) || 7,
-        category,
-        skills: skills || "",
-        campus: campus || req.user.campus,
+        description: description || "", // Ensure description is never null
+        budget: Number(budget) || 0,
+        duration: Number(duration) || 1,
+        category: category || "other", // Ensure category is never null
+        skills: skills ? skills.split(",") : [],
+        campus: campus || req.user.campus || "",
         userId: req.user.id,
         status: "open",
+        views: 0,
       },
       { transaction: t },
     )
@@ -128,18 +50,14 @@ exports.createGig = async (req, res) => {
 
     await t.commit()
 
-    // Fetch the created gig with its images
-    const createdGig = await Gig.findByPk(gig.id, {
+    // Fetch the gig with its images
+    const gigWithImages = await Gig.findByPk(gig.id, {
       include: [
-        {
-          model: Image,
-          as: "images",
-          attributes: ["id", "url", "thumbnailUrl"],
-        },
+        { model: Image },
         {
           model: User,
-          as: "user",
-          attributes: ["id", "name", "email", "avatar"],
+          as: "client",
+          attributes: ["id", "name", "email", "campus"],
         },
       ],
     })
@@ -147,11 +65,11 @@ exports.createGig = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Gig created successfully",
-      data: createdGig,
+      data: gigWithImages,
     })
   } catch (error) {
     await t.rollback()
-    console.error("Error creating gig:", error)
+    logger.error("Error creating gig:", error)
     res.status(500).json({
       success: false,
       message: "Failed to create gig",
@@ -159,6 +77,7 @@ exports.createGig = async (req, res) => {
     })
   }
 }
+
 
 // Get all gigs with filtering options
 exports.getGigs = async (req, res) => {

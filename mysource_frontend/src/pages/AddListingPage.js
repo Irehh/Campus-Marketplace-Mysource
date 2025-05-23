@@ -243,7 +243,7 @@
 
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import axios from "axios"
@@ -251,7 +251,6 @@ import Select from "react-select"
 import { PRODUCT_CATEGORIES, BUSINESS_CATEGORIES, GIG_CATEGORIES } from "../config"
 import toast from "react-hot-toast"
 import { FiDollarSign, FiCalendar } from "react-icons/fi"
-import ImageUpload from "../components/ImageUpload"
 
 const AddListingPage = () => {
   const { user, token } = useAuth()
@@ -272,6 +271,22 @@ const AddListingPage = () => {
   const [error, setError] = useState("")
   const formSubmitRef = useRef(false) // Use ref to track form submission
 
+  // Reset form when changing listing type
+  useEffect(() => {
+    setSelectedCategory(null)
+    setFormData({
+      description: "",
+      price: "",
+      category: "",
+      name: "",
+      budget: "",
+      duration: "",
+      skills: "",
+    })
+    setImages([])
+    setError("")
+  }, [listingType])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -284,45 +299,77 @@ const AddListingPage = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files)
-    const maxFiles = listingType === "product" ? 2 : 5 // Allow up to 5 images for gigs
+    const maxFiles = listingType === "product" ? 2 : 1
     setImages(files.slice(0, maxFiles))
   }
 
-  const handleImagesChange = (uploadedImages) => {
-    setImages(uploadedImages)
+  const handleGigFileChange = (e) => {
+    const files = Array.from(e.target.files)
+    const maxFiles = 5 // Allow up to 5 images for gigs
+    setImages(files.slice(0, maxFiles))
   }
 
-  const validateForm = () => {
-    // Basic validation
-    if (listingType === "product" || listingType === "gig") {
-      if (!formData.description) {
-        setError("Description is required")
-        return false
-      }
+  const submitGig = async () => {
+    // Validate required fields
+    if (!formData.description.trim()) {
+      throw new Error("Description is required")
     }
-
-    if (listingType === "business" && !formData.name) {
-      setError("Business name is required")
-      return false
-    }
-
     if (!formData.category) {
-      setError("Category is required")
-      return false
+      throw new Error("Category is required")
+    }
+    if (!formData.budget) {
+      throw new Error("Budget is required")
+    }
+    if (!formData.duration) {
+      throw new Error("Duration is required")
     }
 
-    if (listingType === "gig") {
-      if (!formData.budget) {
-        setError("Budget is required")
-        return false
-      }
-      if (!formData.duration) {
-        setError("Duration is required")
-        return false
+    // Create the gig data object
+    const gigData = {
+      description: formData.description.trim(),
+      budget: formData.budget,
+      duration: formData.duration,
+      category: formData.category,
+      skills: formData.skills.trim() || "",
+    }
+
+    console.log("Submitting gig with data:", gigData)
+
+    // First create the gig without images
+    const response = await axios.post("/api/gigs", gigData, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    console.log("Gig creation response:", response.data)
+
+    // If there are images, upload them separately
+    if (images.length > 0 && response.data.data && response.data.data.id) {
+      const gigId = response.data.data.id
+      const formDataForImages = new FormData()
+
+      images.forEach((image) => {
+        formDataForImages.append("images", image)
+      })
+
+      try {
+        await axios.post(`/api/gigs/${gigId}/images`, formDataForImages, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        console.log("Images uploaded successfully")
+      } catch (imageError) {
+        console.error("Error uploading images:", imageError)
+        // Don't fail the whole process if image upload fails
+        toast.error("Gig created but some images failed to upload")
       }
     }
 
-    return true
+    return response
   }
 
   const handleSubmit = async (e) => {
@@ -334,19 +381,18 @@ const AddListingPage = () => {
       return
     }
 
-    if (!validateForm()) {
-      toast.error(error)
-      return
-    }
-
     formSubmitRef.current = true
     setLoading(true)
     setError("")
 
     try {
-      const formDataToSend = new FormData()
-
       if (listingType === "product") {
+        // Handle product submission
+        if (!formData.description) {
+          throw new Error("Description is required")
+        }
+
+        const formDataToSend = new FormData()
         formDataToSend.append("description", formData.description)
         formDataToSend.append("price", formData.price || "0")
         formDataToSend.append("category", formData.category || "")
@@ -354,7 +400,7 @@ const AddListingPage = () => {
 
         // Append images
         images.forEach((image) => {
-          formDataToSend.append("images", image.file || image)
+          formDataToSend.append("images", image)
         })
 
         if (images.length === 0) {
@@ -371,6 +417,16 @@ const AddListingPage = () => {
         toast.success("Product added successfully!")
         navigate(`/products/${response.data.id}`)
       } else if (listingType === "business") {
+        // Handle business submission
+        if (!formData.name) {
+          throw new Error("Business name is required")
+        }
+
+        if (!formData.description) {
+          throw new Error("Description is required")
+        }
+
+        const formDataToSend = new FormData()
         formDataToSend.append("name", formData.name)
         formDataToSend.append("description", formData.description)
         formDataToSend.append("category", formData.category || "")
@@ -381,7 +437,7 @@ const AddListingPage = () => {
           throw new Error("Business image is required")
         }
 
-        formDataToSend.append("image", images[0].file || images[0])
+        formDataToSend.append("image", images[0])
 
         const response = await axios.post("/api/businesses", formDataToSend, {
           headers: {
@@ -393,33 +449,34 @@ const AddListingPage = () => {
         toast.success("Business added successfully!")
         navigate(`/businesses/${response.data.id}`)
       } else if (listingType === "gig") {
-        formDataToSend.append("description", formData.description)
-        formDataToSend.append("budget", formData.budget || "0")
-        formDataToSend.append("duration", formData.duration || "7")
-        formDataToSend.append("category", formData.category || "")
-        formDataToSend.append("campus", user.campus)
-
-        if (formData.skills) {
-          formDataToSend.append("skills", formData.skills)
-        }
-
-        // Append images if any
-        images.forEach((image) => {
-          formDataToSend.append("images", image.file || image)
-        })
-
-        const response = await axios.post("/api/gigs", formDataToSend, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        // Handle gig submission using the new method
+        const response = await submitGig()
 
         toast.success("Gig created successfully!")
-        navigate(`/gigs/${response.data.data.id}`)
+
+        // Navigate based on the response structure
+        if (response.data && response.data.data && response.data.data.id) {
+          navigate(`/gigs/${response.data.data.id}`)
+        } else if (response.data && response.data.id) {
+          navigate(`/gigs/${response.data.id}`)
+        } else {
+          navigate("/gigs")
+        }
       }
     } catch (error) {
       console.error(`Error adding ${listingType}:`, error)
+
+      // Log detailed error information
+      if (error.response) {
+        console.error("Error response data:", error.response.data)
+        console.error("Error response status:", error.response.status)
+        console.error("Error response headers:", error.response.headers)
+      } else if (error.request) {
+        console.error("Error request:", error.request)
+      } else {
+        console.error("Error message:", error.message)
+      }
+
       setError(error.response?.data?.message || error.message || `Failed to add ${listingType}. Please try again.`)
       toast.error(error.response?.data?.message || error.message || `Failed to add ${listingType}`)
     } finally {
@@ -428,20 +485,6 @@ const AddListingPage = () => {
       setTimeout(() => {
         formSubmitRef.current = false
       }, 1000)
-    }
-  }
-
-  // Get the appropriate categories based on listing type
-  const getCategoriesForType = () => {
-    switch (listingType) {
-      case "product":
-        return PRODUCT_CATEGORIES
-      case "business":
-        return BUSINESS_CATEGORIES
-      case "gig":
-        return GIG_CATEGORIES
-      default:
-        return []
     }
   }
 
@@ -595,9 +638,15 @@ const AddListingPage = () => {
 
           {/* Category - For all listing types */}
           <div className="mb-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category*</label>
             <Select
-              options={getCategoriesForType()}
+              options={
+                listingType === "product"
+                  ? PRODUCT_CATEGORIES
+                  : listingType === "business"
+                    ? BUSINESS_CATEGORIES
+                    : GIG_CATEGORIES
+              }
               onChange={handleCategoryChange}
               value={selectedCategory}
               placeholder="Select Category"
@@ -616,7 +665,13 @@ const AddListingPage = () => {
                   : "Gig Images (optional)"}
             </label>
             {listingType === "gig" ? (
-              <ImageUpload onImagesChange={handleImagesChange} maxImages={5} acceptedFileTypes="image/*" />
+              <input
+                type="file"
+                onChange={handleGigFileChange}
+                accept="image/*"
+                className="w-full px-3 py-2 border rounded-md text-sm"
+                multiple
+              />
             ) : (
               <input
                 type="file"
@@ -632,7 +687,7 @@ const AddListingPage = () => {
                 ? `Selected ${images.length}/2 images (max 2)`
                 : listingType === "business"
                   ? `Selected ${images.length}/1 image`
-                  : `Upload up to 5 images related to your gig (max 5MB each)`}
+                  : `Selected ${images.length}/5 images (max 5)`}
             </p>
           </div>
 

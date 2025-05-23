@@ -9,6 +9,7 @@ import ImageUpload from "../components/ImageUpload"
 import toast from "react-hot-toast"
 import PageHeader from "../components/PageHeader"
 import Loader from "../components/Loader"
+import { GIG_CATEGORIES } from "../config"
 
 const EditGigPage = () => {
   const { id } = useParams()
@@ -31,7 +32,7 @@ const EditGigPage = () => {
   const [fetchingGig, setFetchingGig] = useState(true)
   const [errors, setErrors] = useState({})
 
-  const categories = [
+  const categories = GIG_CATEGORIES || [
     { value: "", label: "Select a category" },
     { value: "design", label: "Design" },
     { value: "writing", label: "Writing" },
@@ -169,32 +170,44 @@ const EditGigPage = () => {
     setLoading(true)
 
     try {
-      // Create FormData for file upload
-      const formDataObj = new FormData()
-      formDataObj.append("description", formData.description)
-      formDataObj.append("budget", formData.budget)
-      formDataObj.append("duration", formData.duration)
-      formDataObj.append("category", formData.category)
-      formDataObj.append("campus", formData.campus)
-
-      if (formData.skills) {
-        formDataObj.append("skills", formData.skills)
+      // First update the gig data without images
+      const gigData = {
+        description: formData.description,
+        budget: formData.budget,
+        duration: formData.duration,
+        category: formData.category,
+        campus: formData.campus,
+        skills: formData.skills ? formData.skills.split(",").map((skill) => skill.trim()) : [],
+        deleteImages: deleteImages,
       }
 
-      // Flag to delete existing images
-      formDataObj.append("deleteImages", deleteImages.toString())
+      console.log("Submitting gig update:", gigData)
 
-      // Append new images if any
-      images.forEach((image) => {
-        formDataObj.append("images", image.file)
-      })
-
-      await axios.put(`/api/gigs/${id}`, formDataObj, {
+      // Update gig data
+      const response = await axios.put(`/api/gigs/${id}`, gigData, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       })
+
+      // If there are new images to upload
+      if (images.length > 0 && !deleteImages) {
+        const imageFormData = new FormData()
+
+        // Append each image to the form data
+        images.forEach((image) => {
+          imageFormData.append("images", image.file)
+        })
+
+        // Upload images
+        await axios.post(`/api/gigs/${id}/images`, imageFormData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        })
+      }
 
       toast.success("Gig updated successfully!")
       navigate(`/gigs/${id}`)

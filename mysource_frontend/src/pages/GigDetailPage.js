@@ -422,7 +422,6 @@
 
 // export default GigDetailPage
 
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -430,13 +429,22 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import axios from "axios"
 import { formatCurrency, formatDate } from "../utils/format"
 import { useAuth } from "../contexts/AuthContext"
-import { FiCalendar, FiClock, FiEdit, FiTrash, FiUser, FiDollarSign, FiCheckCircle } from "react-icons/fi"
+import {
+  FiCalendar,
+  FiClock,
+  FiEdit,
+  FiTrash,
+  FiUser,
+  FiDollarSign,
+  FiCheckCircle,
+  FiMessageSquare,
+} from "react-icons/fi"
 import Loader from "../components/Loader"
 import BidForm from "../components/BidForm"
 import BidList from "../components/BidList"
 import ConfirmDialog from "../components/ConfirmDialog"
+import MessageForm from "../components/MessageForm"
 import toast from "react-hot-toast"
-import CommentSection from "../components/CommentSection"
 import SimilarGigs from "../components/SimilarGigs"
 
 const GigDetailPage = () => {
@@ -447,6 +455,7 @@ const GigDetailPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showBidForm, setShowBidForm] = useState(false)
+  const [showMessageForm, setShowMessageForm] = useState(false)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [showConfirmComplete, setShowConfirmComplete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -524,6 +533,11 @@ const GigDetailPage = () => {
     }
   }
 
+  const handleMessageSent = () => {
+    setShowMessageForm(false)
+    toast.success("Message sent to gig owner!")
+  }
+
   if (loading) return <Loader />
 
   if (error) {
@@ -545,6 +559,7 @@ const GigDetailPage = () => {
   const isHired = isAuthenticated && user.id === gig.freelancerId
   const canBid = isAuthenticated && !isOwner && gig.status === "open"
   const canComplete = isOwner && gig.status === "in_progress" && gig.paymentStatus === "escrow"
+  const canMessage = isAuthenticated && !isOwner
 
   // Get images from either Images array or images array
   const gigImages = gig.Images || gig.images || []
@@ -633,6 +648,24 @@ const GigDetailPage = () => {
             <h2 className="text-lg font-semibold mb-2">Description</h2>
             <p className="whitespace-pre-line">{gig.description}</p>
 
+            {/* Skills */}
+            {gig.skills && gig.skills.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-md font-semibold mb-2">Skills Required</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Array.isArray(gig.skills) ? (
+                    gig.skills.map((skill, index) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 rounded-full text-xs">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="px-2 py-1 bg-gray-100 rounded-full text-xs">{gig.skills}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Metrics */}
             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-gray-50 p-3 rounded-md text-center">
@@ -698,11 +731,6 @@ const GigDetailPage = () => {
                 <p className="text-sm mt-1">This gig has been marked as completed and payment has been released.</p>
               </div>
             )}
-
-            {/* Comments Section */}
-            <div className="mt-6">
-              <CommentSection itemId={id} itemType="gig" />
-            </div>
           </div>
 
           <div>
@@ -752,25 +780,44 @@ const GigDetailPage = () => {
                 </div>
               </div>
 
-              {/* Bid Button */}
-              {canBid && (
-                <button
-                  onClick={() => setShowBidForm(!showBidForm)}
-                  className="btn-primary w-full flex justify-center items-center"
-                >
-                  <FiDollarSign className="mr-1" /> {showBidForm ? "Cancel Bid" : "Place Bid"}
-                </button>
-              )}
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {/* Bid Button */}
+                {canBid && (
+                  <button
+                    onClick={() => {
+                      setShowBidForm(!showBidForm)
+                      setShowMessageForm(false)
+                    }}
+                    className="btn-primary w-full flex justify-center items-center"
+                  >
+                    <FiDollarSign className="mr-1" /> {showBidForm ? "Cancel Bid" : "Place Bid"}
+                  </button>
+                )}
 
-              {/* Not Logged In */}
-              {!isAuthenticated && (
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-600 mb-2">You need to log in to place a bid</p>
-                  <Link to="/login" className="btn-secondary w-full block">
-                    Log In
-                  </Link>
-                </div>
-              )}
+                {/* Message Button */}
+                {canMessage && (
+                  <button
+                    onClick={() => {
+                      setShowMessageForm(!showMessageForm)
+                      setShowBidForm(false)
+                    }}
+                    className="btn-secondary w-full flex justify-center items-center"
+                  >
+                    <FiMessageSquare className="mr-1" /> {showMessageForm ? "Cancel Message" : "Message Owner"}
+                  </button>
+                )}
+
+                {/* Not Logged In */}
+                {!isAuthenticated && (
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-600 mb-2">You need to log in to place a bid or send a message</p>
+                    <Link to="/login" className="btn-secondary w-full block">
+                      Log In
+                    </Link>
+                  </div>
+                )}
+              </div>
 
               {/* Bid Form */}
               {showBidForm && (
@@ -787,6 +834,14 @@ const GigDetailPage = () => {
                         .then((response) => setGig(response.data.data))
                     }}
                   />
+                </div>
+              )}
+
+              {/* Message Form */}
+              {showMessageForm && (
+                <div className="mt-4">
+                  <h3 className="text-md font-semibold mb-2">Send Message to Owner</h3>
+                  <MessageForm receiverId={gig.userId} gigId={id} onMessageSent={handleMessageSent} />
                 </div>
               )}
             </div>
@@ -815,7 +870,7 @@ const GigDetailPage = () => {
 
         {/* Similar Gigs */}
         {!loading && (
-          <div className="mt-6">
+          <div className="p-4 border-t">
             <h2 className="text-lg font-semibold mb-4">Similar Gigs</h2>
             <SimilarGigs currentGigId={id} category={gig?.category} campus={gig?.campus} />
           </div>
@@ -850,4 +905,3 @@ const GigDetailPage = () => {
 }
 
 export default GigDetailPage
-
