@@ -6,6 +6,8 @@ import axios from "axios"
 import { useAuth } from "../contexts/AuthContext"
 import toast from "react-hot-toast"
 
+const REACT_APP_API_URL = process.env.REACT_APP_API_URL
+
 const VerifyEmailPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -18,7 +20,7 @@ const VerifyEmailPage = () => {
     const verifyEmail = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/verify-email/${token}`)
+        const response = await axios.get(`${REACT_APP_API_URL}/api/auth/verify-email/${token}`)
 
         // Auto-login the user
         if (response.data.token && response.data.user) {
