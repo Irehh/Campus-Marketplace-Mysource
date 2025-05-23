@@ -1,3 +1,122 @@
+// "use client"
+
+// import { useState, useEffect } from "react"
+// import { useParams } from "react-router-dom"
+// import axios from "axios"
+// import { FiCheckCircle, FiXCircle } from "react-icons/fi"
+
+// const VerifyPaymentPage = () => {
+//   const { reference } = useParams()
+//   const token = localStorage.getItem("token")
+//   const [verificationStatus, setVerificationStatus] = useState({ success: false, message: "", details: {} })
+//   const [loading, setLoading] = useState(false)
+//   const { REACT_APP_API_URL } = process.env
+
+//   useEffect(() => {
+//     const verifyPayment = async () => {
+//       try {
+//         setLoading(true)
+//         const response = await axios.get(`${REACT_APP_API_URL}/api/wallet/verify-deposit?reference=${reference}`, {
+//           headers: { Authorization: `Bearer ${token}` },
+//         })
+
+//         setVerificationStatus({
+//           success: true,
+//           message: response.data.message || "Payment verified successfully",
+//           details: {
+//             amount: response.data.transaction?.amount,
+//             date: new Date().toLocaleString(),
+//             reference: reference,
+//             status: "Completed",
+//             transactionId: response.data.transaction?.id,
+//           },
+//         })
+//       } catch (error) {
+//         console.error("Error verifying payment:", error)
+//         setVerificationStatus({
+//           success: false,
+//           message: error.response?.data?.message || "Failed to verify payment",
+//           details: {
+//             reference: reference,
+//             status: "Failed",
+//             reason: error.response?.data?.reason || "Unknown error",
+//           },
+//         })
+//       } finally {
+//         setLoading(false)
+//       }
+//     }
+
+//     if (reference && token) {
+//       verifyPayment()
+//     }
+//   }, [reference, token, REACT_APP_API_URL])
+
+//   return (
+//     <div className="container mx-auto mt-8">
+//       <h1 className="text-2xl font-bold mb-4">Verify Payment</h1>
+//       {loading ? (
+//         <p>Verifying payment...</p>
+//       ) : (
+//         <>
+//           {verificationStatus.success ? (
+//             <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+//               <div className="flex items-center mb-2">
+//                 <FiCheckCircle className="text-green-500 mr-2" size={20} />
+//                 <h3 className="text-green-800 font-medium">Payment Successful</h3>
+//               </div>
+//               <p className="text-green-700 mb-3">{verificationStatus.message}</p>
+
+//               <div className="bg-white rounded p-3 border border-green-100">
+//                 <div className="grid grid-cols-2 gap-2 text-sm">
+//                   <div className="text-gray-500">Amount:</div>
+//                   <div className="font-medium">₦{verificationStatus.details?.amount?.toLocaleString()}</div>
+
+//                   <div className="text-gray-500">Date:</div>
+//                   <div className="font-medium">{verificationStatus.details?.date}</div>
+
+//                   <div className="text-gray-500">Reference:</div>
+//                   <div className="font-medium">{verificationStatus.details?.reference}</div>
+
+//                   <div className="text-gray-500">Status:</div>
+//                   <div className="font-medium text-green-600">{verificationStatus.details?.status}</div>
+
+//                   <div className="text-gray-500">Transaction ID:</div>
+//                   <div className="font-medium">{verificationStatus.details?.transactionId}</div>
+//                 </div>
+//               </div>
+//             </div>
+//           ) : (
+//             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+//               <div className="flex items-center mb-2">
+//                 <FiXCircle className="text-red-500 mr-2" size={20} />
+//                 <h3 className="text-red-800 font-medium">Payment Verification Failed</h3>
+//               </div>
+//               <p className="text-red-700 mb-3">{verificationStatus.message}</p>
+
+//               <div className="bg-white rounded p-3 border border-red-100">
+//                 <div className="grid grid-cols-2 gap-2 text-sm">
+//                   <div className="text-gray-500">Reference:</div>
+//                   <div className="font-medium">{verificationStatus.details?.reference}</div>
+
+//                   <div className="text-gray-500">Status:</div>
+//                   <div className="font-medium text-red-600">{verificationStatus.details?.status}</div>
+
+//                   <div className="text-gray-500">Reason:</div>
+//                   <div className="font-medium">{verificationStatus.details?.reason}</div>
+//                 </div>
+//               </div>
+//             </div>
+//           )}
+//         </>
+//       )}
+//     </div>
+//   )
+// }
+
+// export default VerifyPaymentPage
+
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,7 +134,7 @@ const VerifyPaymentPage = () => {
   const [transaction, setTransaction] = useState(null)
   const [error, setError] = useState(null)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -33,15 +152,34 @@ const VerifyPaymentPage = () => {
         }
 
         // Verify payment with backend
-        const response = await axios.get(`${REACT_APP_API_URL}/wallet/deposit/verify?reference=${reference}`, {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/wallet/verify-deposit?reference=${reference}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
+        // Check the response status
+        if (response.data.status === "failed") {
+          setError(response.data.message || "Payment verification failed")
+          setStatus("failed")
+          return
+        }
+
         setTransaction(response.data.transaction)
         setStatus("success")
+
+        // Log successful verification
+        console.log("Payment verified successfully:", response.data)
       } catch (error) {
         console.error("Error verifying payment:", error)
-        setError(error.response?.data?.message || "Failed to verify payment. Please contact support.")
+
+        // Handle different error scenarios
+        if (error.response?.status === 404) {
+          setError("Transaction not found. Please contact support.")
+        } else if (error.response?.data?.message) {
+          setError(error.response.data.message)
+        } else {
+          setError("Failed to verify payment. Please contact support.")
+        }
+
         setStatus("failed")
       } finally {
         setLoading(false)

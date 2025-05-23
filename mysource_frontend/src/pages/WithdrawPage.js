@@ -24,19 +24,19 @@ const WithdrawPage = () => {
   const [error, setError] = useState(null)
   const [accountVerified, setAccountVerified] = useState(false)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch wallet
-        const walletResponse = await axios.get(`${REACT_APP_API_URL}/wallet`, {
+        const walletResponse = await axios.get(`${REACT_APP_API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setWallet(walletResponse.data.wallet)
 
         // Fetch banks
-        const banksResponse = await axios.get(`${REACT_APP_API_URL}/wallet/banks`, {
+        const banksResponse = await axios.get(`${REACT_APP_API_URL}/api/wallet/banks`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setBanks(banksResponse.data || [])
@@ -79,7 +79,7 @@ const WithdrawPage = () => {
     try {
       setVerifying(true)
       const response = await axios.post(
-        `${REACT_APP_API_URL}/wallet/verify-account`,
+        `${REACT_APP_API_URL}/api/wallet/verify-account`,
         {
           bankCode: formData.bankCode,
           accountNumber: formData.accountNumber,
@@ -128,7 +128,7 @@ const WithdrawPage = () => {
 
     try {
       setLoading(true)
-      await axios.post(`${REACT_APP_API_URL}/wallet/withdraw`, formData, { headers: { Authorization: `Bearer ${token}` } })
+      await axios.post(`${REACT_APP_API_URL}/api/wallet/withdraw`, formData, { headers: { Authorization: `Bearer ${token}` } })
 
       toast.success("Withdrawal request submitted successfully")
       navigate("/wallet")

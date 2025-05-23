@@ -1,0 +1,4 @@
+[2025-05-22T13:11:48.068Z] {"type":"deposit_init","amount":1000,"userId":1,"reference":"dep_1747919505902_1_850240","timestamp":"2025-05-22T13:11:48.068Z"}
+[2025-05-23T08:52:40.428Z] {"type":"deposit_init","amount":2000,"userId":2,"reference":"dep_1747990358887_2_204974","timestamp":"2025-05-23T08:52:40.427Z"}
+[2025-05-23T10:01:48.059Z] {"type":"deposit_init","amount":2000,"userId":2,"reference":"dep_1747994507021_2_635795","timestamp":"2025-05-23T10:01:48.059Z"}
+[2025-05-23T10:05:30.467Z] {"type":"deposit_success","amount":"2000.00","userId":2,"reference":"dep_1747994507021_2_635795","timestamp":"2025-05-23T10:05:30.467Z"}

@@ -14,13 +14,13 @@ const WalletPage = () => {
   const [recentTransactions, setRecentTransactions] = useState([])
   const [error, setError] = useState(null)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   useEffect(() => {
     const fetchWallet = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${REACT_APP_API_URL}/wallet`, {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 

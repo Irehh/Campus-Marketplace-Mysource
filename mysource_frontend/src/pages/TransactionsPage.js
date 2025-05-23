@@ -33,7 +33,7 @@ const TransactionsPage = () => {
   })
   const [showFilters, setShowFilters] = useState(false)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   const fetchTransactions = async (page = 1) => {
     try {
@@ -57,7 +57,7 @@ const TransactionsPage = () => {
         queryParams += `&endDate=${filters.endDate}`
       }
 
-      const response = await axios.get(`${REACT_APP_API_URL}/wallet/transactions?${queryParams}`, {
+      const response = await axios.get(`${REACT_APP_API_URL}/api/wallet/transactions?${queryParams}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

@@ -16,12 +16,12 @@ const DepositPage = () => {
   const [wallet, setWallet] = useState(null)
   const [error, setError] = useState(null)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   useEffect(() => {
     const fetchWallet = async () => {
       try {
-        const response = await axios.get(`${REACT_APP_API_URL}/wallet`, {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         setWallet(response.data.wallet)
@@ -54,7 +54,7 @@ const DepositPage = () => {
     try {
       setLoading(true)
       const response = await axios.post(
-        `${REACT_APP_API_URL}/wallet/deposit/initialize`,
+        `${REACT_APP_API_URL}/api/wallet/deposit`,
         { amount: depositAmount },
         { headers: { Authorization: `Bearer ${token}` } },
       )
