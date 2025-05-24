@@ -320,7 +320,7 @@ exports.getBidsByUser = async (req, res) => {
       include: [
         {
           model: Gig,
-          attributes: ["id", "title", "budget", "status", "campus"],
+          attributes: ["id", "budget", "status", "campus"],
           include: [
             {
               model: User,

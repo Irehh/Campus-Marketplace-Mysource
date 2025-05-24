@@ -1,7 +1,7 @@
 
 
 import { Link, useNavigate } from "react-router-dom"
-import { FiHome, FiSearch, FiShoppingBag, FiGrid, FiArrowLeft } from "react-icons/fi"
+import { FiHome, FiSearch, FiShoppingBag, FiGrid, FiArrowLeft, FiDollarSign } from "react-icons/fi"
 import { useState } from "react"
 
 const NotFoundPage = () => {
@@ -67,6 +67,13 @@ const NotFoundPage = () => {
             >
               <FiGrid className="mr-2" />
               Businesses
+            </Link>
+            <Link
+              to="/gigs"
+              className="flex items-center justify-center p-3 border border-gray-200 rounded-md hover:bg-gray-50"
+            >
+              <FiDollarSign className="mr-2" />
+              Gigs
             </Link>
             <button
               onClick={goBack}

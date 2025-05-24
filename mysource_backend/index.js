@@ -110,6 +110,10 @@ app.use((req, res, next) => {
   next(error);
 });
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // Error handling middleware
 app.use(errorHandler);
 

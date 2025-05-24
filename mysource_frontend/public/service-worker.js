@@ -1,30 +1,30 @@
 /* eslint-disable no-restricted-globals */
 // Cache names
-const STATIC_CACHE_NAME = "campus-marketplace-static-v4"
-const DYNAMIC_CACHE_NAME = "campus-marketplace-dynamic-v4"
-const DATA_CACHE_NAME = "campus-marketplace-data-v4"
-const USER_DATA_CACHE_NAME = "user-data-cache-v4"
-const USER_MESSAGES_CACHE_NAME = "user-messages-cache-v4"
+const STATIC_CACHE_NAME = "campus-marketplace-static-v5"
+const DYNAMIC_CACHE_NAME = "campus-marketplace-dynamic-v5"
+const DATA_CACHE_NAME = "campus-marketplace-data-v5"
+const USER_DATA_CACHE_NAME = "user-data-cache-v5"
+const USER_MESSAGES_CACHE_NAME = "user-messages-cache-v5"
 
-const VERSION = "1.0.2" // Increment this whenever you want to force cache refresh
+const VERSION = "1.2.2" // Increment this whenever you want to force cache refresh
 
 // Files to cache
 const STATIC_ASSETS = [
   "/",
   "/index.html",
-  "/manifest.json",
+  "/manifest.webmanifest",
   "/static/js/main.chunk.js",
   "/static/js/0.chunk.js",
   "/static/js/bundle.js",
   "/static/css/main.chunk.css",
-  "/icons/favicon-32x32.png",
+  "/icons/icon-72x72.png",
   "/icons/icon-96x96.png",
-  "/icons/icon-128x128.png",
-  "/icons/apple-icon-144x144.png",
-  "/icons/apple-icon-152x152.png",
-  "/icons/android-chrome-192x192.png",
-  "/icons/icon-384x384.png",
-  "/icons/android-chrome-512x512.png",
+  "/icons/icon-120x120.png",
+  "/icons/icon-144x144.png",
+ "/icons/icon-152x152.png",
+  "/icons/icon-192x192.png",
+  "/icons/icon-310x310.png",
+ "/icons/icon-512x512.png",
   "/offline.html",
 ]
 

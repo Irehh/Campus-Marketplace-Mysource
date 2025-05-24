@@ -38,6 +38,16 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+      gigId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Gigs',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
     },
     {
       tableName: 'Messages',
@@ -57,6 +67,11 @@ module.exports = (sequelize, DataTypes) => {
     Message.belongsTo(models.User, { foreignKey: 'receiverId', as: 'receiver', onDelete: 'CASCADE' });
     Message.belongsTo(models.Product, { foreignKey: 'productId', onDelete: 'SET NULL' });
     Message.belongsTo(models.Business, { foreignKey: 'businessId', onDelete: 'SET NULL' });
+    Message.belongsTo(models.Gig, {
+      foreignKey: "gigId",
+      as: "gig",
+      onDelete: "SET NULL",
+    })
   };
 
   return Message;

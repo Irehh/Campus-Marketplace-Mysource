@@ -118,6 +118,9 @@ const Footer = () => {
             <Link to="/businesses" className="text-secondary-600 hover:text-primary whitespace-nowrap">
               Businesses
             </Link>
+            <Link to="/gigs" className="text-secondary-600 hover:text-primary whitespace-nowrap">
+              Gigs
+            </Link>
             <Link to="/about" className="text-secondary-600 hover:text-primary whitespace-nowrap">
               About Us
             </Link>

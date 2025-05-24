@@ -16,6 +16,7 @@ import {
 import { useAuth } from "../contexts/AuthContext"
 import axios from "axios"
 import toast from "react-hot-toast"
+import { REACT_APP_API_URL } from "../config"
 
 const UserDashboardPage = () => {
   const { user, token } = useAuth()
@@ -28,9 +29,6 @@ const UserDashboardPage = () => {
   const [deleteType, setDeleteType] = useState("")
   const [walletSummary, setWalletSummary] = useState(null)
   const [recentTransactions, setRecentTransactions] = useState([])
-
-  // Use your existing API base URL
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
 
   useEffect(() => {
     const fetchUserListings = async () => {
@@ -152,7 +150,7 @@ const UserDashboardPage = () => {
   }
 
   const renderListingCard = (item, type) => {
-    const imageUrl = item.images && item.images.length > 0 ? item.images[0].url : "/images/placeholder.png"
+    const imageUrl = item.Images && item.Images.length > 0 ? item.Images[0].url : "/images/placeholder.png"
     const editUrl =
       type === "product"
         ? `/api/edit-product/${item.id}`
@@ -167,7 +165,7 @@ const UserDashboardPage = () => {
       <div key={item.id} className={`bg-white rounded-lg shadow-sm overflow-hidden ${isDisabled ? "opacity-60" : ""}`}>
         <div className="relative h-32">
           <img
-            src={imageUrl || "/placeholder.svg"}
+            src={imageUrl || "/images/placeholder.png"}
             alt={item.name || item.description}
             className="w-full h-full object-cover"
           />
@@ -475,7 +473,7 @@ const UserDashboardPage = () => {
           <h2 className="text-lg font-medium">My Gigs</h2>
           <div className="flex space-x-2">
             <Link
-              to="/gigs/create"
+              to="/add-listing"
               className="bg-primary text-white px-3 py-1 rounded-md flex items-center text-sm hover:bg-primary-dark"
             >
               <FiPlus className="mr-1" size={12} /> Add

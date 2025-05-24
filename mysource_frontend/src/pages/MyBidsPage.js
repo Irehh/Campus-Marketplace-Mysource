@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import axios from "axios"
 import { FiArrowLeft, FiClock, FiCheck, FiX, FiAlertCircle } from "react-icons/fi"
+import { REACT_APP_API_URL } from "../config"
 
 const MyBidsPage = () => {
   const { token } = useAuth()
@@ -12,13 +13,11 @@ const MyBidsPage = () => {
   const [bids, setBids] = useState([])
   const [error, setError] = useState(null)
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
-
   useEffect(() => {
     const fetchBids = async () => {
       try {
         setLoading(true)
-        const response = await axios.get(`${REACT_APP_API_URL}/api/bids/my`, {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/bids/user`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
