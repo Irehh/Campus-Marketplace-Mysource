@@ -1,5 +1,5 @@
 // Cache busting utility to force browser to load latest assets
-const VERSION = "1.6.2"
+const VERSION = "1.7.0"
 
 // Generate a timestamp for the current session
 const SESSION_ID = new Date().getTime()
