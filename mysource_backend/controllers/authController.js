@@ -81,16 +81,16 @@ exports.register = async (req, res) => {
 
 // Verify email
 exports.verifyEmail = async (req, res) => {
-  const { token } = req.params;
+  const { verifyToken } = req.params;
 
-  if (!token) {
+  if (!verifyToken) {
     return res.status(400).json({ message: "Verification token is required" });
   }
 
   try {
     const user = await User.findOne({
       where: {
-        verificationToken: token,
+        verificationToken: verifyToken,
         verificationExpiry: {
           [Op.gt]: new Date(), // Check if token is not expired
         },

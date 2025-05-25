@@ -1,12 +1,12 @@
 /* eslint-disable no-restricted-globals */
 // Cache names
-const STATIC_CACHE_NAME = "campus-marketplace-static-v5"
-const DYNAMIC_CACHE_NAME = "campus-marketplace-dynamic-v5"
-const DATA_CACHE_NAME = "campus-marketplace-data-v5"
-const USER_DATA_CACHE_NAME = "user-data-cache-v5"
-const USER_MESSAGES_CACHE_NAME = "user-messages-cache-v5"
+const STATIC_CACHE_NAME = "campus-marketplace-static-v6"
+const DYNAMIC_CACHE_NAME = "campus-marketplace-dynamic-v6"
+const DATA_CACHE_NAME = "campus-marketplace-data-v6"
+const USER_DATA_CACHE_NAME = "user-data-cache-v6"
+const USER_MESSAGES_CACHE_NAME = "user-messages-cache-v6"
 
-const VERSION = "1.2.2" // Increment this whenever you want to force cache refresh
+const VERSION = "1.3.2" // Increment this whenever you want to force cache refresh
 
 // Files to cache
 const STATIC_ASSETS = [

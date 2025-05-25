@@ -6,14 +6,14 @@ import axios from "axios"
 import { REACT_APP_API_URL } from "../config"
 
 const VerifyEmailPage = () => {
-  const { token } = useParams()
+  const { verifyToken } = useParams()
   const navigate = useNavigate()
   const [status, setStatus] = useState("verifying") // verifying, success, error
   const [message, setMessage] = useState("")
 
   useEffect(() => {
     const verifyEmail = async () => {
-      if (!token) {
+      if (!verifyToken) {
         setStatus("error")
         setMessage("Invalid verification link")
         return
@@ -23,7 +23,7 @@ const VerifyEmailPage = () => {
         setStatus("verifying")
         setMessage("Verifying your email...")
 
-        const response = await axios.get(`${REACT_APP_API_URL}/api/auth/verify-email/${token}`, {
+        const response = await axios.get(`${REACT_APP_API_URL}/api/auth/verify-email/${verifyToken}`, {
           timeout: 10000, // 10 second timeout
         })
 
@@ -56,7 +56,7 @@ const VerifyEmailPage = () => {
     }
 
     verifyEmail()
-  }, [token, navigate])
+  }, [verifyToken, navigate])
 
   const handleRetryClick = () => {
     window.location.reload()
