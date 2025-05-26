@@ -51,6 +51,10 @@ import DepositPage from "./pages/DepositPage"
 import WithdrawPage from "./pages/WithdrawPage"
 import VerifyPaymentPage from "./pages/VerifyPaymentPage"
 import MyBidsPage from "./pages/MyBidsPage"
+import CartPage from "./pages/CartPage"
+import OrdersPage from "./pages/OrdersPage"
+import OrderDetailPage from "./pages/OrderDetailPage"
+import SellerOrdersPage from "./pages/SellerOrdersPage"
 
 function App() {
   const { user, isAuthenticated } = useAuth()
@@ -225,6 +229,10 @@ function App() {
               <Route path="wallet/withdraw" element={<WithdrawPage />} />
               <Route path="wallet/verify-payment" element={<VerifyPaymentPage />} />
               <Route path="my-bids" element={<MyBidsPage />} />
+                            <Route path="cart" element={<CartPage />} />
+              <Route path="orders" element={<OrdersPage />} />
+              <Route path="orders/:orderId" element={<OrderDetailPage />} />
+              <Route path="seller-orders" element={<SellerOrdersPage />} />
             </Route>
 
             {/* Admin Routes */}

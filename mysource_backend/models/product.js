@@ -38,6 +38,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      platformPurchaseEnabled: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
       viewCount: {
         type: DataTypes.INTEGER,
         defaultValue: 0,

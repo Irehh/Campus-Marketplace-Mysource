@@ -209,3 +209,31 @@ The Campus Marketplace Team`,
     `,
   }
 }
+
+orderCreated: (buyerName, orderNumber, subtotal, platformFee, total, orderUrl) => ({
+    subject: `Order Confirmation - ${orderNumber}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Order Confirmation</h2>
+        <p>Hi ${buyerName},</p>
+        <p>Your order has been placed successfully!</p>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0;">Order Details</h3>
+          <p><strong>Order Number:</strong> ${orderNumber}</p>
+          <p><strong>Subtotal:</strong> ₦${subtotal.toFixed(2)}</p>
+          <p><strong>Platform Fee:</strong> ₦${platformFee.toFixed(2)}</p>
+          <p><strong>Total Amount:</strong> ₦${total.toFixed(2)}</p>
+        </div>
+        
+        <p>Your payment has been securely held in escrow and will be released to the seller once you confirm delivery.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${orderUrl}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Track Your Order</a>
+        </div>
+        
+        <p>Thank you for using our platform!</p>
+      </div>
+    `,
+    text: `Order Confirmation - ${orderNumber}\n\nHi ${buyerName},\n\nYour order has been placed successfully!\n\nOrder Number: ${orderNumber}\nSubtotal: ₦${subtotal.toFixed(2)}\nPlatform Fee: ₦${platformFee.toFixed(2)}\nTotal: ₦${total.toFixed(2)}\n\nTrack your order: ${orderUrl}`,
+  })

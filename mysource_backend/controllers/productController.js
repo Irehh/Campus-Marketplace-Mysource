@@ -6,7 +6,7 @@ const { emitEvent } = require('../utils/eventEmitter'); // Assuming you have an 
 
 // Create a new product
 exports.createProduct = async (req, res) => {
-  const { description, price, category } = req.body;
+  const { description, price, category, platformPurchaseEnabled = true } = req.body;
   const userId = req.user.id; // Integer from auth middleware
   const campus = req.user.campus;
 
@@ -24,6 +24,7 @@ exports.createProduct = async (req, res) => {
           category,
           campus,
           userId,
+platformPurchaseEnabled,
           isDisabled: false,
           viewCount: 0,
         },
@@ -78,7 +79,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
   const productId = parseInt(id); // Convert string to integer
-  const { title, description, price, category, campus } = req.body;
+  const { title, description, price, category, campus, platformPurchaseEnable } = req.body;
   const userId = req.user.id; // Integer
 
   if (isNaN(productId)) {
@@ -106,6 +107,7 @@ exports.updateProduct = async (req, res) => {
           price: price ? Number.parseFloat(price) : undefined,
           category: category || undefined,
           campus: campus || undefined,
+          platformPurchaseEnabled: platformPurchaseEnable || undefined
         },
         { where: { id: productId }, transaction: t }
       );

@@ -21,6 +21,9 @@ const pushRoutes = require('./routes/pushRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 const bidRoutes = require('./routes/bidRoutes');
 const walletRoutes = require('./routes/walletRoutes');
+const cartRoutes = require("./routes/cartRoutes")
+const orderRoutes = require("./routes/orderRoutes")
+const feeRoutes = require("./routes/feeRoutes")
 
 // Import middleware
 const { errorHandler } = require('./middleware/errorMiddleware');
@@ -92,6 +95,9 @@ app.use('/api/push', pushRoutes);
 app.use("/api/gigs", gigRoutes)
 app.use("/api/bids", bidRoutes)
 app.use("/api/wallet", walletRoutes)
+app.use("/api/cart", cartRoutes)
+app.use("/api/orders", orderRoutes)
+app.use("/api/fees", feeRoutes)
 
 // Health check route
 app.get('/health', (req, res) => {
