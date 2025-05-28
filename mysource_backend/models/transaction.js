@@ -41,6 +41,7 @@ module.exports = (sequelize, DataTypes) => {
       reference: {
         type: DataTypes.STRING, // Payment reference from Paystack
         allowNull: true,
+        unique: true, // Ensure uniqueness for transaction references
       },
       description: {
         type: DataTypes.TEXT,

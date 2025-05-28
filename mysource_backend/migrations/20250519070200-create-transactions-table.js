@@ -29,6 +29,7 @@ module.exports = {
       reference: {
         type: Sequelize.STRING,
         allowNull: true,
+        unique: true, // Ensure uniqueness for transaction references
       },
       description: {
         type: Sequelize.TEXT,
@@ -68,6 +69,7 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       },
+      
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

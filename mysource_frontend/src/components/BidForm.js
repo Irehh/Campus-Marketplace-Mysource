@@ -25,7 +25,7 @@ const BidForm = ({ gigId, onSuccess }) => {
     setLoading(true)
     try {
       await axios.post(
-        "/api/bids",
+        `/api/bids/${gigId}`,
         {
           gigId,
           amount: Number.parseFloat(amount),

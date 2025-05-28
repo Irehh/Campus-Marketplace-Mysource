@@ -32,6 +32,19 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      lastTransactionAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      lastBalanceVerification: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      verificationCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,

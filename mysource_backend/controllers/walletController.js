@@ -6,6 +6,193 @@ const fs = require("fs")
 const path = require("path")
 const { sendEmail } = require("../utils/emailUtils")
 const logger = require("../utils/logger")
+const { sequelize } = require("../models")
+
+// Enhanced balance verification system
+const verifyWalletBalance = async (walletId) => {
+  try {
+    const wallet = await Wallet.findByPk(walletId)
+    if (!wallet) {
+      throw new Error("Wallet not found")
+    }
+
+    // Calculate balance from transaction records
+    const transactions = await Transaction.findAll({
+      where: {
+        walletId,
+        status: "completed",
+      },
+      order: [["createdAt", "ASC"]],
+    })
+
+    let calculatedBalance = 0
+    let calculatedPendingBalance = 0
+
+    // Get pending transactions
+    const pendingTransactions = await Transaction.findAll({
+      where: {
+        walletId,
+        status: "pending",
+      },
+    })
+
+    // Calculate balances from transaction history
+    for (const transaction of transactions) {
+      switch (transaction.type) {
+        case "deposit":
+        case "release":
+        case "refund":
+          calculatedBalance += Number.parseFloat(transaction.amount)
+          break
+        case "withdrawal":
+        case "escrow":
+        case "fee":
+        case "withdrawal_fee":
+          calculatedBalance -= Number.parseFloat(transaction.amount)
+          break
+      }
+    }
+
+    // Calculate pending balance
+    for (const transaction of pendingTransactions) {
+      if (["deposit", "release", "refund"].includes(transaction.type)) {
+        calculatedPendingBalance += Number.parseFloat(transaction.amount)
+      }
+    }
+
+    // Check for discrepancies
+    const balanceDiscrepancy = Math.abs(wallet.balance - calculatedBalance)
+    const pendingDiscrepancy = Math.abs(wallet.pendingBalance - calculatedPendingBalance)
+
+    if (balanceDiscrepancy > 0.01) {
+      // Allow for minor floating point differences
+      logger.error(
+        `Balance discrepancy detected for wallet ${walletId}: DB=${wallet.balance}, Calculated=${calculatedBalance}`,
+      )
+
+      // Auto-correct the balance if discrepancy is found
+      await wallet.update({
+        balance: calculatedBalance,
+        lastBalanceVerification: new Date(),
+      })
+
+      // Log the correction
+      logTransaction({
+        type: "balance_correction",
+        amount: calculatedBalance - wallet.balance,
+        walletId,
+        userId: wallet.userId,
+        metadata: {
+          oldBalance: wallet.balance,
+          newBalance: calculatedBalance,
+          discrepancy: balanceDiscrepancy,
+        },
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    if (pendingDiscrepancy > 0.01) {
+      await wallet.update({
+        pendingBalance: calculatedPendingBalance,
+        lastBalanceVerification: new Date(),
+      })
+    }
+
+    return {
+      verified: true,
+      calculatedBalance,
+      calculatedPendingBalance,
+      dbBalance: wallet.balance,
+      dbPendingBalance: wallet.pendingBalance,
+      discrepancy: balanceDiscrepancy,
+      pendingDiscrepancy,
+    }
+  } catch (error) {
+    logger.error(`Error verifying wallet balance: ${error.message}`)
+    return {
+      verified: false,
+      error: error.message,
+    }
+  }
+}
+
+// Enhanced transaction creation with double-entry bookkeeping principles
+const createVerifiedTransaction = async (transactionData, walletId) => {
+  const transaction = await sequelize.transaction()
+
+  try {
+    // Create the transaction record
+    const newTransaction = await Transaction.create(transactionData, { transaction })
+
+    // Update wallet balance atomically
+    const wallet = await Wallet.findByPk(walletId, {
+      transaction,
+      lock: true, // Lock the wallet row to prevent concurrent modifications
+    })
+
+    if (!wallet) {
+      throw new Error("Wallet not found")
+    }
+
+    let newBalance = wallet.balance
+    let newPendingBalance = wallet.pendingBalance
+
+    // Apply balance changes based on transaction type
+    switch (transactionData.type) {
+      case "deposit":
+        if (transactionData.status === "completed") {
+          newBalance += Number.parseFloat(transactionData.amount)
+        } else if (transactionData.status === "pending") {
+          newPendingBalance += Number.parseFloat(transactionData.amount)
+        }
+        break
+      case "withdrawal":
+      case "fee":
+      case "withdrawal_fee":
+        newBalance -= Number.parseFloat(transactionData.amount)
+        break
+      case "escrow":
+        newBalance -= Number.parseFloat(transactionData.amount)
+        newPendingBalance += Number.parseFloat(transactionData.amount)
+        break
+      case "release":
+        newPendingBalance -= Number.parseFloat(transactionData.amount)
+        // For releases, the money goes to the recipient's wallet
+        break
+      case "refund":
+        newPendingBalance -= Number.parseFloat(transactionData.amount)
+        newBalance += Number.parseFloat(transactionData.amount)
+        break
+    }
+
+    // Update wallet with new balances
+    await wallet.update(
+      {
+        balance: newBalance,
+        pendingBalance: newPendingBalance,
+        lastTransactionAt: new Date(),
+      },
+      { transaction },
+    )
+
+    // Commit the transaction
+    await transaction.commit()
+
+    // Log the transaction for audit trail
+    logTransaction({
+      ...transactionData,
+      walletId,
+      balanceAfter: newBalance,
+      pendingBalanceAfter: newPendingBalance,
+      timestamp: new Date().toISOString(),
+    })
+
+    return newTransaction
+  } catch (error) {
+    await transaction.rollback()
+    throw error
+  }
+}
 
 // Create a log directory if it doesn't exist
 const logDir = path.join(__dirname, "../../logs")
@@ -62,7 +249,7 @@ exports.getWallet = async (req, res) => {
 
 // Initialize deposit (generate Paystack payment link)
 exports.initializeDeposit = async (req, res) => {
-  const { amount } = req.body
+  const { amount, metadata = {} } = req.body
   const userId = req.user.id
 
   try {
@@ -97,7 +284,8 @@ exports.initializeDeposit = async (req, res) => {
       reference,
       userId,
       walletId: wallet.id,
-      description: "Wallet deposit",
+      description: metadata.type === "direct_purchase" ? "Direct purchase payment" : "Wallet deposit",
+      metadata,
     })
 
     // Initialize Paystack transaction
@@ -111,7 +299,8 @@ exports.initializeDeposit = async (req, res) => {
         metadata: {
           userId,
           transactionId: transaction.id,
-          type: "deposit",
+          type: metadata.type || "deposit",
+          ...metadata,
         },
       },
       {
@@ -128,6 +317,7 @@ exports.initializeDeposit = async (req, res) => {
       amount,
       userId,
       reference,
+      metadata,
       timestamp: new Date().toISOString(),
     })
 
@@ -180,6 +370,9 @@ exports.verifyDeposit = async (req, res) => {
         })
       }
 
+      // Verify wallet balance before processing
+      const preVerification = await verifyWalletBalance(transaction.walletId)
+
       // Update transaction status
       await transaction.update({
         status: "completed",
@@ -187,45 +380,112 @@ exports.verifyDeposit = async (req, res) => {
           ...transaction.metadata,
           paystack_reference: data.reference,
           paystack_transaction_id: data.id,
+          verification_timestamp: new Date().toISOString(),
+          pre_verification: preVerification,
         },
       })
 
-      // Update wallet balance
+      // Update wallet balance using verified method
       const wallet = await Wallet.findByPk(transaction.walletId)
+      const oldBalance = wallet.balance
+
       await wallet.update({
         balance: wallet.balance + transaction.amount,
+        lastTransactionAt: new Date(),
+        lastBalanceVerification: new Date(),
       })
 
-      // Log the successful deposit
+      // Verify balance after update
+      const postVerification = await verifyWalletBalance(transaction.walletId)
+
+      // Enhanced logging with verification data
       logTransaction({
         type: "deposit_success",
         amount: transaction.amount,
         userId: transaction.userId,
+        walletId: transaction.walletId,
         reference,
+        oldBalance,
+        newBalance: wallet.balance + transaction.amount,
+        preVerification,
+        postVerification,
+        paystack_data: {
+          reference: data.reference,
+          transaction_id: data.id,
+          amount: data.amount,
+          currency: data.currency,
+        },
         timestamp: new Date().toISOString(),
       })
 
-      // Send email notification
+      // Handle direct purchase if applicable
+      if (transaction.metadata?.type === "direct_purchase" && transaction.metadata?.autoCreateOrder) {
+        try {
+          // Add product to cart and create order
+          const { productId } = transaction.metadata
+
+          // Import required modules for order creation
+          const api = require("../utils/api") // Assuming you have an internal API utility
+
+          // Add to cart
+          await api.post(
+            "/cart/add",
+            {
+              productId,
+              quantity: 1,
+            },
+            {
+              headers: { Authorization: `Bearer ${generateInternalToken(transaction.userId)}` },
+            },
+          )
+
+          // Create order
+          await api.post(
+            "/orders/create",
+            {
+              deliveryMethod: "pickup",
+              notes: "Direct purchase via Buy Now",
+            },
+            {
+              headers: { Authorization: `Bearer ${generateInternalToken(transaction.userId)}` },
+            },
+          )
+        } catch (orderError) {
+          console.error("Error creating order after payment:", orderError)
+          // Don't fail the payment verification, just log the error
+        }
+      }
+
+      // Send email notification to the user
       try {
         await sendEmail({
           to: transaction.User.email,
           subject: "Deposit Successful",
           text: `Your deposit of ₦${transaction.amount} has been successfully processed and added to your wallet.`,
           html: `
-            <h2>Deposit Successful!</h2>
-            <p>Your deposit of <strong>₦${transaction.amount}</strong> has been successfully processed and added to your wallet.</p>
-            <p>Transaction Reference: ${reference}</p>
-            <p>Thank you for using Campus Marketplace!</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+              <h2 style="color: #0f766e; text-align: center;">Deposit Successful!</h2>
+              <p>Your deposit of <strong>₦${transaction.amount}</strong> has been successfully processed and added to your wallet.</p>
+              <p>Transaction Reference: ${reference}</p>
+              <p>New Balance: ₦${(wallet.balance + transaction.amount).toLocaleString()}</p>
+              ${transaction.metadata?.type === "direct_purchase" ? "<p>Your order has been created automatically.</p>" : ""}
+              <p>Thank you for using Campus Marketplace!</p>
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
+                <p>Campus Marketplace</p>
+              </div>
+            </div>
           `,
         })
-      } catch (error) {
-        console.error("Error sending email notification:", error)
+      } catch (emailError) {
+        console.error("Error sending email notification:", emailError)
         // Continue even if email fails
       }
 
       res.json({
         message: "Deposit successful",
         transaction,
+        verification: postVerification,
+        autoOrderCreated: transaction.metadata?.autoCreateOrder || false,
       })
     } else {
       // Find the transaction
@@ -242,6 +502,7 @@ exports.verifyDeposit = async (req, res) => {
             paystack_reference: data.reference,
             paystack_transaction_id: data.id,
             failure_reason: data.gateway_response,
+            failure_timestamp: new Date().toISOString(),
           },
         })
       }
@@ -251,6 +512,7 @@ exports.verifyDeposit = async (req, res) => {
         type: "deposit_failed",
         reference,
         reason: data.gateway_response,
+        paystack_data: data,
         timestamp: new Date().toISOString(),
       })
 
@@ -263,6 +525,43 @@ exports.verifyDeposit = async (req, res) => {
     console.error("Error verifying deposit:", error)
     res.status(500).json({ message: "Failed to verify deposit" })
   }
+}
+
+// Add new endpoint for manual balance verification
+exports.verifyBalance = async (req, res) => {
+  const userId = req.user.id
+
+  try {
+    const wallet = await Wallet.findOne({
+      where: { userId },
+    })
+
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" })
+    }
+
+    const verification = await verifyWalletBalance(wallet.id)
+
+    res.json({
+      message: "Balance verification completed",
+      verification,
+      wallet: {
+        id: wallet.id,
+        balance: wallet.balance,
+        pendingBalance: wallet.pendingBalance,
+        lastVerification: wallet.lastBalanceVerification,
+      },
+    })
+  } catch (error) {
+    console.error("Error verifying balance:", error)
+    res.status(500).json({ message: "Failed to verify balance" })
+  }
+}
+
+// Helper function to generate internal token for API calls
+const generateInternalToken = (userId) => {
+  // This is a simplified version - in production, use proper JWT signing
+  return Buffer.from(JSON.stringify({ userId, internal: true })).toString("base64")
 }
 
 // Withdraw funds

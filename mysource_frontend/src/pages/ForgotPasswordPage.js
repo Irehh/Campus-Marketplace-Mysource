@@ -22,7 +22,7 @@ const ForgotPasswordPage = () => {
     setLoading(true)
 
     try {
-      await axios.post("/api/auth/request-password-reset", { email })
+      await axios.post("/api/auth/forgot-password", { email })
       setSubmitted(true)
       toast.success("If your email is registered, you will receive a password reset link")
     } catch (error) {
