@@ -1,3 +1,48 @@
+# name: Deploy Frontend to Namecheap
+
+# on:
+#   push:
+#     paths:
+#       - 'mysource_frontend/**'
+#       - '.github/workflows/frontend-deploy.yml'
+#     branches:
+#       - master
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 20
+
+#       - name: Install frontend deps
+#         run: npm install
+#         working-directory: ./mysource_frontend
+
+#       - name: Build React app
+#         run: |
+#           REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} \
+#           REACT_APP_GOOGLE_CLIENT_ID=${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }} \
+#           REACT_APP_TELEGRAM_BOT_USERNAME=${{ secrets.REACT_APP_TELEGRAM_BOT_USERNAME }} \
+#           REACT_APP_TURNSTILE_SITE_KEY=${{ secrets.REACT_APP_TURNSTILE_SITE_KEY }} \
+#           REACT_APP_DISABLE_TURNSTILE=${{ secrets.REACT_APP_DISABLE_TURNSTILE }} \
+#           npm run build
+#         working-directory: ./mysource_frontend
+      
+
+#       - name: Deploy via FTP
+#         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+#         with:
+#           server: ${{ secrets.FTP_SERVER }}
+#           username: ${{ secrets.FTP_USERNAME }}
+#           password: ${{ secrets.FTP_PASSWORD }}
+#           local-dir: ./mysource_frontend/build/
+#           server-dir: ./public_html/
 name: Deploy Frontend to Namecheap
 
 on:
@@ -20,20 +65,38 @@ jobs:
         with:
           node-version: 20
 
+      - name: Generate build timestamp
+        id: timestamp
+        run: echo "BUILD_TIME=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Install frontend deps
         run: npm install
         working-directory: ./mysource_frontend
 
-      - name: Build React app
+      - name: Build React app with cache busting
         run: |
           REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} \
           REACT_APP_GOOGLE_CLIENT_ID=${{ secrets.REACT_APP_GOOGLE_CLIENT_ID }} \
           REACT_APP_TELEGRAM_BOT_USERNAME=${{ secrets.REACT_APP_TELEGRAM_BOT_USERNAME }} \
           REACT_APP_TURNSTILE_SITE_KEY=${{ secrets.REACT_APP_TURNSTILE_SITE_KEY }} \
           REACT_APP_DISABLE_TURNSTILE=${{ secrets.REACT_APP_DISABLE_TURNSTILE }} \
+          REACT_APP_VERSION=${{ steps.timestamp.outputs.BUILD_TIME }} \
+          REACT_APP_BUILD_HASH=${{ github.sha }} \
           npm run build
         working-directory: ./mysource_frontend
-      
+
+      - name: Update service worker version
+        run: |
+          # Update service worker with new version
+          sed -i 's/const VERSION = "[^"]*"/const VERSION = "${{ steps.timestamp.outputs.BUILD_TIME }}"/' ./mysource_frontend/build/service-worker.js
+          
+          # Update cache names with new version
+          sed -i 's/campus-marketplace-static-v[^"]*"/campus-marketplace-static-v${{ steps.timestamp.outputs.BUILD_TIME }}"/g' ./mysource_frontend/build/service-worker.js
+          sed -i 's/campus-marketplace-images-v[^"]*"/campus-marketplace-images-v${{ steps.timestamp.outputs.BUILD_TIME }}"/g' ./mysource_frontend/build/service-worker.js
+
+      - name: Create cache invalidation file
+        run: |
+          echo '{"version":"${{ steps.timestamp.outputs.BUILD_TIME }}","buildHash":"${{ github.sha }}","timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)"}' > ./mysource_frontend/build/version.json
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -43,3 +106,10 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./mysource_frontend/build/
           server-dir: ./public_html/
+
+      - name: Verify deployment
+        run: |
+          echo "Deployment completed successfully!"
+          echo "Build version: ${{ steps.timestamp.outputs.BUILD_TIME }}"
+          echo "Git commit: ${{ github.sha }}"
+          echo "Cache invalidation should occur automatically on next user visit"

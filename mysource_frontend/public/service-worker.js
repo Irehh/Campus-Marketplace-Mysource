@@ -1,8 +1,9 @@
 /* eslint-disable no-restricted-globals */
 // Service Worker with Push Notifications and Network-First Static Asset Caching
-const VERSION = "2.0.0" // Increment to force refresh
+const VERSION = "BUILD_VERSION_PLACEHOLDER" // This will be replaced during build
+const BUILD_HASH = "BUILD_HASH_PLACEHOLDER" // This will be replaced during build
 
-// Cache names
+// Cache names with version
 const STATIC_CACHE_NAME = "campus-marketplace-static-v" + VERSION
 const IMAGES_CACHE_NAME = "campus-marketplace-images-v" + VERSION
 
@@ -18,11 +19,11 @@ const STATIC_ASSETS = [
   "/icons/icon-512x512.png",
 ]
 
-console.log("[Service Worker] Starting Service Worker v" + VERSION)
+console.log("[Service Worker] Starting Service Worker v" + VERSION + " (Build: " + BUILD_HASH + ")")
 
 // Install event - cache core static assets
 self.addEventListener("install", (event) => {
-  console.log("[Service Worker] Installing Service Worker...")
+  console.log("[Service Worker] Installing Service Worker v" + VERSION)
 
   // Skip waiting to ensure immediate activation
   self.skipWaiting()
@@ -30,7 +31,7 @@ self.addEventListener("install", (event) => {
   // Cache static assets
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME).then((cache) => {
-      console.log("[Service Worker] Caching static assets")
+      console.log("[Service Worker] Caching static assets for version", VERSION)
       return cache.addAll(STATIC_ASSETS)
     }),
   )
@@ -38,7 +39,7 @@ self.addEventListener("install", (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener("activate", (event) => {
-  console.log("[Service Worker] Activating Service Worker...")
+  console.log("[Service Worker] Activating Service Worker v" + VERSION)
 
   // Clean up old caches
   event.waitUntil(
@@ -56,8 +57,21 @@ self.addEventListener("activate", (event) => {
         )
       })
       .then(() => {
+        console.log("[Service Worker] Cache cleanup completed for version", VERSION)
         // Take control of all clients immediately
         return self.clients.claim()
+      })
+      .then(() => {
+        // Notify all clients about the new version
+        return self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "NEW_VERSION_AVAILABLE",
+              version: VERSION,
+              buildHash: BUILD_HASH,
+            })
+          })
+        })
       }),
   )
 })
@@ -77,12 +91,41 @@ const isApiRequest = (url) => {
   return url.pathname.startsWith("/api/")
 }
 
+// Helper function to check for version updates
+const checkForVersionUpdate = async () => {
+  try {
+    const response = await fetch("/version.json", { cache: "no-cache" })
+    if (response.ok) {
+      const versionInfo = await response.json()
+      if (versionInfo.version !== VERSION) {
+        console.log("[Service Worker] New version detected:", versionInfo.version, "Current:", VERSION)
+        return versionInfo
+      }
+    }
+  } catch (error) {
+    console.log("[Service Worker] Could not check version:", error)
+  }
+  return null
+}
+
 // Fetch event - network-first for static assets, no caching for API
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url)
 
   // Skip cross-origin requests
   if (url.origin !== location.origin) {
+    return
+  }
+
+  // Handle version.json requests - always fetch fresh
+  if (url.pathname === "/version.json") {
+    event.respondWith(
+      fetch(event.request, { cache: "no-cache" }).catch(() => {
+        return new Response('{"version":"unknown","error":"offline"}', {
+          headers: { "Content-Type": "application/json" },
+        })
+      }),
+    )
     return
   }
 
@@ -224,6 +267,16 @@ self.addEventListener("message", (event) => {
     self.skipWaiting()
   }
 
+  if (event.data && event.data.type === "CHECK_VERSION") {
+    checkForVersionUpdate().then((versionInfo) => {
+      event.ports[0]?.postMessage({
+        type: "VERSION_CHECK_RESULT",
+        versionInfo,
+        currentVersion: VERSION,
+      })
+    })
+  }
+
   if (event.data && event.data.type === "CLEAR_ALL_CACHES") {
     console.log("[Service Worker] Clearing all caches requested")
     event.waitUntil(
@@ -241,6 +294,26 @@ self.addEventListener("message", (event) => {
   }
 })
 
+// Periodic version check (every 30 minutes)
+setInterval(
+  () => {
+    checkForVersionUpdate().then((versionInfo) => {
+      if (versionInfo) {
+        self.clients.matchAll().then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "NEW_VERSION_AVAILABLE",
+              versionInfo,
+              currentVersion: VERSION,
+            })
+          })
+        })
+      }
+    })
+  },
+  30 * 60 * 1000,
+) // 30 minutes
+
 // Error handling
 self.addEventListener("error", (event) => {
   console.error("[Service Worker] Error:", event.error)
@@ -250,4 +323,4 @@ self.addEventListener("unhandledrejection", (event) => {
   console.error("[Service Worker] Unhandled promise rejection:", event.reason)
 })
 
-console.log("[Service Worker] Service Worker loaded successfully")
+console.log("[Service Worker] Service Worker loaded successfully v" + VERSION)
