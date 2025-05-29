@@ -6,7 +6,7 @@ const DATA_CACHE_NAME = "campus-marketplace-data-v6"
 const USER_DATA_CACHE_NAME = "user-data-cache-v6"
 const USER_MESSAGES_CACHE_NAME = "user-messages-cache-v6"
 
-const VERSION = "1.3.2" // Increment this whenever you want to force cache refresh
+const VERSION = "1.5.2" // Increment this whenever you want to force cache refresh
 
 // Files to cache
 const STATIC_ASSETS = [

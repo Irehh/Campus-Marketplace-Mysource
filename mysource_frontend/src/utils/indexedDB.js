@@ -1,6 +1,6 @@
 // Database name and version
 const DB_NAME = "campus-marketplace"
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 // Object store names
 const STORES = {
