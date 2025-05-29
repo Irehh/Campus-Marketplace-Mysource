@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Campus Marketplace</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { background: #ffe6e6; border-color: #ff9999; }
+        .success { background: #e6ffe6; border-color: #99ff99; }
+        .info { background: #e6f3ff; border-color: #99ccff; }
+    </style>
+</head>
+<body>
+    <h1>Campus Marketplace - Debug Page</h1>
+    
+    <div class="section info">
+        <h3>Current URL</h3>
+        <p id="current-url"></p>
+    </div>
+    
+    <div class="section info">
+        <h3>File Tests</h3>
+        <div id="file-tests"></div>
+    </div>
+    
+    <div class="section info">
+        <h3>Server Response Test</h3>
+        <div id="server-test"></div>
+    </div>
+
+    <script>
+        // Display current URL
+        document.getElementById('current-url').textContent = window.location.href;
+
+        // Test file accessibility
+        const filesToTest = [
+            '/manifest.webmanifest',
+            '/static/js/main.js',
+            '/static/css/main.css',
+            '/version.json',
+            '/service-worker.js'
+        ];
+
+        const fileTestsDiv = document.getElementById('file-tests');
+        
+        filesToTest.forEach(file => {
+            fetch(file)
+                .then(response => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<strong>${file}</strong>: ${response.ok ? '✅ OK' : '❌ Failed'} (${response.status})`;
+                    div.className = response.ok ? 'success' : 'error';
+                    fileTestsDiv.appendChild(div);
+                })
+                .catch(error => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `<strong>${file}</strong>: ❌ Error - ${error.message}`;
+                    div.className = 'error';
+                    fileTestsDiv.appendChild(div);
+                });
+        });
+
+        // Test server response
+        fetch('/')
+            .then(response => response.text())
+            .then(html => {
+                const serverTestDiv = document.getElementById('server-test');
+                const isHtml = html.trim().startsWith('<!DOCTYPE') || html.trim().startsWith('<html');
+                serverTestDiv.innerHTML = `
+                    <p><strong>Root response type:</strong> ${isHtml ? 'HTML ✅' : 'Not HTML ❌'}</p>
+                    <p><strong>Response length:</strong> ${html.length} characters</p>
+                    <details>
+                        <summary>First 500 characters of response:</summary>
+                        <pre style="background: #f5f5f5; padding: 10px; overflow: auto;">${html.substring(0, 500)}</pre>
+                    </details>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('server-test').innerHTML = `<p class="error">Error testing server: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>

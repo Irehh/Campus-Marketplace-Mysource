@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/icons/icon-72x72.png" />
+    <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Campus Marketplace - Buy, sell, and trade within your campus community" />
@@ -11,8 +11,8 @@
     <meta http-equiv="Cache-Control" content="no-cache" />
     
     <!-- PWA Meta Tags -->
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     
     <!-- Preconnect to external services -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,81 +25,17 @@
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     
     <title>Campus Marketplace</title>
-    
-    <!-- Fallback for missing assets -->
-    <script>
-      // Check if main CSS and JS files load, if not show error message
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          const root = document.getElementById('root');
-          if (!root || root.innerHTML.trim() === '') {
-            document.body.innerHTML = `
-              <div style="
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                font-family: Arial, sans-serif;
-                text-align: center;
-                padding: 20px;
-                background: #f5f5f5;
-              ">
-                <h1 style="color: #e74c3c; margin-bottom: 20px;">App Loading Error</h1>
-                <p style="color: #666; margin-bottom: 20px;">
-                  The application failed to load properly. This might be due to:
-                </p>
-                <ul style="color: #666; text-align: left; margin-bottom: 30px;">
-                  <li>Missing build files on the server</li>
-                  <li>Incorrect deployment configuration</li>
-                  <li>Network connectivity issues</li>
-                </ul>
-                <button onclick="window.location.reload()" style="
-                  background: #3498db;
-                  color: white;
-                  border: none;
-                  padding: 12px 24px;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  font-size: 16px;
-                ">
-                  Reload Page
-                </button>
-                <p style="color: #999; margin-top: 20px; font-size: 14px;">
-                  If this problem persists, please contact support.
-                </p>
-              </div>
-            `;
-          }
-        }, 3000); // Wait 3 seconds for the app to load
-      });
-    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root">
-      <!-- Loading indicator while app loads -->
-      <div style="
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        font-family: Arial, sans-serif;
-      ">
+      <!-- Loading fallback -->
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
         <div style="text-align: center;">
-          <div style="
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-          "></div>
-          <p style="color: #666;">Loading Campus Marketplace...</p>
+          <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+          <p>Loading Campus Marketplace...</p>
         </div>
       </div>
-      
       <style>
         @keyframes spin {
           0% { transform: rotate(0deg); }
@@ -109,16 +45,38 @@
     </div>
     
     <script>
-      // Register service worker with network-first caching for static assets
+      // Error handling for failed resource loads
+      window.addEventListener('error', function(e) {
+        console.error('Resource failed to load:', e.target.src || e.target.href);
+        
+        // If main JS fails to load, show error message
+        if (e.target.tagName === 'SCRIPT' && e.target.src && e.target.src.includes('main.')) {
+          document.getElementById('root').innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; background: #f5f5f5;">
+              <div style="text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px;">
+                <h2 style="color: #e74c3c; margin-bottom: 20px;">⚠️ Loading Error</h2>
+                <p style="margin-bottom: 20px; color: #666;">The application failed to load. This might be due to:</p>
+                <ul style="text-align: left; color: #666; margin-bottom: 20px;">
+                  <li>Server configuration issues</li>
+                  <li>File path problems</li>
+                  <li>Network connectivity</li>
+                </ul>
+                <button onclick="window.location.reload()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                  Try Again
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      // Register service worker with error handling
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js', {
           scope: '/',
         }).then(function(registration) {
           console.log('Service worker registered:', registration);
-          
-          // Check for updates
           registration.update();
-          
         }).catch(function(error) {
           console.log('Service worker registration failed:', error);
         });
