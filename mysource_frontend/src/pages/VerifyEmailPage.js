@@ -8,7 +8,7 @@ import { REACT_APP_API_URL } from "../config"
 const VerifyEmailPage = () => {
   const { token } = useParams()
   const navigate = useNavigate()
-  const [status, setStatus] = useState("verifying") // verifying, success, error
+  const [status, setStatus] = useState("verifying")
   const [message, setMessage] = useState("")
 
   useEffect(() => {
@@ -24,20 +24,12 @@ const VerifyEmailPage = () => {
         setMessage("Verifying your email...")
 
         const response = await axios.get(`${REACT_APP_API_URL}/api/auth/verify-email/${token}`, {
-          timeout: 10000, // 10 second timeout
+          timeout: 10000,
         })
 
-        // Check if the response indicates success
-        if (response.status === 200 && response.data.message) {
+        if (response.status === 200 && response.data.success) {
           setStatus("success")
-          setMessage("Email verified successfully! Redirecting to login...")
-
-          // Store the token if provided
-          if (response.data.token) {
-            localStorage.setItem("token", response.data.token)
-          }
-
-          // Redirect to login after 3 seconds
+          setMessage(response.data.message)
           setTimeout(() => {
             navigate("/login", { replace: true })
           }, 3000)
@@ -53,10 +45,6 @@ const VerifyEmailPage = () => {
           setMessage("Request timeout. Please try again.")
         } else if (error.response?.data?.message) {
           setMessage(error.response.data.message)
-        } else if (error.response?.status === 404) {
-          setMessage("Invalid or expired verification link")
-        } else if (error.response?.status === 400) {
-          setMessage(error.response?.data?.message || "Invalid or expired verification token")
         } else {
           setMessage("Email verification failed. Please try again.")
         }

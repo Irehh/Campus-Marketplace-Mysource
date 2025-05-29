@@ -57,7 +57,7 @@ router.post("/register", authRateLimit, validateTurnstile, authController.regist
 router.post("/login", authRateLimit, checkLoginAttempts, trackLoginAttempt, authController.login)
 router.post("/google-login", authRateLimit, authController.googleLogin)
 router.post("/resend-verification", authRateLimit, authController.resendVerification)
-router.get("/verify-email/:verifyToken", authController.verifyEmail)
+router.get("/verify-email/:token", authController.verifyEmail)
 router.post("/forgot-password", authRateLimit, authController.requestPasswordReset)
 router.post("/reset-password", authRateLimit, authController.resetPassword)
 router.get("/active-users", authController.getActiveUsersCount)

@@ -12,6 +12,21 @@ router.post("/", authenticate, gigController.createGig)
 router.put("/:id", authenticate, gigController.updateGig)
 router.delete("/:id", authenticate, gigController.deleteGig)
 
+// Image routes
+router.post(
+  "/:id/images",
+  authenticate,
+  (req, res, next) => {
+    upload.array("images", 5)(req, res, (err) => { // Allow up to 5 images to match EditGigPage.js
+      if (err) return next(err);
+      next();
+    });
+  },
+  gigController.addGigImages
+);
+
+router.delete("/:id/images/:imageId", authenticate, gigController.deleteGigImage);
+
 // User gigs
 router.get("/user/:userId", optionalAuth, gigController.getUserGigs)
 router.get("/my/client", authenticate, (req, res) => {

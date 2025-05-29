@@ -25,9 +25,9 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" })
     }
 
-      // Hash password
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex")
@@ -81,58 +81,57 @@ exports.register = async (req, res) => {
 
 // Verify email
 exports.verifyEmail = async (req, res) => {
-  const { verifyToken } = req.params;
+  const { token } = req.params;
 
-  if (!verifyToken) {
-    return res.status(400).json({ message: "Verification token is required" });
+  if (!token) {
+    return res.status(400).json({ success: false, code: "MISSING_TOKEN", message: "Verification token is required" });
   }
 
   try {
+    const currentTime = new Date();
     const user = await User.findOne({
       where: {
-        verificationToken: verifyToken,
+        verificationToken: token,
         verificationExpiry: {
-          [Op.gt]: new Date(), // Check if token is not expired
+          [Op.gt]: currentTime,
         },
       },
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired verification token" });
-    }
+      const expiredOrVerifiedUser = await User.findOne({
+        where: { verificationToken: token },
+      });
 
-    // Check if token is still valid
-    if (user.verificationExpiry && user.verificationExpiry < new Date()) {
-      return res.status(400).json({ message: "Verification token has expired" });
+      if (expiredOrVerifiedUser) {
+        if (expiredOrVerifiedUser.isVerified) {
+          return res.status(200).json({ success: true, code: "ALREADY_VERIFIED", message: "Email already verified" });
+        }
+        if (expiredOrVerifiedUser.verificationExpiry < currentTime) {
+          return res.status(400).json({
+            success: false,
+            code: "EXPIRED_TOKEN",
+            message: "Verification token has expired. Please request a new verification email.",
+          });
+        }
+      }
+
+      return res.status(400).json({ success: false, code: "INVALID_TOKEN", message: "Invalid verification token" });
     }
 
     if (user.isVerified) {
-      return res.status(200).json({ message: "Email already verified" });
+      return res.status(200).json({ success: true, code: "ALREADY_VERIFIED", message: "Email already verified" });
     }
 
-    // Proceed to verify
     user.isVerified = true;
     user.verificationToken = null;
     user.verificationExpiry = null;
     await user.save();
 
-    const jwtToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    });
+    return res.status(200).json({ success: true, code: "VERIFICATION_SUCCESS", message: "Email verified successfully" });
 
-    res.json({
-      message: "Email verified successfully!",
-      token: jwtToken,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        isVerified: true,
-      },
-    });
   } catch (error) {
-    console.error("Email verification error:", error);
-    res.status(500).json({ message: "Failed to verify email" });
+    return res.status(500).json({ success: false, code: "SERVER_ERROR", message: "Failed to verify email. Please try again." });
   }
 };
 
@@ -200,8 +199,8 @@ exports.login = async (req, res) => {
       })
     }
 
-     // Reset login attempts on successful login
-     await require("../middleware/rateLimitMiddleware").resetLoginAttempts(req)
+    // Reset login attempts on successful login
+    await require("../middleware/rateLimitMiddleware").resetLoginAttempts(req)
 
     // Update last seen
     user.lastSeen = new Date()
