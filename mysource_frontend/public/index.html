@@ -2,19 +2,55 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link rel="icon" href="%PUBLIC_URL%/icons/icon-72x72.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#4f46e5" />
-    <meta name="description" content="Buy and sell items within your campus community" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Campus Marketplace - Buy, sell, and trade within your campus community" />
+    
+    <!-- Prevent API caching but allow static asset caching -->
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    
+    <!-- PWA Meta Tags -->
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/icons/icon-192x192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.webmanifest" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <title>Campus Market</title>
+    
+    <!-- Preconnect to external services -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Turnstile Script -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+    
+    <title>Campus Marketplace</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    
+    <script>
+      // Register service worker with network-first caching for static assets
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/',
+        }).then(function(registration) {
+          console.log('Service worker registered:', registration);
+          
+          // Check for updates
+          registration.update();
+          
+        }).catch(function(error) {
+          console.log('Service worker registration failed:', error);
+        });
+
+        // Listen for service worker updates
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          console.log('Service worker updated, reloading...');
+          window.location.reload();
+        });
+      }
+    </script>
   </body>
 </html>

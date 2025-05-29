@@ -37,9 +37,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard"
 import AdminUsers from "./pages/admin/AdminUsers"
 import AdminProducts from "./pages/admin/AdminProducts"
 import AdminBusinesses from "./pages/admin/AdminBusinesses"
+import AdminFeeSettings from "./pages/admin/AdminFeeSettings"
 import AdminRoute from "./components/AdminRoute"
 import ErrorBoundary from "./components/ErrorBoundary"
-import { checkForNewVersion, clearCachesAndReload } from "./utils/cacheBuster"
+import { clearApiCaches, checkForNewVersion } from "./utils/cacheBuster"
 import DevTools from "./components/DevTools"
 import GigsPage from "./pages/GigsPage"
 import GigDetailPage from "./pages/GigDetailPage"
@@ -62,6 +63,12 @@ function App() {
   const [showUpdateBanner, setShowUpdateBanner] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [showInstallBanner, setShowInstallBanner] = useState(false)
+
+  // Clear API caches on app start
+  useEffect(() => {
+    clearApiCaches()
+    console.log("API caches cleared on app start")
+  }, [])
 
   // Check for new version
   useEffect(() => {
@@ -129,7 +136,10 @@ function App() {
   }
 
   const handleUpdate = () => {
-    clearCachesAndReload()
+    // Clear API caches and reload
+    clearApiCaches().then(() => {
+      window.location.reload(true)
+    })
   }
 
   return (
@@ -229,7 +239,7 @@ function App() {
               <Route path="wallet/withdraw" element={<WithdrawPage />} />
               <Route path="wallet/verify-payment" element={<VerifyPaymentPage />} />
               <Route path="my-bids" element={<MyBidsPage />} />
-                            <Route path="cart" element={<CartPage />} />
+              <Route path="cart" element={<CartPage />} />
               <Route path="orders" element={<OrdersPage />} />
               <Route path="orders/:orderId" element={<OrderDetailPage />} />
               <Route path="seller-orders" element={<SellerOrdersPage />} />
@@ -241,6 +251,7 @@ function App() {
               <Route path="admin/users" element={<AdminUsers />} />
               <Route path="admin/products" element={<AdminProducts />} />
               <Route path="admin/businesses" element={<AdminBusinesses />} />
+              <Route path="admin/fee-settings" element={<AdminFeeSettings />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

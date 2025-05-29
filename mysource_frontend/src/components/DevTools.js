@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { clearCachesAndReload } from "../utils/cacheBuster"
+import { clearApiCachesAndReload } from "../utils/cacheBuster"
 
 /**
  * Development tools component with buttons to help during development
@@ -15,7 +15,7 @@ export default function DevTools() {
 
   const handleClearCache = () => {
     if (window.confirm("Are you sure you want to clear all caches and reload?")) {
-      clearCachesAndReload()
+      clearApiCachesAndReload()
     }
   }
 
@@ -49,7 +49,7 @@ export default function DevTools() {
               onClick={handleClearCache}
               className="block w-full bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded text-sm"
             >
-              Clear All Caches
+              Clear API Caches
             </button>
             <button
               onClick={handleReloadSW}

@@ -1,78 +1,72 @@
-// Cache busting utility to force browser to load latest assets
-const VERSION = "2.1.0"
+// Cache buster utility - only clears API response caches
 
-// Generate a timestamp for the current session
-const SESSION_ID = new Date().getTime()
-
-/**
- * Adds a cache-busting query parameter to a URL
- * @param {string} url - The URL to add the parameter to
- * @param {boolean} useTimestamp - Whether to use timestamp instead of version
- * @returns {string} The URL with cache-busting parameter
- */
-export function addCacheBuster(url, useTimestamp = false) {
-  if (!url) return url
-
-  // Don't add cache busters to external URLs
-  if (url.startsWith("http") && !url.includes(window.location.host)) {
-    return url
-  }
-
-  const separator = url.includes("?") ? "&" : "?"
-  const param = useTimestamp ? `_t=${SESSION_ID}` : `_v=${VERSION}`
-
-  return `${url}${separator}${param}`
-}
-
-/**
- * Force clear all caches and reload
- */
-export async function clearCachesAndReload() {
+// Function to clear API caches only
+export const clearApiCaches = async () => {
   if ("caches" in window) {
     try {
-      const cacheKeys = await caches.keys()
-      await Promise.all(cacheKeys.map((key) => caches.delete(key)))
-      console.log("All caches cleared")
-    } catch (err) {
-      console.error("Failed to clear caches:", err)
+      const keys = await caches.keys()
+      const apiCaches = keys.filter((key) => key.includes("data") || key.includes("api"))
+
+      await Promise.all(apiCaches.map((key) => caches.delete(key)))
+
+      console.log("API caches cleared")
+      return true
+    } catch (error) {
+      console.error("Error clearing API caches:", error)
+      return false
     }
   }
-
-  // If service worker is registered, unregister it
-  if ("serviceWorker" in navigator) {
-    try {
-      const registrations = await navigator.serviceWorker.getRegistrations()
-      await Promise.all(registrations.map((reg) => reg.unregister()))
-      console.log("Service workers unregistered")
-    } catch (err) {
-      console.error("Failed to unregister service workers:", err)
-    }
-  }
-
-  // Clear local storage
-  localStorage.clear()
-
-  // Force reload the page
-  window.location.reload(true)
+  return false
 }
 
-/**
- * Check if a new version is available
- * @param {Function} onNewVersion - Callback when new version is detected
- */
-export function checkForNewVersion(onNewVersion) {
-  // Store the current version in localStorage
-  const storedVersion = localStorage.getItem("app_version")
+// Function to reload the page after clearing caches
+export const clearApiCachesAndReload = async () => {
+  await clearApiCaches()
+  window.location.reload()
+}
 
-  if (!storedVersion) {
-    // First time, just store the current version
-    localStorage.setItem("app_version", VERSION)
-  } else if (storedVersion !== VERSION) {
-    // New version detected
-    localStorage.setItem("app_version", VERSION)
+// Function to check for new version
+export const checkForNewVersion = (callback) => {
+  const currentVersion = process.env.REACT_APP_VERSION || localStorage.getItem("appVersion") || "1.0.0"
 
-    if (onNewVersion) {
-      onNewVersion(storedVersion, VERSION)
+  // Store current version
+  localStorage.setItem("appVersion", currentVersion)
+
+  // In a real app, this would check with the server
+  // For now, we'll just use the version from env
+  const newVersion = process.env.REACT_APP_VERSION || "1.0.0"
+
+  if (currentVersion !== newVersion) {
+    callback(currentVersion, newVersion)
+    localStorage.setItem("appVersion", newVersion)
+  }
+}
+
+// Function to disable aggressive caching
+export const disableCaching = () => {
+  // Only clear API caches, not static assets
+  clearApiCaches()
+
+  // Add cache control headers to fetch requests
+  if (window.fetch) {
+    const originalFetch = window.fetch
+    window.fetch = function (url, options = {}) {
+      // Only add cache busting for API requests
+      if (typeof url === "string" && url.includes("/api/")) {
+        // Add timestamp to API URLs to prevent caching
+        const separator = url.includes("?") ? "&" : "?"
+        url = `${url}${separator}_t=${Date.now()}`
+
+        // Set cache control headers for API requests
+        options.headers = {
+          ...options.headers,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        }
+      }
+
+      return originalFetch.call(this, url, options)
     }
   }
 }

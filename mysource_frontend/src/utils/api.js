@@ -1,11 +1,9 @@
 import axios from "axios"
-import { savePendingMessage, savePendingProduct, savePendingBusiness, isOnline } from "./indexedDB"
+import { isOnline } from "./indexedDB"
 
-// Create a request tracker to prevent duplicate requests
-const pendingRequests = new Map()
-
+// Create a simple axios instance with minimal configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -77,38 +75,10 @@ api.interceptors.response.use(
   },
 )
 
-// Helper function to create a request key
-const createRequestKey = (method, url, data) => {
-  return `${method}:${url}:${JSON.stringify(data || {})}`
-}
-
-// Function to handle offline requests
-const handleOfflineRequest = async (method, url, data, options = {}) => {
-  // This is the only part related to offline functionality (PWA)
-  // We'll keep it but make it a no-op when online
-  if (!isOnline()) {
-    console.log("Device is offline, saving request for later")
-
-    // Save different types of requests to IndexedDB
-    if (url.includes("/messages")) {
-      await savePendingMessage({ method, url, data })
-    } else if (url.includes("/products")) {
-      await savePendingProduct({ method, url, data })
-    } else if (url.includes("/businesses")) {
-      await savePendingBusiness({ method, url, data })
-    }
-
-    throw new Error("Device is offline. Your request will be sent when you're back online.")
-  }
-
-  // If online, continue with the request
-  return null
-}
-
 // Export the api instance
 export default api
 
-// Export request methods that handle offline scenarios
+// Simple API request methods
 export const apiGet = async (url, options = {}) => {
   try {
     // For image requests, use direct axios without any special handling
@@ -123,28 +93,12 @@ export const apiGet = async (url, options = {}) => {
       return axios.get(url, options)
     }
 
-    // Check if offline and handle accordingly
-    const offlineError = await handleOfflineRequest("GET", url, null, options)
-    if (offlineError) return offlineError
-
-    // Create a key for this request to prevent duplicates
-    const requestKey = createRequestKey("GET", url)
-
-    // Check if this exact request is already in progress
-    if (pendingRequests.has(requestKey)) {
-      return pendingRequests.get(requestKey)
+    // Check if offline
+    if (!isOnline()) {
+      throw new Error("You are currently offline. Please check your connection and try again.")
     }
 
-    // Make the request and store the promise
-    const promise = api.get(url, options)
-    pendingRequests.set(requestKey, promise)
-
-    // Clean up after the request is complete
-    promise.finally(() => {
-      pendingRequests.delete(requestKey)
-    })
-
-    return promise
+    return api.get(url, options)
   } catch (error) {
     console.error("API GET Error:", error)
     throw error
@@ -153,9 +107,10 @@ export const apiGet = async (url, options = {}) => {
 
 export const apiPost = async (url, data, options = {}) => {
   try {
-    // Check if offline and handle accordingly
-    const offlineError = await handleOfflineRequest("POST", url, data, options)
-    if (offlineError) return offlineError
+    // Check if offline
+    if (!isOnline()) {
+      throw new Error("You are currently offline. Please check your connection and try again.")
+    }
 
     return api.post(url, data, options)
   } catch (error) {
@@ -166,9 +121,10 @@ export const apiPost = async (url, data, options = {}) => {
 
 export const apiPut = async (url, data, options = {}) => {
   try {
-    // Check if offline and handle accordingly
-    const offlineError = await handleOfflineRequest("PUT", url, data, options)
-    if (offlineError) return offlineError
+    // Check if offline
+    if (!isOnline()) {
+      throw new Error("You are currently offline. Please check your connection and try again.")
+    }
 
     return api.put(url, data, options)
   } catch (error) {
@@ -179,9 +135,10 @@ export const apiPut = async (url, data, options = {}) => {
 
 export const apiDelete = async (url, options = {}) => {
   try {
-    // Check if offline and handle accordingly
-    const offlineError = await handleOfflineRequest("DELETE", url, null, options)
-    if (offlineError) return offlineError
+    // Check if offline
+    if (!isOnline()) {
+      throw new Error("You are currently offline. Please check your connection and try again.")
+    }
 
     return api.delete(url, options)
   } catch (error) {
