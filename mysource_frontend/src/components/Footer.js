@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 import axios from "axios"
 import Cookies from "js-cookie"
 import { FiUsers, FiDownload } from "react-icons/fi"
-import { FaWhatsapp, FaTelegram } from "react-icons/fa"
+import { FaWhatsapp, FaTelegram, FaTwitter, FaInstagram } from "react-icons/fa"
 import { SOCIAL_MEDIA_LINKS } from "../config"
 
 const Footer = () => {
@@ -16,7 +16,6 @@ const Footer = () => {
   const [loading, setLoading] = useState(true)
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isIOS, setIsIOS] = useState(false)
-  const [showInstallOption, setShowInstallOption] = useState(true) // Always show install option
 
   useEffect(() => {
     const fetchActiveUsers = async () => {
@@ -44,7 +43,6 @@ const Footer = () => {
   }, [])
 
   useEffect(() => {
-    // Check if already in standalone mode
     if (window.matchMedia("(display-mode: standalone)").matches) return
 
     const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream
@@ -96,77 +94,159 @@ const Footer = () => {
     }
   }
 
-  // Get social media links based on campus
   const campus = Cookies.get("userCampus") || "default"
   const socialLinks = SOCIAL_MEDIA_LINKS[campus] || SOCIAL_MEDIA_LINKS.default
 
   return (
-    <footer className="bg-white border-t border-secondary-200 py-4">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex flex-wrap justify-between items-center gap-4 md:gap-0">
-          <div className="flex-shrink-0">
-            <Link to="/" className="text-primary font-bold text-xl">
+    <footer className="bg-gradient-to-r from-primary-700 to-primary-900 text-white">
+      <div className="container mx-auto px-4 max-w-6xl py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Company Info */}
+          <div className="lg:col-span-1">
+            <Link to="/" className="text-2xl font-bold text-white mb-4 block">
               Mysource
             </Link>
-            <p className="text-secondary-500 text-sm mt-1">The marketplace for campus communities</p>
-          </div>
-
-          <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 text-sm">
-            <Link to="/products" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              Products
-            </Link>
-            <Link to="/businesses" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              Businesses
-            </Link>
-            <Link to="/gigs" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              Gigs
-            </Link>
-            <Link to="/about" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              About Us
-            </Link>
-            <Link to="/terms" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              Terms of Service
-            </Link>
-            <Link to="/privacy" className="text-secondary-600 hover:text-primary whitespace-nowrap">
-              Privacy Policy
-            </Link>
-
-            {/* Social Media Links */}
-            {/* <a
-              href={socialLinks.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-green-600 hover:text-green-700 flex items-center whitespace-nowrap"
-              aria-label="WhatsApp Group"
-            >
-              <FaWhatsapp className="mr-1" /> WhatsApp
-            </a>
-            <a
-              href={socialLinks.telegram}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:text-blue-700 flex items-center whitespace-nowrap"
-              aria-label="Telegram Group"
-            >
-              <FaTelegram className="mr-1" /> Telegram
-            </a> */}
-
-            {/* Always show install button */}
+            <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+              The premier marketplace connecting campus communities. Buy, sell, and discover everything you need for
+              student life.
+            </p>
+            <div className="flex items-center text-gray-300 text-sm mb-2">
+              <FiUsers className="mr-2" size={16} />
+              <span>{loading ? "..." : getUserCountDisplay()}</span>
+            </div>
             <button
               onClick={handleInstall}
-              className="text-secondary-600 hover:text-primary flex items-center whitespace-nowrap"
+              className="btn btn-outline flex items-center text-sm"
             >
-              <FiDownload className="mr-1" /> Install App
+              <FiDownload className="mr-2" size={16} />
+              Install App
             </button>
+          </div>
+
+          {/* Marketplace */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-white">Marketplace</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/products" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Products
+                </Link>
+              </li>
+              <li>
+                <Link to="/businesses" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link to="/gigs" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Gigs
+                </Link>
+              </li>
+              <li>
+                <Link to="/add-listing" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Sell Something
+                </Link>
+              </li>
+              <li>
+                <Link to="/favorites" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  My Favorites
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Account & Support */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-white">Account & Support</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link to="/dashboard" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  My Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/orders" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  My Orders
+                </Link>
+              </li>
+              <li>
+                <Link to="/wallet" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  My Wallet
+                </Link>
+              </li>
+              <li>
+                <Link to="/messages" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Messages
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Profile Settings
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Company & Legal */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-white">Company</h3>
+            <ul className="space-y-2 mb-6">
+              <li>
+                <Link to="/about" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+            </ul>
+
+            {/* Social Media */}
+            <div>
+              <h4 className="font-semibold mb-3 text-sm text-white">Follow Us</h4>
+              <div className="flex space-x-3">
+                <a
+                  href={socialLinks.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-blue-500 transition-colors"
+                  aria-label="Telegram"
+                >
+                  <FaTelegram size={20} />
+                </a>
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-green-500 transition-colors"
+                  aria-label="WhatsApp"
+                >
+                  <FaWhatsapp size={20} />
+                </a>
+                <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Twitter">
+                  <FaTwitter size={20} />
+                </a>
+                <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors" aria-label="Instagram">
+                  <FaInstagram size={20} />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap justify-between items-center gap-2 text-secondary-500 text-xs">
-          <div className="flex-shrink-0">© {new Date().getFullYear()} Campus Marketplace. All rights reserved.</div>
-          <div className="flex items-center bg-secondary-50 px-2 py-1 rounded-full flex-shrink-0">
-            <FiUsers className="mr-1" />
-            <span>{loading ? "..." : getUserCountDisplay()}</span>
+        {/* Bottom Bar */}
+        <div className="border-t border-primary-500 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+          <div className="text-gray-300 text-sm mb-4 md:mb-0">
+            © {new Date().getFullYear()} Campus Marketplace. All rights reserved.
           </div>
+          <div className="text-gray-300 text-sm">Made with ❤️ for campus communities</div>
         </div>
       </div>
     </footer>

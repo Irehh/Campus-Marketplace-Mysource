@@ -54,3 +54,15 @@ body {
   animation: marquee 20s linear infinite;
 }
 
+@layer utilities {
+  @keyframes textSwap {
+    100%, 40% { content: "Let's just say Jiji for students and campuses"; }
+    50%, 90% { content: "Do you like it?"; }
+    100% { content: "Let's just say Jiji for students and campuses"; }
+  }
+  .animate-text-swap::before {
+    content: "Let's just say Jiji for students and campuses";
+    animation: textSwap 15s infinite;
+    display: inline-block;
+  }
+}

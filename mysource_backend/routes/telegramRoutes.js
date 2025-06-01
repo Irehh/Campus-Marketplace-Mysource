@@ -8,6 +8,6 @@ const router = express.Router();
 router.post('/webhook', handleWebhook);
 
 // Verify and link Telegram account
-router.post('/verify', authenticate, verifyTelegramCode);
+router.post('/verify-code', authenticate, verifyTelegramCode);
 
 module.exports = router;
