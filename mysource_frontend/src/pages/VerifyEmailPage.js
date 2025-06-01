@@ -24,7 +24,7 @@ const VerifyEmailPage = () => {
         setMessage("Verifying your email...")
 
         const response = await axios.get(`${REACT_APP_API_URL}/api/auth/verify-email/${token}`, {
-          timeout: 10000,
+          timeout: 12000,
         })
 
         if (response.status === 200 && response.data.success) {

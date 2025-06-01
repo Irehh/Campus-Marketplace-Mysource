@@ -39,6 +39,8 @@ export const SOCIAL_MEDIA_LINKS = {
   default: {
     whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
     telegram: "https://t.me/campusmarketplace",
+    twitter: "https://twitter.com/campusmarketplace",
+    instagram: "https://instagram.com/campusmarketplace",
   },
   // Campus-specific links
   unilag: {
