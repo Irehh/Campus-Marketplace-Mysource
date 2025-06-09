@@ -1,3 +1,5 @@
+const gig = require("./gig");
+
 // models/image.js
 module.exports = (sequelize, DataTypes) => {
   const Image = sequelize.define(
@@ -19,10 +21,28 @@ module.exports = (sequelize, DataTypes) => {
       productId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+          model: 'Products',
+          key: 'id',
+        },
       },
       businessId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+          model: 'Businesses',
+          key: 'id',
+        },
+      },
+      gigId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'Gigs',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
     },
     {

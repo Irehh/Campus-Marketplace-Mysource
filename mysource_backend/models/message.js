@@ -33,16 +33,24 @@ module.exports = (sequelize, DataTypes) => {
       productId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+          model: 'Product',
+          key: 'id',
+        },
       },
       businessId: {
         type: DataTypes.INTEGER,
         allowNull: true,
+        references: {
+          model: 'Business',
+          key: 'id',
+        },
       },
       gigId: {
         type: DataTypes.INTEGER,
         allowNull: true,
         references: {
-          model: 'Gigs',
+          model: 'Gig',
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -58,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
         { fields: ['receiverId'] },
         { fields: ['productId'] },
         { fields: ['businessId'] },
+        { fields: ['gigId'] },
       ],
     }
   );

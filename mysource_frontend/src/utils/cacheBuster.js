@@ -1,5 +1,7 @@
 // Cache buster utility - only clears API response caches
 
+const VERSION = "3.0.0" // Update this version when you want to bust caches
+
 // Function to clear API caches only
 export const clearApiCaches = async () => {
   if ("caches" in window) {
@@ -27,14 +29,14 @@ export const clearApiCachesAndReload = async () => {
 
 // Function to check for new version
 export const checkForNewVersion = (callback) => {
-  const currentVersion = process.env.REACT_APP_VERSION || localStorage.getItem("appVersion") || "1.0.0"
+  const currentVersion = VERSION || localStorage.getItem("appVersion") || "3.0.0"
 
   // Store current version
   localStorage.setItem("appVersion", currentVersion)
 
   // In a real app, this would check with the server
   // For now, we'll just use the version from env
-  const newVersion = process.env.REACT_APP_VERSION || "1.0.0"
+  const newVersion = VERSION || "1.0.0"
 
   if (currentVersion !== newVersion) {
     callback(currentVersion, newVersion)

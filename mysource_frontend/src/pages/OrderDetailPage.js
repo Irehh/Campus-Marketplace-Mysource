@@ -1,150 +1,188 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
-import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiUser } from "react-icons/fi"
-import { useAuth } from "../contexts/AuthContext"
-import api from "../utils/api"
-import toast from "react-hot-toast"
-import PageHeader from "../components/PageHeader"
-import Loader from "../components/Loader"
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiPackage, FiTruck, FiCheckCircle, FiClock, FiMapPin, FiUser } from "react-icons/fi";
+import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import { REACT_APP_API_URL } from "../config";
+import toast from "react-hot-toast";
+import PageHeader from "../components/PageHeader";
+import Loader from "../components/Loader";
 
 const OrderDetailPage = () => {
-  const { orderId } = useParams()
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [order, setOrder] = useState(null)
-  const [confirmingDelivery, setConfirmingDelivery] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelReason, setCancelReason] = useState("")
-  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const { orderId } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState(null);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     if (orderId && user) {
-      fetchOrderDetails()
+      fetchOrderDetails();
     }
-  }, [orderId, user])
+  }, [orderId, user]);
 
   const fetchOrderDetails = async () => {
     try {
-      setLoading(true)
-      const response = await api.get(`/orders/${orderId}`)
-
-      if (response.data.success) {
-        setOrder(response.data.data)
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
       }
+
+      const response = await axios.get(`${REACT_APP_API_URL}/api/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setOrder(response.data);
     } catch (error) {
-      console.error("Error fetching order details:", error)
-      toast.error("Failed to load order details")
+      console.error("Error fetching order details:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.error("Session expired. Please sign in again.");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to load order details");
+      }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const confirmDelivery = async () => {
     if (!window.confirm("Are you sure you want to confirm delivery? This will release payment to the seller.")) {
-      return
+      return;
     }
 
-    setConfirmingDelivery(true)
+    setConfirmingDelivery(true);
 
     try {
-      const response = await api.put(`/orders/${orderId}/confirm-delivery`, {
-        buyerNotes: "Delivery confirmed by buyer",
-      })
-
-      if (response.data.success) {
-        toast.success("Delivery confirmed! Payment has been released to the seller.")
-        await fetchOrderDetails()
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
       }
+
+      const response = await axios.put(
+        `${REACT_APP_API_URL}/api/orders/${orderId}/confirm-delivery`,
+        { buyerNotes: "Delivery confirmed by buyer" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success(response.data.message || "Delivery confirmed! Payment has been released to the seller.");
+      await fetchOrderDetails();
     } catch (error) {
-      console.error("Error confirming delivery:", error)
-      toast.error(error.response?.data?.message || "Failed to confirm delivery")
+      console.error("Error confirming delivery:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.error("Session expired. Please sign in again.");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to confirm delivery");
+      }
     } finally {
-      setConfirmingDelivery(false)
+      setConfirmingDelivery(false);
     }
-  }
+  };
 
   const cancelOrder = async () => {
     if (!cancelReason.trim()) {
-      toast.error("Please provide a reason for cancellation")
-      return
+      toast.error("Please provide a reason for cancellation");
+      return;
     }
 
-    setCancelling(true)
+    setCancelling(true);
 
     try {
-      const response = await api.put(`/orders/${orderId}/cancel`, {
-        reason: cancelReason,
-      })
-
-      if (response.data.success) {
-        toast.success("Order cancelled successfully")
-        await fetchOrderDetails()
-        setShowCancelDialog(false)
-        setCancelReason("")
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
       }
+
+      const response = await axios.put(
+        `${REACT_APP_API_URL}/api/orders/${orderId}/cancel`,
+        { reason: cancelReason },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success(response.data.message || "Order cancelled successfully");
+      await fetchOrderDetails();
+      setShowCancelDialog(false);
+      setCancelReason("");
     } catch (error) {
-      console.error("Error cancelling order:", error)
-      toast.error(error.response?.data?.message || "Failed to cancel order")
+      console.error("Error cancelling order:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.error("Session expired. Please sign in again.");
+        navigate("/login");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to cancel order");
+      }
     } finally {
-      setCancelling(false)
+      setCancelling(false);
     }
-  }
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "confirmed":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "shipped":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-100 text-purple-800";
       case "delivered":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "completed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "cancelled":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getDeliveryStatusSteps = () => {
     const steps = [
       { key: "pending", label: "Order Placed", icon: FiPackage },
-      { key: "confirmed", label: "Confirmed", icon: FiCheckCircle },
       { key: "preparing", label: "Preparing", icon: FiClock },
       { key: "ready_for_pickup", label: "Ready for Pickup", icon: FiMapPin },
+      { key: "in_transit", label: "In Transit", icon: FiTruck },
       { key: "delivered", label: "Delivered", icon: FiTruck },
       { key: "confirmed_by_buyer", label: "Completed", icon: FiCheckCircle },
-    ]
+    ];
 
-    const currentStepIndex = steps.findIndex((step) => step.key === order?.deliveryStatus)
+    const currentStepIndex = steps.findIndex((step) => step.key === order?.deliveryStatus);
 
     return steps.map((step, index) => ({
       ...step,
       completed: index <= currentStepIndex,
       current: index === currentStepIndex,
-    }))
-  }
+    }));
+  };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
+    return dateString
+      ? new Date(dateString).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "N/A";
+  };
 
   if (loading) {
-    return <Loader />
+    return <Loader />;
   }
 
-  if (!order) {
+  if (!order || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -157,16 +195,13 @@ const OrderDetailPage = () => {
           </Link>
         </div>
       </div>
-    )
+    );
   }
 
-  const deliverySteps = getDeliveryStatusSteps()
-  const isBuyer = order.buyerId === user?.id
-  const canConfirmDelivery = isBuyer && order.deliveryStatus === "delivered" && !order.escrowReleased
-  const canCancel =
-    (isBuyer || order.sellerId === user?.id) &&
-    !["completed", "cancelled"].includes(order.status) &&
-    !order.escrowReleased
+  const deliverySteps = getDeliveryStatusSteps();
+  const isBuyer = order.buyerId === user?.id;
+  const canConfirmDelivery = isBuyer && order.deliveryStatus === "delivered" && order.status !== "completed";
+  const canCancel = isBuyer && order.status === "pending";
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -188,7 +223,7 @@ const OrderDetailPage = () => {
 
             <div className="space-y-4">
               {deliverySteps.map((step, index) => {
-                const Icon = step.icon
+                const Icon = step.icon;
                 return (
                   <div key={step.key} className="flex items-center">
                     <div
@@ -196,8 +231,8 @@ const OrderDetailPage = () => {
                         step.completed
                           ? "bg-green-500 text-white"
                           : step.current
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-gray-400"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-400"
                       }`}
                     >
                       <Icon size={16} />
@@ -215,7 +250,7 @@ const OrderDetailPage = () => {
 
                     {step.completed && <FiCheckCircle className="text-green-500" size={16} />}
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -259,21 +294,21 @@ const OrderDetailPage = () => {
             </div>
 
             <div className="divide-y">
-              {order.OrderItems?.map((item) => (
+              {order.orderItems?.map((item) => (
                 <div key={item.id} className="p-4">
                   <div className="flex items-start space-x-4">
                     <img
                       src={item.Product?.Images?.[0]?.url || "/placeholder.svg?height=80&width=80"}
-                      alt={item.Product?.title}
+                      alt={item.productSnapshot?.title || "Product"}
                       className="w-20 h-20 object-cover rounded-md"
                     />
 
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{item.Product?.title}</h4>
-                      <p className="text-sm text-gray-500 mt-1">{item.Product?.category}</p>
+                      <h4 className="font-medium text-gray-900">{item.productSnapshot?.title || "N/A"}</h4>
+                      <p className="text-sm text-gray-500 mt-1">{item.Product?.category || "N/A"}</p>
                       <div className="flex justify-between items-center mt-2">
                         <span className="text-sm text-gray-600">Quantity: {item.quantity}</span>
-                        <span className="font-medium text-primary">₦{Number(item.price).toLocaleString()}</span>
+                        <span className="font-medium text-primary">₦{Number(item.totalPrice).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
@@ -293,7 +328,7 @@ const OrderDetailPage = () => {
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Status</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : "N/A"}
                 </span>
               </div>
 
@@ -306,7 +341,7 @@ const OrderDetailPage = () => {
 
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Campus</span>
-                <span className="text-sm font-medium">{order.campus}</span>
+                <span className="text-sm font-medium">{order.campus || "N/A"}</span>
               </div>
             </div>
           </div>
@@ -320,8 +355,8 @@ const OrderDetailPage = () => {
                 <FiUser className="text-gray-600" />
               </div>
               <div>
-                <p className="font-medium text-gray-900">{order.seller?.name}</p>
-                <p className="text-sm text-gray-500">{order.seller?.campus}</p>
+                <p className="font-medium text-gray-900">{order.seller?.name || "Unknown"}</p>
+                <p className="text-sm text-gray-500">{order.seller?.campus || "N/A"}</p>
               </div>
             </div>
           </div>
@@ -380,8 +415,8 @@ const OrderDetailPage = () => {
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {
-                  setShowCancelDialog(false)
-                  setCancelReason("")
+                  setShowCancelDialog(false);
+                  setCancelReason("");
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
@@ -399,7 +434,7 @@ const OrderDetailPage = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default OrderDetailPage
+export default OrderDetailPage;

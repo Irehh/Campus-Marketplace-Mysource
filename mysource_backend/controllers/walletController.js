@@ -116,83 +116,79 @@ const verifyWalletBalance = async (walletId) => {
   }
 }
 
-// Enhanced transaction creation with double-entry bookkeeping principles
-const createVerifiedTransaction = async (transactionData, walletId) => {
-  const transaction = await sequelize.transaction()
+exports.createVerifiedTransaction = async (transactionData, walletId, options = {}) => {
+  const transaction = options.transaction || (await sequelize.transaction());
 
   try {
-    // Create the transaction record
-    const newTransaction = await Transaction.create(transactionData, { transaction })
+    const newTransaction = await Transaction.create(transactionData, { transaction });
 
-    // Update wallet balance atomically
     const wallet = await Wallet.findByPk(walletId, {
       transaction,
-      lock: true, // Lock the wallet row to prevent concurrent modifications
-    })
+      lock: true,
+    });
 
     if (!wallet) {
-      throw new Error("Wallet not found")
+      throw new Error("Wallet not found");
     }
 
-    let newBalance = wallet.balance
-    let newPendingBalance = wallet.pendingBalance
+    let newBalance = wallet.balance;
+    let newPendingBalance = wallet.pendingBalance;
 
-    // Apply balance changes based on transaction type
     switch (transactionData.type) {
       case "deposit":
         if (transactionData.status === "completed") {
-          newBalance += Number.parseFloat(transactionData.amount)
+          newBalance += Number.parseFloat(transactionData.amount);
         } else if (transactionData.status === "pending") {
-          newPendingBalance += Number.parseFloat(transactionData.amount)
+          newPendingBalance += Number.parseFloat(transactionData.amount);
         }
-        break
+        break;
       case "withdrawal":
       case "fee":
       case "withdrawal_fee":
-        newBalance -= Number.parseFloat(transactionData.amount)
-        break
+        newBalance -= Number.parseFloat(transactionData.amount);
+        break;
       case "escrow":
-        newBalance -= Number.parseFloat(transactionData.amount)
-        newPendingBalance += Number.parseFloat(transactionData.amount)
-        break
+        newBalance -= Number.parseFloat(transactionData.amount);
+        newPendingBalance += Number.parseFloat(transactionData.amount);
+        break;
       case "release":
-        newPendingBalance -= Number.parseFloat(transactionData.amount)
-        // For releases, the money goes to the recipient's wallet
-        break
+        newPendingBalance -= Number.parseFloat(transactionData.amount);
+        break;
       case "refund":
-        newPendingBalance -= Number.parseFloat(transactionData.amount)
-        newBalance += Number.parseFloat(transactionData.amount)
-        break
+        newPendingBalance -= Number.parseFloat(transactionData.amount);
+        newBalance += Number.parseFloat(transactionData.amount);
+        break;
     }
 
-    // Update wallet with new balances
     await wallet.update(
       {
         balance: newBalance,
         pendingBalance: newPendingBalance,
         lastTransactionAt: new Date(),
       },
-      { transaction },
-    )
+      { transaction }
+    );
 
-    // Commit the transaction
-    await transaction.commit()
+    if (!options.transaction) {
+      await transaction.commit();
+    }
 
-    // Log the transaction for audit trail
     logTransaction({
       ...transactionData,
       walletId,
       balanceAfter: newBalance,
       pendingBalanceAfter: newPendingBalance,
       timestamp: new Date().toISOString(),
-    })
+    });
 
-    return newTransaction
+    return newTransaction;
   } catch (error) {
-    await transaction.rollback()
-    throw error
+    if (!options.transaction) {
+      await transaction.rollback();
+    }
+    throw error;
   }
-}
+};
 
 // Create a log directory if it doesn't exist
 const logDir = path.join(__dirname, "../../logs")
@@ -1106,3 +1102,81 @@ const handleFailedTransfer = async (data) => {
     console.error("Error handling failed transfer:", error)
   }
 }
+
+// Enhanced transaction creation with double-entry bookkeeping principles
+// const createVerifiedTransaction = async (transactionData, walletId) => {
+//   const transaction = await sequelize.transaction()
+
+//   try {
+//     // Create the transaction record
+//     const newTransaction = await Transaction.create(transactionData, { transaction })
+
+//     // Update wallet balance atomically
+//     const wallet = await Wallet.findByPk(walletId, {
+//       transaction,
+//       lock: true, // Lock the wallet row to prevent concurrent modifications
+//     })
+
+//     if (!wallet) {
+//       throw new Error("Wallet not found")
+//     }
+
+//     let newBalance = wallet.balance
+//     let newPendingBalance = wallet.pendingBalance
+
+//     // Apply balance changes based on transaction type
+//     switch (transactionData.type) {
+//       case "deposit":
+//         if (transactionData.status === "completed") {
+//           newBalance += Number.parseFloat(transactionData.amount)
+//         } else if (transactionData.status === "pending") {
+//           newPendingBalance += Number.parseFloat(transactionData.amount)
+//         }
+//         break
+//       case "withdrawal":
+//       case "fee":
+//       case "withdrawal_fee":
+//         newBalance -= Number.parseFloat(transactionData.amount)
+//         break
+//       case "escrow":
+//         newBalance -= Number.parseFloat(transactionData.amount)
+//         newPendingBalance += Number.parseFloat(transactionData.amount)
+//         break
+//       case "release":
+//         newPendingBalance -= Number.parseFloat(transactionData.amount)
+//         // For releases, the money goes to the recipient's wallet
+//         break
+//       case "refund":
+//         newPendingBalance -= Number.parseFloat(transactionData.amount)
+//         newBalance += Number.parseFloat(transactionData.amount)
+//         break
+//     }
+
+//     // Update wallet with new balances
+//     await wallet.update(
+//       {
+//         balance: newBalance,
+//         pendingBalance: newPendingBalance,
+//         lastTransactionAt: new Date(),
+//       },
+//       { transaction },
+//     )
+
+//     // Commit the transaction
+//     await transaction.commit()
+
+//     // Log the transaction for audit trail
+//     logTransaction({
+//       ...transactionData,
+//       walletId,
+//       balanceAfter: newBalance,
+//       pendingBalanceAfter: newPendingBalance,
+//       timestamp: new Date().toISOString(),
+//     })
+
+//     return newTransaction
+//   } catch (error) {
+//     await transaction.rollback()
+//     throw error
+//   }
+// }

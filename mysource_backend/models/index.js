@@ -18,6 +18,10 @@ const Gig = require("./gig")(sequelize, DataTypes)
 const Bid = require("./bid")(sequelize, DataTypes)
 const Wallet = require("./wallet")(sequelize, DataTypes)
 const Transaction = require("./transaction")(sequelize, DataTypes)
+const Cart = require("./cart")(sequelize, DataTypes)
+const CartItem = require("./cartItem")(sequelize, DataTypes)
+const Order = require("./order")(sequelize, DataTypes)
+const OrderItem = require("./orderItem")(sequelize, DataTypes)
 
 // Define relationships
 const models = {
@@ -36,6 +40,10 @@ const models = {
   Bid,
   Wallet,
   Transaction,
+  Cart,
+  CartItem,
+  Order,
+  OrderItem,
 }
 
 Object.values(models).forEach((model) => {
@@ -62,4 +70,8 @@ module.exports = {
   Bid,
   Wallet,
   Transaction,
+  Cart,
+  CartItem,
+  Order,
+  OrderItem,
 }

@@ -1,9 +1,10 @@
 import axios from "axios"
 import { isOnline } from "./indexedDB"
+import { REACT_APP_API_URL } from "../config"
 
 // Create a simple axios instance with minimal configuration
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
+  baseURL: REACT_APP_API_URL || "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },

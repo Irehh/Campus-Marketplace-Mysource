@@ -1,4 +1,5 @@
-const { Message, User, Product, Business, Gig, Op } = require("../models/index.js")
+const { Message, User, Product, Business, Gig } = require("../models")
+const { Op } = require("sequelize")
 const TelegramBot = require("node-telegram-bot-api")
 const { sendEmail } = require("../utils/emailUtils.js")
 const emailTemplates = require("../utils/emailTemplates.js")
@@ -28,13 +29,13 @@ const getMessages = async (req, res) => {
         },
         {
           model: Product,
-          as: "product",
+          as: "Product",
           attributes: ["id", "description"],
           required: false,
         },
         {
           model: Business,
-          as: "business",
+          as: "Business",
           attributes: ["id", "name"],
           required: false,
         },
@@ -77,13 +78,13 @@ const getConversation = async (req, res) => {
       include: [
         {
           model: Product,
-          as: "product",
+          as: "Product",
           attributes: ["id", "description"],
           required: false,
         },
         {
           model: Business,
-          as: "business",
+          as: "Business",
           attributes: ["id", "name"],
           required: false,
         },

@@ -964,7 +964,7 @@ exports.acceptBid = async (req, res) => {
     }
 
     const bid = await Bid.findByPk(bidId, {
-      include: [{ model: User, as: "freelancer" }],
+      include: [{ model: User, as: "bidder" }],
       transaction: t,
     });
     if (!bid || bid.gigId !== parseInt(gigId)) {
