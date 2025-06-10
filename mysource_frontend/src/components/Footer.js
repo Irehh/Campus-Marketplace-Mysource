@@ -230,7 +230,7 @@ const Footer = () => {
                 >
                   <FaWhatsapp size={20} />
                 </a>
-                <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Twitter">
+                <a href="https://x.com/mysource_ng" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Twitter">
                   <FaTwitter size={20} />
                 </a>
                 <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors" aria-label="Instagram">

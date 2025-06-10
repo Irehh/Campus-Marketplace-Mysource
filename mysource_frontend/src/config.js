@@ -42,7 +42,7 @@ export const SOCIAL_MEDIA_LINKS = {
   // Campus-specific links
   unn: {
     whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/unilagmarketplace",
+    telegram: "https://t.me/+GwOjGSPTticwNTM0",
   }
 }
 

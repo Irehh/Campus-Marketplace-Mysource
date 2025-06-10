@@ -1,4 +1,4 @@
-const { Product, Business, User } = require('../models');
+const { Product, Business, User, Image } = require('../models');
 const { Op } = require('sequelize');
 
 // Search products and businesses
