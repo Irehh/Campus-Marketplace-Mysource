@@ -156,13 +156,13 @@ const sendMessage = async (req, res) => {
         },
         {
           model: Product,
-          as: "product",
+          as: "Product",
           attributes: ["id", "description"],
           required: false,
         },
         {
           model: Business,
-          as: "business",
+          as: "Business",
           attributes: ["id", "name"],
           required: false,
         },

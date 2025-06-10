@@ -148,83 +148,39 @@ const HomePage = () => {
         </form>
       </section>
 
-      {/* Features Section */}
-      {/* <section className="relative">
-        <div className="relative bg-gray-100 rounded-lg p-4 mb-4 overflow-hidden">
-          <img
-            src="https://media.giphy.com/media/l0MYt5jPRbr0nQw3s/giphy.gif"
-            alt="Funny campus GIF"
-            className="w-full h-32 object-cover opacity-70"
-          />
-          <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-md">
-            <span className="text-sm font-semibold animate-text-swap"></span>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
-            <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FiShoppingBag className="text-blue-500" size={20} />
-            </div>
-            <h3 className="text-base font-semibold mb-1">Buy & Sell Products</h3>
-            <p className="text-gray-600 text-xs">
-              Find textbooks, electronics, and more at great prices.
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
-            <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FiGrid className="text-green-500" size={20} />
-            </div>
-            <h3 className="text-base font-semibold mb-1">Campus Services</h3>
-            <p className="text-gray-600 text-xs">
-              Discover local businesses, from food to tutoring.
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 text-center">
-            <div className="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FiDollarSign className="text-purple-500" size={20} />
-            </div>
-            <h3 className="text-base font-semibold mb-1">Freelance Gigs</h3>
-            <p className="text-gray-600 text-xs">
-              Offer or hire skills for projects and tasks.
-            </p>
-          </div>
-        </div>
-      </section> */}
-
       {/* How It Works Section */}
-      <section className="bg-secondary-100 rounded-lg p-4">
-        <h2 className="text-lg font-bold text-center mb-4">How It Works</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="text-center">
-            <div className="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-primary-700 font-bold">1</span>
+      <section className="bg-green-50 rounded-lg p-4 flex flex-col items-center">
+        <h2 className="text-xl font-bold text-center mb-4 text-green-800">
+          How It Works
+        </h2>
+        <div className="grid grid-cols-3 gap-3 w-full max-w-4xl">
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center mb-2">
+              <span className="text-green-600 font-bold">1</span>
             </div>
-            <h4 className="text-sm font-semibold mb-1">Sign Up</h4>
-            <p className="text-xs text-gray-600">
-              Join with your campus email.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-primary-700 font-bold">2</span>
-            </div>
-            <h4 className="text-sm font-semibold mb-1">Browse or List</h4>
+            <h4 className="text-sm font-semibold mb-1 text-green-800">
+              Browse or List
+            </h4>
             <p className="text-xs text-gray-600">
               Find or list items/services.
             </p>
           </div>
-          <div className="text-center">
-            <div className="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-primary-700 font-bold">3</span>
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-teal-100 w-10 h-10 rounded-full flex items-center justify-center mb-2">
+              <span className="text-teal-600 font-bold">2</span>
             </div>
-            <h4 className="text-sm font-semibold mb-1">Connect</h4>
+            <h4 className="text-sm font-semibold mb-1 text-green-800">
+              Connect
+            </h4>
             <p className="text-xs text-gray-600">Message sellers or buyers.</p>
           </div>
-          <div className="text-center">
-            <div className="bg-primary-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2">
-              <span className="text-primary-700 font-bold">4</span>
+          <div className="flex flex-col items-center text-center">
+            <div className="bg-lime-100 w-10 h-10 rounded-full flex items-center justify-center mb-2">
+              <span className="text-lime-600 font-bold">3</span>
             </div>
-            <h4 className="text-sm font-semibold mb-1">Complete</h4>
+            <h4 className="text-sm font-semibold mb-1 text-green-800">
+              Complete
+            </h4>
             <p className="text-xs text-gray-600">Meet safely to transact.</p>
           </div>
         </div>
@@ -234,7 +190,7 @@ const HomePage = () => {
       <section>
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-lg font-bold flex items-center">
-            <FiShoppingBag className="mr-2" /> Featured Products
+            <FiShoppingBag className="mr-2" /> Products
           </h2>
           <div className="flex items-center gap-2">
             {refreshing && (
@@ -382,25 +338,34 @@ const HomePage = () => {
 
       {/* Community Section */}
       <section className="bg-gradient-to-r from-blue-500 to-green-500 text-white rounded-lg p-3 relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-24 flex items-center justify-center opacity-20">
-          <BsTelegram size={80} />
+        <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+          <img
+            src="1.jpg" // Path to your image
+            alt="Community Image"
+            className="w-full h-full object-cover object-top scale-125"
+          />
         </div>
-        <div className="relative z-10">
+        <div
+          className="relative z-10 flex flex-col items-center justify-center h-full"
+          style={{
+            maskImage: "linear-gradient(to right, white 70%, transparent 100%)",
+          }}
+        >
           <div className="flex items-center">
-            <BsTelegram size={24} className="mr-2" />
-            <FaWhatsapp size={24} className="mr-2" />
-            <h2 className="text-lg font-bold">Join Our {communityName}!</h2>
+            <BsTelegram size={32} className="mr-3" />
+            <FaWhatsapp size={32} className="mr-3" />
+            <h2 className="text-2xl font-bold">Join Our {communityName}!</h2>
           </div>
-          <p className="text-sm mt-1 mb-2">
+          <p className="text-lg mt-2 mb-3">
             Connect on Telegram and WhatsApp for updates, deals, and campus
             vibes.
           </p>
-          <div className="flex space-x-2">
+          <div className="flex space-x-3">
             <a
               href={socialLinks.telegram}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-blue-500 px-4 py-1 rounded-full text-sm font-medium hover:bg-blue-50"
+              className="bg-white text-blue-500 px-5 py-1.5 rounded-full text-base font-medium hover:bg-blue-50"
             >
               Join Telegram
             </a>
@@ -408,16 +373,10 @@ const HomePage = () => {
               href={socialLinks.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white text-green-500 px-4 py-1 rounded-full text-sm font-medium hover:bg-green-50"
+              className="bg-white text-green-500 px-5 py-1.5 rounded-full text-base font-medium hover:bg-green-50"
             >
               Join WhatsApp
             </a>
-            <Link
-              to="/community-info"
-              className="text-white/80 text-sm underline hover:text-white"
-            >
-              Learn More
-            </Link>
           </div>
         </div>
       </section>

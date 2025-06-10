@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 // Service Worker with Push Notifications and Network-First Static Asset Caching
-const VERSION = "BUILD_VERSION_PLACEHOLDER" // This will be replaced during build
-const BUILD_HASH = "BUILD_HASH_PLACEHOLDER" // This will be replaced during build
+const VERSION = "1" // This will be replaced during build
+const BUILD_HASH = "1" // This will be replaced during build
 
 // Cache names with version
 const STATIC_CACHE_NAME = "campus-marketplace-static-v" + VERSION

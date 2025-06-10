@@ -1,6 +1,6 @@
 // Cache buster utility - only clears API response caches
 
-const VERSION = "3.0.0" // Update this version when you want to bust caches
+const VERSION = "4.0.0" // Update this version when you want to bust caches
 
 // Function to clear API caches only
 export const clearApiCaches = async () => {

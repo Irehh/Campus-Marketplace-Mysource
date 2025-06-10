@@ -8,17 +8,13 @@ export const CURRENCY_FORMAT = {
 
 // Campus options
 export const CAMPUSES = [
-  { value: "unilag", label: "University of Lagos" },
-  { value: "uniben", label: "University of Benin" },
-  { value: "ui", label: "University of Ibadan" },
-  { value: "oau", label: "Obafemi Awolowo University" },
-  { value: "uniport", label: "University of Port Harcourt" },
+  { value: "unn", label: "University of Nigeria, Nsukka" },
 ]
 
 // Product categories
 export const PRODUCT_CATEGORIES = [
   { value: "electronics", label: "Electronics" },
-  { value: "books", label: "Books" },
+  { value: "lodges", label: "Lodges & Accomodations" },
   { value: "clothing", label: "Clothing" },
   { value: "furniture", label: "Furniture" },
   { value: "other", label: "Other" },
@@ -37,32 +33,17 @@ export const BUSINESS_CATEGORIES = [
 export const SOCIAL_MEDIA_LINKS = {
   // Default links (used when no campus is selected)
   default: {
-    whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/campusmarketplace",
-    twitter: "https://twitter.com/campusmarketplace",
-    instagram: "https://instagram.com/campusmarketplace",
+    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    telegram: "https://t.me/+GwOjGSPTticwNTM0",
+    twitter: "https://x.com/mysource_ng",
+    facebook: "https://web.facebook.com/groups/745670956863374",
+    instagram: "https://instagram.com/mysource_ng",
   },
   // Campus-specific links
-  unilag: {
+  unn: {
     whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
     telegram: "https://t.me/unilagmarketplace",
-  },
-  uniben: {
-    whatsapp: "https://chat.whatsapp.com/KLgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/unibenmarketplace",
-  },
-  ui: {
-    whatsapp: "https://chat.whatsapp.com/LKgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/uimarketplace",
-  },
-  oau: {
-    whatsapp: "https://chat.whatsapp.com/MKgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/oaumarketplace",
-  },
-  uniport: {
-    whatsapp: "https://chat.whatsapp.com/NKgCBGv5TLt9jyFgCkzRQM",
-    telegram: "https://t.me/uniportmarketplace",
-  },
+  }
 }
 
 // Gig categories
