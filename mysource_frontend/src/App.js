@@ -62,11 +62,11 @@ function App() {
   const [installPrompt, setInstallPrompt] = useState(null)
   const [showInstallBanner, setShowInstallBanner] = useState(false)
 
-  // Clear API caches on app start
-  // useEffect(() => {
-  //   clearApiCaches()
-  //   console.log("API caches cleared on app start")
-  // }, [])
+  //Clear API caches on app start
+  useEffect(() => {
+    clearApiCaches()
+    console.log("API caches cleared on app start")
+  }, [])
 
   // Check for new version
   useEffect(() => {
