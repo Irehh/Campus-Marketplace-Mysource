@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM(
           "deposit", // Money added to wallet
           "withdrawal", // Money withdrawn from wallet
-          "escrow", // Money held in escrow for a gig
+          "escrow", // Money held in escrow for a gig and product
           "release", // Money released from escrow to freelancer
           "refund", // Money refunded from escrow to client
           "fee", // Platform fee

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Routes, Route } from "react-router-dom"
 import { GoogleOAuthProvider } from "@react-oauth/google"
@@ -65,10 +63,10 @@ function App() {
   const [showInstallBanner, setShowInstallBanner] = useState(false)
 
   // Clear API caches on app start
-  useEffect(() => {
-    clearApiCaches()
-    console.log("API caches cleared on app start")
-  }, [])
+  // useEffect(() => {
+  //   clearApiCaches()
+  //   console.log("API caches cleared on app start")
+  // }, [])
 
   // Check for new version
   useEffect(() => {

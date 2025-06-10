@@ -41,7 +41,7 @@ const PORT = process.env.PORT || 5000;
 app.use(apiRateLimit)
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'https://mysource.ng',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   })
@@ -117,7 +117,11 @@ app.use((req, res, next) => {
 });
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.status(404).json({
+    success: false,
+    message: 'Resource not found',
+    statusCode: 404,
+  });
 });
 
 // Error handling middleware

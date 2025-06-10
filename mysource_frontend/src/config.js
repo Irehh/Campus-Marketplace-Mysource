@@ -1,4 +1,4 @@
-export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000"
+export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "https://mysource.ng"
 
 // Format options
 export const CURRENCY_FORMAT = {
