@@ -162,7 +162,7 @@ const HomePage = () => {
               Browse or List
             </h4>
             <p className="text-xs text-gray-600">
-              Find or list items/services.
+              Find or list items/services for free.
             </p>
           </div>
           <div className="flex flex-col items-center text-center">
