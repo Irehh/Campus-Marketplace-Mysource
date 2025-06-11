@@ -41,7 +41,7 @@ export const SOCIAL_MEDIA_LINKS = {
   },
   // Campus-specific links
   unn: {
-    whatsapp: "https://chat.whatsapp.com/JKgCBGv5TLt9jyFgCkzRQM",
+    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
   }
 }

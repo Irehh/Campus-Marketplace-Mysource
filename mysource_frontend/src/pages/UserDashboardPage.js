@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   FiEdit,
   FiTrash,
@@ -17,158 +17,193 @@ import {
   FiTruck,
   FiMenu,
   FiX,
-} from "react-icons/fi"
-import { useAuth } from "../contexts/AuthContext"
-import axios from "axios"
-import toast from "react-hot-toast"
-import { REACT_APP_API_URL } from "../config"
+} from "react-icons/fi";
+import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { REACT_APP_API_URL } from "../config";
 
 const UserDashboardPage = () => {
-  const { user, token } = useAuth()
-  const [loading, setLoading] = useState(true)
-  const [products, setProducts] = useState([])
-  const [businesses, setBusinesses] = useState([])
-  const [gigs, setGigs] = useState([])
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState(null)
-  const [deleteType, setDeleteType] = useState("")
-  const [walletSummary, setWalletSummary] = useState(null)
-  const [recentTransactions, setRecentTransactions] = useState([])
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const { user, token } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
+  const [gigs, setGigs] = useState([]);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [deleteType, setDeleteType] = useState("");
+  const [walletSummary, setWalletSummary] = useState(null);
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     const fetchUserListings = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Fetch user's products
-        const productsResponse = await axios.get(`${REACT_APP_API_URL}/api/products/user`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const productsResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/products/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (productsResponse.data && productsResponse.data.products) {
-          setProducts(productsResponse.data.products)
+          setProducts(productsResponse.data.products);
         } else if (Array.isArray(productsResponse.data)) {
-          setProducts(productsResponse.data)
+          setProducts(productsResponse.data);
         } else {
-          console.error("Unexpected products response format:", productsResponse.data)
-          setProducts([])
+          console.error(
+            "Unexpected products response format:",
+            productsResponse.data
+          );
+          setProducts([]);
         }
 
         // Fetch user's businesses
-        const businessesResponse = await axios.get(`${REACT_APP_API_URL}/api/businesses/user`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        const businessesResponse = await axios.get(
+          `${REACT_APP_API_URL}/api/businesses/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (businessesResponse.data && businessesResponse.data.businesses) {
-          setBusinesses(businessesResponse.data.businesses)
+          setBusinesses(businessesResponse.data.businesses);
         } else if (Array.isArray(businessesResponse.data)) {
-          setBusinesses(businessesResponse.data)
+          setBusinesses(businessesResponse.data);
         } else {
-          console.error("Unexpected businesses response format:", businessesResponse.data)
-          setBusinesses([])
+          console.error(
+            "Unexpected businesses response format:",
+            businessesResponse.data
+          );
+          setBusinesses([]);
         }
 
         // Fetch user's gigs
         try {
-          const gigsResponse = await axios.get(`${REACT_APP_API_URL}/api/gigs/my/client`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+          const gigsResponse = await axios.get(
+            `${REACT_APP_API_URL}/api/gigs/my/client`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
 
           if (gigsResponse.data && gigsResponse.data.data) {
-            setGigs(gigsResponse.data.data)
+            setGigs(gigsResponse.data.data);
           } else if (Array.isArray(gigsResponse.data)) {
-            setGigs(gigsResponse.data)
+            setGigs(gigsResponse.data);
           } else {
-            console.error("Unexpected gigs response format:", gigsResponse.data)
-            setGigs([])
+            console.error(
+              "Unexpected gigs response format:",
+              gigsResponse.data
+            );
+            setGigs([]);
           }
         } catch (error) {
-          console.error("Error fetching user gigs:", error)
-          setGigs([])
+          console.error("Error fetching user gigs:", error);
+          setGigs([]);
         }
 
         // Fetch wallet summary
         try {
-          const walletResponse = await axios.get(`${REACT_APP_API_URL}/api/wallet/summary`, {
-            headers: { Authorization: `Bearer ${token}` },
-          })
+          const walletResponse = await axios.get(
+            `${REACT_APP_API_URL}/api/wallet/summary`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
 
-          setWalletSummary(walletResponse.data)
+          setWalletSummary(walletResponse.data);
           if (walletResponse.data.recentTransactions) {
-            setRecentTransactions(walletResponse.data.recentTransactions)
+            setRecentTransactions(walletResponse.data.recentTransactions);
           }
         } catch (error) {
-          console.error("Error fetching wallet summary:", error)
+          console.error("Error fetching wallet summary:", error);
         }
       } catch (error) {
-        console.error("Error fetching user listings:", error)
-        toast.error("Failed to load your listings")
+        console.error("Error fetching user listings:", error);
+        toast.error("Failed to load your listings");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     if (user && token) {
-      fetchUserListings()
+      fetchUserListings();
     }
-  }, [user, token, REACT_APP_API_URL])
+  }, [user, token, REACT_APP_API_URL]);
 
   const handleDeleteClick = (item, type) => {
-    setItemToDelete(item)
-    setDeleteType(type)
-    setShowDeleteDialog(true)
-  }
+    setItemToDelete(item);
+    setDeleteType(type);
+    setShowDeleteDialog(true);
+  };
 
   const handleDeleteConfirm = async () => {
     try {
       if (deleteType === "product") {
-        await axios.delete(`${REACT_APP_API_URL}/api/products/${itemToDelete.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setProducts(products.filter((p) => p.id !== itemToDelete.id))
-        toast.success("Product deleted successfully")
+        await axios.delete(
+          `${REACT_APP_API_URL}/api/products/${itemToDelete.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setProducts(products.filter((p) => p.id !== itemToDelete.id));
+        toast.success("Product deleted successfully");
       } else if (deleteType === "business") {
-        await axios.delete(`${REACT_APP_API_URL}/api/businesses/${itemToDelete.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        setBusinesses(businesses.filter((b) => b.id !== itemToDelete.id))
-        toast.success("Business deleted successfully")
+        await axios.delete(
+          `${REACT_APP_API_URL}/api/businesses/${itemToDelete.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setBusinesses(businesses.filter((b) => b.id !== itemToDelete.id));
+        toast.success("Business deleted successfully");
       } else if (deleteType === "gig") {
         await axios.delete(`${REACT_APP_API_URL}/api/gigs/${itemToDelete.id}`, {
           headers: { Authorization: `Bearer ${token}` },
-        })
-        setGigs(gigs.filter((g) => g.id !== itemToDelete.id))
-        toast.success("Gig deleted successfully")
+        });
+        setGigs(gigs.filter((g) => g.id !== itemToDelete.id));
+        toast.success("Gig deleted successfully");
       }
     } catch (error) {
-      console.error("Error deleting item:", error)
-      toast.error("Failed to delete item")
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item");
     } finally {
-      setShowDeleteDialog(false)
-      setItemToDelete(null)
+      setShowDeleteDialog(false);
+      setItemToDelete(null);
     }
-  }
+  };
 
   const renderListingCard = (item, type) => {
-    const imageUrl = item.Images && item.Images.length > 0 ? item.Images[0].url : "/images/placeholder.png"
+    const imageUrl =
+      item.Images && item.Images.length > 0
+        ? item.Images[0].url
+        : "/images/placeholder.png";
 
     const editUrl =
-    type === "product"
-      ? `/edit-product/${item.id}`
-      : type === "business"
+      type === "product"
+        ? `/edit-product/${item.id}`
+        : type === "business"
         ? `/edit-business/${item.id}`
         : `/gigs/${item.id}/edit`;
-  const detailUrl =
-    type === "product"
-      ? `/products/${item.id}`
-      : type === "business"
+    const detailUrl =
+      type === "product"
+        ? `/products/${item.id}`
+        : type === "business"
         ? `/businesses/${item.id}`
         : `/gigs/${item.id}`;
-  const isDisabled = item.isDisabled === true;
+    const isDisabled = item.isDisabled === true;
 
     return (
-      <div key={item.id} className={`bg-white rounded-lg shadow-sm overflow-hidden ${isDisabled ? "opacity-60" : ""}`}>
+      <div
+        key={item.id}
+        className={`bg-white rounded-lg shadow-sm overflow-hidden ${
+          isDisabled ? "opacity-60" : ""
+        }`}
+      >
         <div className="relative h-32 sm:h-36">
           <img
             src={imageUrl || "/images/placeholder.png"}
@@ -176,27 +211,44 @@ const UserDashboardPage = () => {
             className="w-full h-full object-cover"
           />
           {isDisabled && (
-            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">Disabled</div>
+            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+              Disabled
+            </div>
           )}
         </div>
         <div className="p-3">
-          <h3 className="text-sm sm:text-md font-semibold truncate">{item.name || item.description}</h3>
-          <p className="text-gray-600 text-xs mb-1 truncate">{item.category || "Uncategorized"}</p>
+          <h3 className="text-sm sm:text-md font-semibold truncate">
+            {item.name || item.description}
+          </h3>
+          <p className="text-gray-600 text-xs mb-1 truncate">
+            {item.category || "Uncategorized"}
+          </p>
 
           {type === "product" && item.price && (
-            <p className="text-primary font-bold mb-2 text-sm">₦{item.price.toLocaleString()}</p>
+            <p className="text-primary font-bold mb-2 text-sm">
+              ₦{item.price.toLocaleString()}
+            </p>
           )}
 
           {type === "gig" && item.budget && (
-            <p className="text-primary font-bold mb-2 text-sm">₦{item.budget.toLocaleString()}</p>
+            <p className="text-primary font-bold mb-2 text-sm">
+              ₦{item.budget.toLocaleString()}
+            </p>
           )}
 
           <div className="flex justify-between items-center">
-            <Link to={detailUrl} className="text-blue-600 hover:text-blue-800 text-xs">
+            <Link
+              to={detailUrl}
+              className="text-blue-600 hover:text-blue-800 text-xs"
+            >
               View
             </Link>
             <div className="flex space-x-1">
-              <Link to={editUrl} className="p-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100" title="Edit">
+              <Link
+                to={editUrl}
+                className="p-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                title="Edit"
+              >
                 <FiEdit size={14} />
               </Link>
               <button
@@ -210,80 +262,80 @@ const UserDashboardPage = () => {
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString)
+    const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-    })
-  }
+    });
+  };
 
   const getTransactionIcon = (type) => {
     switch (type) {
       case "deposit":
-        return <FiArrowDownLeft className="text-green-500" />
+        return <FiArrowDownLeft className="text-green-500" />;
       case "withdrawal":
-        return <FiArrowUpRight className="text-red-500" />
+        return <FiArrowUpRight className="text-red-500" />;
       case "escrow":
-        return <FiDollarSign className="text-blue-500" />
+        return <FiDollarSign className="text-blue-500" />;
       case "release":
-        return <FiArrowDownLeft className="text-green-500" />
+        return <FiArrowDownLeft className="text-green-500" />;
       case "refund":
-        return <FiArrowUpRight className="text-orange-500" />
+        return <FiArrowUpRight className="text-orange-500" />;
       case "fee":
       case "withdrawal_fee":
-        return <FiDollarSign className="text-gray-500" />
+        return <FiDollarSign className="text-gray-500" />;
       default:
-        return <FiDollarSign className="text-gray-500" />
+        return <FiDollarSign className="text-gray-500" />;
     }
-  }
+  };
 
   const getTransactionStatusClass = (status) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "pending":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "failed":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       case "cancelled":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getTransactionTypeLabel = (type) => {
     switch (type) {
       case "deposit":
-        return "Deposit"
+        return "Deposit";
       case "withdrawal":
-        return "Withdrawal"
+        return "Withdrawal";
       case "escrow":
-        return "Escrow"
+        return "Escrow";
       case "release":
-        return "Payment"
+        return "Payment";
       case "refund":
-        return "Refund"
+        return "Refund";
       case "fee":
-        return "Fee"
+        return "Fee";
       case "withdrawal_fee":
-        return "Withdrawal Fee"
+        return "Withdrawal Fee";
       default:
-        return type.charAt(0).toUpperCase() + type.slice(1)
+        return type.charAt(0).toUpperCase() + type.slice(1);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -394,6 +446,11 @@ const UserDashboardPage = () => {
       <section className="mb-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
           <h2 className="text-lg font-medium">My Wallet</h2>
+          <div className="bg-gray-50 rounded p-4 text-center text-gray-500 text-sm">
+            Features involving wallet functionalities, such as deposits, carts,
+            orders, gigs, wallet details is not fully functional yet. Please
+            check back later for updates.
+          </div>
           <div className="flex flex-wrap gap-2">
             <Link
               to="/wallet/deposit"
@@ -424,7 +481,10 @@ const UserDashboardPage = () => {
                 ₦{walletSummary.wallet?.balance?.toLocaleString() || "0"}
               </h3>
               <div className="mt-2">
-                <Link to="/wallet" className="text-blue-600 text-xs hover:underline">
+                <Link
+                  to="/wallet"
+                  className="text-blue-600 text-xs hover:underline"
+                >
                   View Details
                 </Link>
               </div>
@@ -436,7 +496,9 @@ const UserDashboardPage = () => {
                 ₦{walletSummary.wallet?.pendingBalance?.toLocaleString() || "0"}
               </h3>
               <div className="mt-2">
-                <p className="text-xs text-gray-500">Funds in escrow or processing</p>
+                <p className="text-xs text-gray-500">
+                  Funds in escrow or processing
+                </p>
               </div>
             </div>
 
@@ -446,7 +508,10 @@ const UserDashboardPage = () => {
                 ₦{walletSummary.monthlyEarnings?.toLocaleString() || "0"}
               </h3>
               <div className="mt-2">
-                <Link to="/transactions" className="text-blue-600 text-xs hover:underline">
+                <Link
+                  to="/transactions"
+                  className="text-blue-600 text-xs hover:underline"
+                >
                   View Transactions
                 </Link>
               </div>
@@ -455,7 +520,9 @@ const UserDashboardPage = () => {
         ) : (
           <div className="bg-white rounded-lg shadow-sm p-6 text-center">
             <h3 className="text-lg font-medium mb-2">Set Up Your Wallet</h3>
-            <p className="text-gray-600 mb-4">Start managing your finances on Campus Marketplace</p>
+            <p className="text-gray-600 mb-4">
+              Start managing your finances on Campus Marketplace
+            </p>
             <Link
               to="/wallet"
               className="bg-primary text-white px-4 py-2 rounded-md inline-flex items-center hover:bg-primary-dark"
@@ -470,7 +537,10 @@ const UserDashboardPage = () => {
           <div className="bg-white rounded-lg shadow-sm p-4 mt-4">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-md font-medium">Recent Transactions</h3>
-              <Link to="/transactions" className="text-blue-600 text-xs hover:underline">
+              <Link
+                to="/transactions"
+                className="text-blue-600 text-xs hover:underline"
+              >
                 View All
               </Link>
             </div>
@@ -480,7 +550,9 @@ const UserDashboardPage = () => {
                   <tr className="text-left text-gray-500 border-b">
                     <th className="pb-2 text-xs sm:text-sm">Type</th>
                     <th className="pb-2 text-xs sm:text-sm">Amount</th>
-                    <th className="pb-2 text-xs sm:text-sm hidden sm:table-cell">Date</th>
+                    <th className="pb-2 text-xs sm:text-sm hidden sm:table-cell">
+                      Date
+                    </th>
                     <th className="pb-2 text-xs sm:text-sm">Status</th>
                   </tr>
                 </thead>
@@ -488,18 +560,27 @@ const UserDashboardPage = () => {
                   {recentTransactions.slice(0, 3).map((transaction) => (
                     <tr key={transaction.id} className="border-b last:border-0">
                       <td className="py-3 flex items-center">
-                        <span className="mr-1 sm:mr-2">{getTransactionIcon(transaction.type)}</span>
-                        <span className="text-xs sm:text-sm">{getTransactionTypeLabel(transaction.type)}</span>
+                        <span className="mr-1 sm:mr-2">
+                          {getTransactionIcon(transaction.type)}
+                        </span>
+                        <span className="text-xs sm:text-sm">
+                          {getTransactionTypeLabel(transaction.type)}
+                        </span>
                       </td>
-                      <td className="py-3 font-medium text-xs sm:text-sm">₦{transaction.amount.toLocaleString()}</td>
+                      <td className="py-3 font-medium text-xs sm:text-sm">
+                        ₦{transaction.amount.toLocaleString()}
+                      </td>
                       <td className="py-3 text-gray-500 text-xs hidden sm:table-cell">
                         {formatDate(transaction.createdAt)}
                       </td>
                       <td className="py-3">
                         <span
-                          className={`px-1 sm:px-2 py-1 rounded-full text-xs ${getTransactionStatusClass(transaction.status)}`}
+                          className={`px-1 sm:px-2 py-1 rounded-full text-xs ${getTransactionStatusClass(
+                            transaction.status
+                          )}`}
                         >
-                          {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                          {transaction.status.charAt(0).toUpperCase() +
+                            transaction.status.slice(1)}
                         </span>
                       </td>
                     </tr>
@@ -552,7 +633,9 @@ const UserDashboardPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {businesses.map((business) => renderListingCard(business, "business"))}
+            {businesses.map((business) =>
+              renderListingCard(business, "business")
+            )}
           </div>
         )}
       </section>
@@ -593,10 +676,16 @@ const UserDashboardPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-4 max-w-sm w-full">
             <h3 className="text-md font-bold mb-2">
-              Delete {deleteType === "product" ? "Product" : deleteType === "business" ? "Business" : "Gig"}
+              Delete{" "}
+              {deleteType === "product"
+                ? "Product"
+                : deleteType === "business"
+                ? "Business"
+                : "Gig"}
             </h3>
             <p className="text-gray-600 text-sm mb-4">
-              Are you sure you want to delete "{itemToDelete?.name || itemToDelete?.description}"?
+              Are you sure you want to delete "
+              {itemToDelete?.name || itemToDelete?.description}"?
             </p>
             <div className="flex justify-end space-x-2">
               <button
@@ -616,7 +705,7 @@ const UserDashboardPage = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default UserDashboardPage
+export default UserDashboardPage;
