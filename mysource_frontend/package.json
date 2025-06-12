@@ -2,7 +2,6 @@
   "name": "campus-marketplace",
   "version": "1.8.0",
   "private": true,
-  "homepage": ".",
   "dependencies": {
     "@react-oauth/google": "^0.12.1",
     "@testing-library/jest-dom": "^5.17.0",

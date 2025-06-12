@@ -58,9 +58,6 @@ import SellerOrdersPage from "./pages/SellerOrdersPage"
 function App() {
   const { user, isAuthenticated } = useAuth()
   const [showCampusSelection, setShowCampusSelection] = useState(false)
-  const [showUpdateBanner, setShowUpdateBanner] = useState(false)
-  const [installPrompt, setInstallPrompt] = useState(null)
-  const [showInstallBanner, setShowInstallBanner] = useState(false)
 
   //Clear API caches on app start
   useEffect(() => {
@@ -72,7 +69,6 @@ function App() {
   useEffect(() => {
     checkForNewVersion((oldVersion, newVersion) => {
       console.log(`App updated from ${oldVersion} to ${newVersion}`)
-      setShowUpdateBanner(true)
     })
   }, [])
 
@@ -87,52 +83,6 @@ function App() {
     }
   }, [isAuthenticated, user])
 
-  // Handle PWA install prompt
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      // Prevent Chrome 76+ from automatically showing the prompt
-      e.preventDefault()
-      // Stash the event so it can be triggered later
-      setInstallPrompt(e)
-      // Show install banner if user hasn't dismissed it before
-      const hasUserDismissedInstall = localStorage.getItem("dismissedInstall")
-      if (!hasUserDismissedInstall) {
-        setShowInstallBanner(true)
-      }
-    }
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt)
-    }
-  }, [])
-
-  // Handle install banner
-  const handleInstall = () => {
-    if (installPrompt) {
-      // Show the install prompt
-      installPrompt.prompt()
-
-      // Wait for the user to respond to the prompt
-      installPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === "accepted") {
-          console.log("User accepted the install prompt")
-        } else {
-          console.log("User dismissed the install prompt")
-        }
-        // Clear the saved prompt since it can't be used again
-        setInstallPrompt(null)
-        setShowInstallBanner(false)
-      })
-    }
-  }
-
-  const dismissInstallBanner = () => {
-    setShowInstallBanner(false)
-    localStorage.setItem("dismissedInstall", "true")
-  }
-
   const handleUpdate = () => {
     // Clear API caches and reload
     clearApiCaches().then(() => {
@@ -144,55 +94,6 @@ function App() {
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <ErrorBoundary>
         {showCampusSelection && <RequiredCampusSelection onComplete={() => setShowCampusSelection(false)} />}
-
-        {/* PWA Install Banner */}
-        {showInstallBanner && (
-          <div className="fixed bottom-0 left-0 right-0 bg-primary text-white p-3 flex justify-between items-center z-50">
-            <div>
-              <p className="font-medium">Install Campus Marketplace</p>
-              <p className="text-xs">Add to your home screen for a better experience</p>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={dismissInstallBanner}
-                className="px-3 py-1 text-xs bg-transparent border border-white rounded-md"
-              >
-                Not now
-              </button>
-              <button
-                onClick={handleInstall}
-                className="px-3 py-1 text-xs bg-white text-primary font-medium rounded-md"
-              >
-                Install
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* App Update Banner */}
-        {showUpdateBanner && (
-          <div className="fixed bottom-0 left-0 right-0 bg-green-600 text-white p-3 flex justify-between items-center z-50">
-            <div>
-              <p className="font-medium">New version available!</p>
-              <p className="text-xs">Update to get the latest features and fixes</p>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setShowUpdateBanner(false)}
-                className="px-3 py-1 text-xs bg-transparent border border-white rounded-md"
-              >
-                Later
-              </button>
-              <button
-                onClick={handleUpdate}
-                className="px-3 py-1 text-xs bg-white text-green-600 font-medium rounded-md"
-              >
-                Update now
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Offline Indicator */}
         <OfflineIndicator />
 

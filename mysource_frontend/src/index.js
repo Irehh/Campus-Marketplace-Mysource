@@ -5,18 +5,12 @@ import App from "./App"
 import { BrowserRouter } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "react-hot-toast"
-import { registerServiceWorker } from "./utils/pushNotifications"
+// import { registerServiceWorker } from "./utils/pushNotifications"
 import { FavoritesProvider } from "./contexts/FavoritesContext"
 import ErrorBoundary from "./components/ErrorBoundary"
+import { unregister } from './serviceWorkerRegistration';
 
-// Register service worker for PWA
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    registerServiceWorker().catch((error) => {
-      console.error("Service worker registration failed:", error)
-    })
-  })
-}
+unregister();
 
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(

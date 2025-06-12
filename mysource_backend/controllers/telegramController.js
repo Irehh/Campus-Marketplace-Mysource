@@ -1,4 +1,4 @@
-const { User, Product, Business, Verification, Image } = require('../models');
+const { User, Product, Business, Verification, Image, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');

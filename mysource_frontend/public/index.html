@@ -10,10 +10,6 @@
     <!-- Prevent API caching but allow static asset caching -->
     <meta http-equiv="Cache-Control" content="no-cache" />
     
-    <!-- PWA Meta Tags -->
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    
     <!-- Preconnect to external services -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +39,7 @@
         }
       </style>
     </div>
-    
+
     <script>
       // Error handling for failed resource loads
       window.addEventListener('error', function(e) {
@@ -69,24 +65,6 @@
           `;
         }
       });
-
-      // Register service worker with error handling
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js', {
-          scope: '/',
-        }).then(function(registration) {
-          console.log('Service worker registered:', registration);
-          registration.update();
-        }).catch(function(error) {
-          console.log('Service worker registration failed:', error);
-        });
-
-        // Listen for service worker updates
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          console.log('Service worker updated, reloading...');
-          window.location.reload();
-        });
-      }
     </script>
   </body>
 </html>
