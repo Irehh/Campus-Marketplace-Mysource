@@ -9,6 +9,7 @@ export const CURRENCY_FORMAT = {
 // Campus options
 export const CAMPUSES = [
   { value: "unn", label: "University of Nigeria, Nsukka" },
+  { value: "uniben", label: "University of Benin" }
 ]
 
 // Product categories
@@ -43,7 +44,11 @@ export const SOCIAL_MEDIA_LINKS = {
   unn: {
     whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
-  }
+  },
+  uniben: {
+    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    telegram: "https://t.me/+GwOjGSPTticwNTM0",
+  },
 }
 
 // Gig categories
