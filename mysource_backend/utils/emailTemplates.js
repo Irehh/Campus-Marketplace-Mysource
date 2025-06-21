@@ -8,14 +8,14 @@ If you did not request this password reset, please ignore this email.`,
   html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <h2 style="color: #0f766e; text-align: center;">Password Reset Request</h2>
-        <p>You requested a password reset for your Campus Marketplace account.</p>
+        <p>You requested a password reset for your Mysource Campus Marketplace account.</p>
         <p>Please click the button below to reset your password. This link is valid for 1 hour.</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${resetUrl}" style="display: inline-block; background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
         </div>
         <p style="font-size: 14px; color: #666;">If you did not request this password reset, please ignore this email.</p>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
-          <p>Campus Marketplace</p>
+          <p>Mysource Campus Marketplace</p>
         </div>
       </div>
     `,
@@ -23,11 +23,11 @@ If you did not request this password reset, please ignore this email.`,
 
 exports.newMessage = (sender, content, loginUrl) => ({
   subject: "New message on Campus Marketplace",
-  text: `You have a new message from ${sender} on Campus Marketplace.
+  text: `You have a new message from ${sender} on Mysource Campus Marketplace.
 
 Message: "${content.substring(0, 100)}${content.length > 100 ? "..." : ""}"
 
-Login to Campus Marketplace to view and reply to this message: ${loginUrl}`,
+Login to Mysource to view and reply to this message: ${loginUrl}`,
   html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <h2 style="color: #0f766e; text-align: center;">New Message</h2>
@@ -39,7 +39,7 @@ Login to Campus Marketplace to view and reply to this message: ${loginUrl}`,
           <a href="${loginUrl}" style="display: inline-block; background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Message</a>
         </div>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
-          <p>Campus Marketplace</p>
+          <p>Mysource Campus Marketplace</p>
         </div>
       </div>
     `,
@@ -47,37 +47,41 @@ Login to Campus Marketplace to view and reply to this message: ${loginUrl}`,
 
 exports.welcomeEmail = (name, verifyUrl) => ({
   subject: "Welcome to Campus Marketplace",
-  text: `Welcome to Campus Marketplace, ${name}!
+  text: `Welcome to Mysource Campus Marketplace, ${name}!
 
 Thank you for joining our community. We're excited to have you on board.
 
 To get started, you can:
 - Browse products and businesses on your campus
 - List your own products or business
-- Connect with other students
+- Post gigs and find freelancers
+- Share to your friends, we are building a community of here
+- Connect with other students from your campus on Mysource Whatsapp public forum
 
 If you have any questions, feel free to reach out to our support team.
 
 Best regards,
-The Campus Marketplace Team`,
+The Mysource Campus Marketplace Team`,
   html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <h2 style="color: #0f766e; text-align: center;">Welcome to Campus Marketplace!</h2>
+        <h2 style="color: #0f766e; text-align: center;">Welcome to Mysource Campus Marketplace!</h2>
         <p>Hello ${name},</p>
         <p>Thank you for joining our community. We're excited to have you on board.</p>
         <p>To get started, you can:</p>
         <ul>
           <li>Browse products and businesses on your campus</li>
           <li>List your own products or business</li>
+          <li>Post gigs and find freelancers</li>
+          <li>Share with your friends, we are building a community here</li>
           <li>Connect with other students</li>
         </ul>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${verifyUrl}" style="display: inline-block; background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit Campus Marketplace</a>
+          <a href="${verifyUrl}" style="display: inline-block; background-color: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit Mysource Campus Marketplace</a>
         </div>
         <p>If you have any questions, feel free to reach out to our support team.</p>
-        <p>Best regards,<br>The Campus Marketplace Team</p>
+        <p>Best regards,<br>The Mysource Campus Marketplace Team</p>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
-          <p>Campus Marketplace</p>
+          <p>Mysource</p>
         </div>
       </div>
     `,
@@ -85,10 +89,10 @@ The Campus Marketplace Team`,
 
 exports.emailVerification = (verificationUrl, name) => {
   return {
-    subject: "Verify Your Email - Campus Marketplace",
+    subject: "Verify Your Email - Mysource Campus Marketplace",
     text: `Hello ${name},
 
-Thank you for registering with Campus Marketplace! Please verify your email address by clicking the link below:
+Thank you for registering with Campus Marketplace (your source for campus deals)! Please verify your email address by clicking the link below:
 
 ${verificationUrl}
 
@@ -97,12 +101,12 @@ This link will expire in 24 hours.
 If you did not create an account, please ignore this email.
 
 Best regards,
-The Campus Marketplace Team`,
+The Mysource Campus Marketplace Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #4a5568;">Verify Your Email Address</h2>
         <p>Hello ${name},</p>
-        <p>Thank you for registering with Campus Marketplace! Please verify your email address by clicking the button below:</p>
+        <p>Thank you for registering with Mysource Campus Marketplace! Please verify your email address by clicking the button below:</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${verificationUrl}" style="background-color: #4299e1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">Verify Email</a>
         </div>
@@ -110,7 +114,7 @@ The Campus Marketplace Team`,
         <p style="word-break: break-all; color: #4299e1;">${verificationUrl}</p>
         <p>This link will expire in 24 hours.</p>
         <p>If you did not create an account, please ignore this email.</p>
-        <p>Best regards,<br>The Campus Marketplace Team</p>
+        <p>Best regards,<br>The Mysource Campus Marketplace Team</p>
       </div>
     `,
   }
@@ -131,8 +135,10 @@ ${gigUrl}
 
 Please contact the client through our messaging system to discuss the next steps.
 
+Share to your friends, you have earned this gig!
+
 Best regards,
-The Campus Marketplace Team`,
+The Mysource Campus Marketplace Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <h2 style="color: #0f766e; text-align: center;">Your Bid Has Been Accepted!</h2>
@@ -151,11 +157,12 @@ The Campus Marketplace Team`,
         </div>
         
         <p>Please contact the client through our messaging system to discuss the next steps and project requirements.</p>
+        <p>Share this with your friends, you have earned this gig!</p>
         
-        <p>Best regards,<br>The Campus Marketplace Team</p>
+        <p>Best regards,<br>The Mysource Campus Marketplace Team</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
-          <p>Campus Marketplace</p>
+          <p>Mysource Campus Marketplace</p>
         </div>
       </div>
     `,
@@ -177,10 +184,10 @@ The funds have been added to your wallet. You can withdraw them at any time.
 You can view the completed gig details by clicking the link below:
 ${gigUrl}
 
-Thank you for your work on the Campus Marketplace platform!
+Thank you for your work on the Mysource Campus Marketplace platform!
 
 Best regards,
-The Campus Marketplace Team`,
+The Mysource Campus Marketplace Team`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <h2 style="color: #0f766e; text-align: center;">Gig Completed and Payment Released!</h2>
@@ -199,11 +206,12 @@ The Campus Marketplace Team`,
         </div>
         
         <p>Thank you for your work on the Campus Marketplace platform!</p>
+        <p>Your Source for campus deals!!</p>
         
-        <p>Best regards,<br>The Campus Marketplace Team</p>
+        <p>Best regards,<br>The Mysource Campus Marketplace Team</p>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #999;">
-          <p>Campus Marketplace</p>
+          <p>Mysource Campus Marketplace</p>
         </div>
       </div>
     `,

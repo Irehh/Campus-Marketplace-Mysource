@@ -107,7 +107,7 @@ const Footer = () => {
               Mysource
             </Link>
             <p className="text-gray-300 text-sm mb-4 leading-relaxed">
-              The premier marketplace connecting campus communities. Buy, sell, and discover everything you need for
+              The online marketplace connecting entrepreneurs, students, businesses on campus. Buy, sell, and discover everything you need for
               student life.
             </p>
             <div className="flex items-center text-gray-300 text-sm mb-2">
@@ -150,6 +150,11 @@ const Footer = () => {
               <li>
                 <Link to="/favorites" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
                   My Favorites
+                </Link>
+              </li>
+              <li>
+                <Link to="/cart" className="text-gray-300 hover:text-primary-500 text-sm transition-colors">
+                  My Cart
                 </Link>
               </li>
             </ul>

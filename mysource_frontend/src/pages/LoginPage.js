@@ -64,9 +64,9 @@ const LoginPage = () => {
         </div>
       )}
 
-      <div className="relative flex justify-center text-sm">
+      {/* <div className="relative flex justify-center text-sm">
           <span className="px-2 bg-white text-gray-500">Recommend you use only Google Login for now</span>
-        </div>
+        </div> */}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
