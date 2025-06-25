@@ -19,6 +19,18 @@ export const PRODUCT_CATEGORIES = [
   { value: "clothing", label: "Clothing" },
   { value: "furniture", label: "Furniture" },
   { value: "other", label: "Other" },
+  { value: "books", label: "Books & Stationery" },
+  { value: "vehicles", label: "Vehicles" },
+  { value: "services", label: "Services" },
+  { value: "food", label: "Food & Beverages" },
+  { value: "tech", label: "Technology & Gadgets" },
+  { value: "fashion", label: "Fashion & Clothing" },
+  { value: "health", label: "Health & Wellness" },
+  { value: "education", label: "Education & Training" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "finance", label: "Finance & Consulting" },
+  { value: "realestate", label: "Real Estate" },
+  { value: "homeandproperties", label: "Home & Properties" },
 ]
 
 // Business categories
@@ -28,6 +40,13 @@ export const BUSINESS_CATEGORIES = [
   { value: "services", label: "Services" },
   { value: "tech", label: "Technology" },
   { value: "other", label: "Other" },
+  { value: "homeandproperties", label: "Home & Properties" },
+  { value: "fashion", label: "Fashion & Clothing" },
+  { value: "health", label: "Health & Wellness" },
+  { value: "education", label: "Education & Training" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "finance", label: "Finance & Consulting" },
+  { value: "realestate", label: "Real Estate" }
 ]
 
 // Social Media Links by Campus
