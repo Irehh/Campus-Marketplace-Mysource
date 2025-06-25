@@ -154,6 +154,14 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" })
     }
 
+    // Check if user registered with Google OAuth
+    if (user.googleId && !user.password) {
+      await require("../middleware/rateLimitMiddleware").recordFailedLoginAttempt(req);
+      return res.status(401).json({
+        message: "This account was registered with Google Sign-In. Use Google to log in or reset password.",
+      });
+    }
+
     // Check password
     const isMatch = await bcrypt.compare(password, user.password)
 
