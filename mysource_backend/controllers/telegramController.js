@@ -267,11 +267,11 @@ const handleProductUpload = async (bot, msg, user) => {
     // Generate filenames
     const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`;
     const filePath = path.join(uploadDir, filename);
-    const relativePath = `${REACT_APP_API_URL || 'http://localhost:5000'}/Uploads/${filename}`;
+    const relativePath = `${REACT_APP_API_URL || 'https://mysource.com.ng'}/Uploads/${filename}`;
 
     const thumbnailFilename = `thumb_${filename}`;
     const thumbnailPath = path.join(uploadDir, thumbnailFilename);
-    const thumbnailRelativePath = `${REACT_APP_API_URL || 'http://localhost:5000'}/Uploads/${thumbnailFilename}`;
+    const thumbnailRelativePath = `${REACT_APP_API_URL || 'https://mysource.com.ng'}/Uploads/${thumbnailFilename}`;
 
     // Process and save images
     await sharp(buffer)
