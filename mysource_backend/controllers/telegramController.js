@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const fetch = require('node-fetch').default;
-import { REACT_APP_API_URL  } from '../../mysource_frontend/src/config';
 
+const API_BASE_URL = process.env.API_BASE_URL || 'https://mysource.com.ng';
 let bot = null;
 
 // Generate a random 6-digit code
@@ -267,11 +267,11 @@ const handleProductUpload = async (bot, msg, user) => {
     // Generate filenames
     const filename = `telegram_${Date.now()}_${Math.floor(Math.random() * 10000)}.webp`;
     const filePath = path.join(uploadDir, filename);
-    const relativePath = `${REACT_APP_API_URL || 'https://mysource.com.ng'}/Uploads/${filename}`;
+    const relativePath = `${API_BASE_URL || 'https://mysource.com.ng'}/Uploads/${filename}`;
 
     const thumbnailFilename = `thumb_${filename}`;
     const thumbnailPath = path.join(uploadDir, thumbnailFilename);
-    const thumbnailRelativePath = `${REACT_APP_API_URL || 'https://mysource.com.ng'}/Uploads/${thumbnailFilename}`;
+    const thumbnailRelativePath = `${API_BASE_URL || 'https://mysource.com.ng'}/Uploads/${thumbnailFilename}`;
 
     // Process and save images
     await sharp(buffer)
