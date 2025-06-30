@@ -1,21 +1,20 @@
 // Update the BusinessesPage to handle campus filtering correctly
 
-
-import { useState, useEffect } from "react"
-import axios from "axios"
-import Cookies from "js-cookie"
-import BusinessCard from "../components/BusinessCard"
-import { FiFilter } from "react-icons/fi"
-import { useAuth } from "../contexts/AuthContext"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Cookies from "js-cookie";
+import BusinessCard from "../components/BusinessCard";
+import { FiFilter } from "react-icons/fi";
+import { useAuth } from "../contexts/AuthContext";
 
 const BusinessesPage = () => {
-  const { isAuthenticated, user } = useAuth()
-  const [businesses, setBusinesses] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [category, setCategory] = useState("")
-  const [showFilters, setShowFilters] = useState(false)
+  const { isAuthenticated, user } = useAuth();
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [category, setCategory] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const categories = [
     { value: "", label: "All Categories" },
@@ -24,14 +23,23 @@ const BusinessesPage = () => {
     { value: "services", label: "Services" },
     { value: "tech", label: "Technology" },
     { value: "other", label: "Other" },
-  ]
+    { value: "homeandproperties", label: "Home & Properties" },
+    { value: "fashion", label: "Fashion & Clothing" },
+    { value: "health", label: "Health & Wellness" },
+    { value: "education", label: "Education & Training" },
+    { value: "entertainment", label: "Entertainment" },
+    { value: "finance", label: "Finance & Consulting" },
+    { value: "realestate", label: "Real Estate" },
+  ];
 
   useEffect(() => {
     const fetchBusinesses = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         // Get campus from user if authenticated, otherwise from cookie
-        const campus = isAuthenticated ? user.campus : Cookies.get("userCampus") || ""
+        const campus = isAuthenticated
+          ? user.campus
+          : Cookies.get("userCampus") || "";
 
         const response = await axios.get("/api/businesses", {
           params: {
@@ -40,29 +48,29 @@ const BusinessesPage = () => {
             page,
             limit: 12,
           },
-        })
+        });
 
-        setBusinesses(response.data.businesses)
-        setTotalPages(response.data.pagination.totalPages)
+        setBusinesses(response.data.businesses);
+        setTotalPages(response.data.pagination.totalPages);
       } catch (error) {
-        console.error("Error fetching businesses:", error)
+        console.error("Error fetching businesses:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchBusinesses()
-  }, [page, category, isAuthenticated, user])
+    fetchBusinesses();
+  }, [page, category, isAuthenticated, user]);
 
   const handleCategoryChange = (e) => {
-    setCategory(e.target.value)
-    setPage(1) // Reset to first page when changing category
-  }
+    setCategory(e.target.value);
+    setPage(1); // Reset to first page when changing category
+  };
 
   const handlePageChange = (newPage) => {
-    setPage(newPage)
-    window.scrollTo(0, 0)
-  }
+    setPage(newPage);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div>
@@ -77,7 +85,11 @@ const BusinessesPage = () => {
         </button>
 
         <div className="hidden md:block">
-          <select value={category} onChange={handleCategoryChange} className="input max-w-xs">
+          <select
+            value={category}
+            onChange={handleCategoryChange}
+            className="input max-w-xs"
+          >
             {categories.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
@@ -94,7 +106,12 @@ const BusinessesPage = () => {
             <label htmlFor="category-mobile" className="label">
               Category
             </label>
-            <select id="category-mobile" value={category} onChange={handleCategoryChange} className="input">
+            <select
+              id="category-mobile"
+              value={category}
+              onChange={handleCategoryChange}
+              className="input"
+            >
               {categories.map((cat) => (
                 <option key={cat.value} value={cat.value}>
                   {cat.label}
@@ -120,7 +137,9 @@ const BusinessesPage = () => {
           ) : (
             <div className="text-center py-12 bg-secondary-50 rounded-lg">
               <p className="text-secondary-600 mb-2">No businesses found.</p>
-              <p className="text-sm text-secondary-500">Try changing your filters or campus selection.</p>
+              <p className="text-sm text-secondary-500">
+                Try changing your filters or campus selection.
+              </p>
             </div>
           )}
 
@@ -141,7 +160,9 @@ const BusinessesPage = () => {
                     key={i}
                     onClick={() => handlePageChange(i + 1)}
                     className={`px-3 py-1 rounded border ${
-                      page === i + 1 ? "bg-primary text-white border-primary" : "border-secondary-300"
+                      page === i + 1
+                        ? "bg-primary text-white border-primary"
+                        : "border-secondary-300"
                     }`}
                   >
                     {i + 1}
@@ -161,8 +182,7 @@ const BusinessesPage = () => {
         </>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default BusinessesPage
-
+export default BusinessesPage;

@@ -117,9 +117,15 @@ const ProductDetailPage = () => {
     }
   }, [product, token, user]);
 
-  const joinTelegramChannel = () => {
+  // const joinTelegramChannel = () => {
+  //   if (telegramChannel) {
+  //     window.open(`https://t.me/${telegramChannel}`, "_blank");
+  //   }
+  // };
+
+   const joinTelegramChannel = () => {
     if (telegramChannel) {
-      window.open(`https://t.me/${telegramChannel}`, "_blank");
+      window.open(telegramChannel, "_blank");
     }
   };
 
