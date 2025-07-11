@@ -42,9 +42,9 @@ const HomePage = () => {
       setUserCampus(campus);
 
       const [productsRes, businessesRes, gigsRes] = await Promise.all([
-        axios.get(`/api/products?campus=${campus}&limit=4`),
-        axios.get(`/api/businesses?campus=${campus}&limit=3`),
-        axios.get(`/api/gigs?campus=${campus}&limit=4`),
+        axios.get(`/api/products?campus=${campus}&limit=10`),
+        axios.get(`/api/businesses?campus=${campus}&limit=10`),
+        axios.get(`/api/gigs?campus=${campus}&limit=10`),
       ]);
 
       setProducts(productsRes.data.products);
