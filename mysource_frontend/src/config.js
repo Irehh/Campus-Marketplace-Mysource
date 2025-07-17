@@ -1,4 +1,4 @@
-export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "https://mysource.ng"
+export const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "https://mysource.com.ng"
 
 // Format options
 export const CURRENCY_FORMAT = {
@@ -9,7 +9,27 @@ export const CURRENCY_FORMAT = {
 // Campus options
 export const CAMPUSES = [
   { value: "unn", label: "University of Nigeria, Nsukka" },
-  { value: "uniben", label: "University of Benin" }
+  { value: "uniben", label: "University of Benin" },
+  { value: "ui", label: "University of Ibadan" },
+  { value: "unilag", label: "University of Lagos" },
+  { value: "oau", label: "Obafemi Awolowo University" },
+  { value: "abu", label: "Ahmadu Bello University" },
+  { value: "unilorin", label: "University of Ilorin" },
+  { value: "unijos", label: "University of Jos" },
+  { value: "uniport", label: "University of Port Harcourt" },
+  { value: "funaab", label: "Federal University of Agriculture, Abeokuta" },
+  { value: "unical", label: "University of Calabar" },
+  { value: "futa", label: "Federal University of Technology, Akure" },
+  { value: "futminna", label: "Federal University of Technology, Minna" },
+  { value: "uniuyo", label: "University of Uyo" },
+  { value: "bayero", label: "Bayero University, Kano" },
+  { value: "lautech", label: "Ladoke Akintola University of Technology" },
+  { value: "unimaid", label: "University of Maiduguri" },
+  { value: "usmanu", label: "Usmanu Danfodiyo University" },
+  { value: "futo", label: "Federal University of Technology, Owerri" },
+  { value: "unizik", label: "Nnamdi Azikiwe University" },
+  { value: "uniabuja", label: "University of Abuja" },
+  { value: "ebu", label: "Edo State University" }
 ]
 
 // Product categories
