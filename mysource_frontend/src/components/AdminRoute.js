@@ -1,30 +1,37 @@
+"use client";
 
-
-import { Navigate, Outlet, useLocation } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Helmet } from "react-helmet";
 
 const AdminRoute = () => {
-  const { isAuthenticated, loading, user } = useAuth()
-  const location = useLocation()
+  const { isAuthenticated, loading, user } = useAuth();
+  const location = useLocation();
 
   // Show loading state while checking authentication
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>
+    return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Redirect to home if not an admin
   if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
-  // Render the admin route
-  return <Outlet />
-}
+  // Render the admin route with noindex meta tag
+  return (
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <Outlet />
+    </>
+  );
+};
 
-export default AdminRoute
-
+export default AdminRoute;

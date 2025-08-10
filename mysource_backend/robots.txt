@@ -1,18 +1,34 @@
-User-agent: *
-Disallow: /api/
-Disallow: /admin/
-Disallow: /auth/
+# Allow public API endpoints for dynamic content
+Allow: /api/products
+Allow: /api/products/*
+Allow: /api/businesses
+Allow: /api/businesses/*
+Allow: /api/gigs
+Allow: /api/gigs/*
+Allow: /api/search
+Allow: /health
+
+# Disallow sensitive backend routes
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/messages/
+Disallow: /api/comments/
+Disallow: /api/favorites/
+Disallow: /api/push/
+Disallow: /api/bids/
+Disallow: /api/wallet/
+Disallow: /api/cart/
+Disallow: /api/orders/
+Disallow: /api/fees/
+Disallow: /api/telegram/
+Disallow: /api/events/
 Disallow: /private/
 Disallow: /uploads/
+Disallow: /logs/
+Disallow: /config/
 
-# Do not allow indexing of backend-related files or sensitive areas
+# Disallow backend-related files
 Disallow: /*.env$
 Disallow: /*.js$
 Disallow: /*.ts$
 Disallow: /*.json$
-
-# Prevent access to potential log or config files
-Disallow: /logs/
-Disallow: /config/
-
-# No sitemap needed for backend

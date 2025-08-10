@@ -1,0 +1,11 @@
+Options -Indexes
+RewriteEngine On
+RewriteBase /
+
+# Serve existing files (JS, CSS, images) as they are
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# For all other requests, serve index.html
+RewriteRule ^ index.html [L]

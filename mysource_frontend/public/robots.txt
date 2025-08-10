@@ -1,4 +1,48 @@
 User-agent: *
-Disallow:
+# Allow public pages
+Allow: /
+Allow: /products
+Allow: /products/*
+Allow: /businesses
+Allow: /businesses/*
+Allow: /gigs
+Allow: /gigs/*
+Allow: /search
+Allow: /about
+Allow: /privacy
+Allow: /terms
+Allow: /register
+Allow: /login
+Allow: /forgot-password
 
+
+# Disallow protected and sensitive routes
+Disallow: /reset-password/*
+Disallow: /verify-email/*
+Disallow: /resend-verification
+Disallow: /add-listing
+Disallow: /profile
+Disallow: /messages
+Disallow: /messages/*
+Disallow: /dashboard
+Disallow: /notification-settings
+Disallow: /edit-product/*
+Disallow: /edit-business/*
+Disallow: /favorites
+Disallow: /gigs/create
+Disallow: /gigs/*/edit
+Disallow: /wallet
+Disallow: /transactions
+Disallow: /wallet/deposit
+Disallow: /wallet/withdraw
+Disallow: /wallet/verify-payment
+Disallow: /my-bids
+Disallow: /cart
+Disallow: /orders
+Disallow: /orders/*
+Disallow: /seller-orders
+Disallow: /admin/*
+Disallow: /devtools
+
+# Sitemap
 Sitemap: https://mysource.ng/sitemap.xml
