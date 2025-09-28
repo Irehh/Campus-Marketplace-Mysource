@@ -27,6 +27,7 @@ const walletRoutes = require("./routes/walletRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const feeRoutes = require("./routes/feeRoutes");
+const whatsappRoutes = require('./routes/whatsappRoutes');
 
 // Import middleware
 const { errorHandler } = require("./middleware/errorMiddleware");
@@ -108,6 +109,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/fees", feeRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Health check route
 app.get("/health", (req, res) => {

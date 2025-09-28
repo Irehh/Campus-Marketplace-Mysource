@@ -7,7 +7,8 @@ const { authRateLimit, checkLoginAttempts, trackLoginAttempt } = require("../mid
 const validateTurnstile = require("../middleware/turnstileMiddleware")
 
 // Public routes
-router.post("/register", authRateLimit, validateTurnstile, authController.register)
+// router.post("/register", authRateLimit, validateTurnstile, authController.register)
+router.post("/register", authRateLimit, authController.register)
 router.post("/login", authRateLimit, checkLoginAttempts, trackLoginAttempt, authController.login)
 router.post("/google-login", authRateLimit, authController.googleLogin)
 router.post("/resend-verification", authRateLimit, authController.resendVerification)

@@ -22,6 +22,7 @@ const Cart = require("./cart")(sequelize, DataTypes)
 const CartItem = require("./cartItem")(sequelize, DataTypes)
 const Order = require("./order")(sequelize, DataTypes)
 const OrderItem = require("./orderItem")(sequelize, DataTypes)
+const Subscription = require("./subscription")(sequelize, DataTypes)
 
 // Define relationships
 const models = {
@@ -44,6 +45,7 @@ const models = {
   CartItem,
   Order,
   OrderItem,
+  Subscription,
 }
 
 Object.values(models).forEach((model) => {
@@ -74,4 +76,5 @@ module.exports = {
   CartItem,
   Order,
   OrderItem,
+  Subscription,
 }

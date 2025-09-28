@@ -19,28 +19,28 @@ exports.eventsHandler = (req, res) => {
 
   // res.write(`data: ${JSON.stringify({ message: 'Try our Telegram Bot 🤖' })}\n\n`);
 
-  res.write(
-    `data: ${JSON.stringify({
-      message: "Hey there! All the basics are up and running 💯",
-    })}\n\n`
-  );
-  res.write(
-    `data: ${JSON.stringify({
-      message:
-        "We’re working hard behind the scenes to make this better for you 😌",
-    })}\n\n`
-  );
-  res.write(
-    `data: ${JSON.stringify({
-      message: "Updates are coming every day — thanks for sticking with us 🙏",
-    })}\n\n`
-  );
-  res.write(
-    `data: ${JSON.stringify({
-      message:
-        "Want to see what we’re up to or share your thoughts? Join our community on social media! 🤝",
-    })}\n\n`
-  );
+  // res.write(
+  //   `data: ${JSON.stringify({
+  //     message: "Hey there! All the basics are up and running 💯",
+  //   })}\n\n`
+  // );
+  // res.write(
+  //   `data: ${JSON.stringify({
+  //     message:
+  //       "We’re working hard behind the scenes to make this better for you 😌",
+  //   })}\n\n`
+  // );
+  // res.write(
+  //   `data: ${JSON.stringify({
+  //     message: "Updates are coming every day — thanks for sticking with us 🙏",
+  //   })}\n\n`
+  // );
+  // res.write(
+  //   `data: ${JSON.stringify({
+  //     message:
+  //       "Want to see what we’re up to or share your thoughts? Join our community on social media! 🤝",
+  //   })}\n\n`
+  // );
 
   // Send recent events to new clients
   recentEvents.forEach((event) => {
