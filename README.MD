@@ -1,127 +1,243 @@
 # Campus Marketplace
 
-A full-stack web application using Next.js for the frontend and Express.js for the backend, following the MVC architecture. The application allows students to find businesses on campus, buy and sell items specific to their campus, with Telegram integration.
+Full-stack marketplace for campus communities. React frontend and Express.js backend (MVC). Features product/business/gig listings, messaging, wallets, escrow transactions, Telegram integration and email notifications.
+
+Repository: https://github.com/Irehh/Campus-Marketplace-Mysource.git
+
+---
+
+## Table of contents
+
+- Features
+- Tech stack
+- Project structure
+- API — main endpoints
+- Environment variables
+- Local setup (backend & frontend)
+- Database & migrations
+- Running Telegram bot & webhooks
+- Tests & logging
+- Deployment notes
+- Contributing
+- License & contact
+
+---
 
 ## Features
 
-- Mobile-first, responsive design
-- Campus-specific marketplaces (e.g., UNILAG marketplace, UNIBEN marketplace)
-- Search functionality for products and businesses
-- User authentication with email/password and Google OAuth
-- Password reset via email
-- Telegram bot integration for posting content and receiving notifications
-- Real-time events display
-- Product and business listings with images
+- User registration, email verification, password reset
+- Google OAuth login
+- Product listings with images, categories and view counts
+- Business listings and campus-specific marketplaces
+- Gigs (services), bidding and seller workflows
+- Cart, checkout, orders, order items and order history
+- Wallets and transactions (escrow, fees, verified transactions)
+- Push notifications and subscription management
 - Messaging system between users
-- User dashboard for managing listings
-- View count tracking for products and businesses
-- Comment system for products and businesses
-- Active user count display
+- Comments, favorites, search and filters
+- Admin routes for moderation and management
+- Telegram bot integration (polling or webhook)
+- WhatsApp integration endpoints
+- File uploads (multer) and image processing (sharp)
+- Sitemap and robots.txt generation
 
-## Tech Stack
+---
 
-### Frontend
-- React.js
-- React Router
-- Tailwind CSS
-- React Hot Toast for notifications
-- React Icons
-- React OAuth for Google authentication
-- Axios for API requests
+## Tech stack
 
-### Backend
-- Express.js
-- MySQL database
-- Prisma ORM
-- MVC architecture
-- JWT for authentication
-- Node-Telegram-Bot-API for Telegram integration
-- Nodemailer for email sending
-- Multer for file uploads
-- Sharp for image processing
+- Backend: Node.js, Express.js, Sequelize (MySQL), JWT, Nodemailer
+- Frontend: React.js (plain React), Tailwind CSS, Axios
+- Extras: Telegram Bot API, Multer, Sharp, zlib (sitemap compression)
 
-## Project Structure
+---
 
-The project follows a modular structure with separation of concerns:
+## Project structure (important folders)
 
-### Frontend
-- `src/` - Main source directory
-  - `components/` - Reusable UI components
-  - `contexts/` - React context providers
-  - `pages/` - Page components
-  - `utils/` - Utility functions and shared logic
+- mysource_backend/ — Express backend
+  - controllers/, routes/, middleware/, models/, migrations/, utils/
+  - index.js — app entry
+- mysource_frontend/ — React frontend (src/)
+- uploads/ — uploaded files
 
-### Backend
-- `src/` - Main source directory
-  - `controllers/` - Request handlers following MVC pattern
-  - `middleware/` - Custom middleware functions
-  - `models/` - Database models (via Prisma)
-  - `routes/` - API route definitions
-  - `utils/` - Utility functions for the server
-  - `prisma/` - Prisma schema and migrations
+---
 
-## Environment Variables
+## API — main endpoints
 
-### Frontend (.env)
+Base: /api
 
+Auth
+- POST /api/auth/register — register
+- POST /api/auth/login — login
+- POST /api/auth/google-login — google oauth
+- POST /api/auth/resend-verification
+- GET /api/auth/verify-email/:token
+- POST /api/auth/forgot-password
+- POST /api/auth/reset-password
+- GET /api/auth/active-users
+- GET /api/auth/me (protected)
+- PUT /api/auth/profile (protected)
+- GET/PUT /api/auth/notification-settings (protected)
 
-Thought for 7 secondsI'll implement all your requested changes and improvements. Let's tackle each task step by step:
+Products
+- GET /api/products — list
+- GET /api/products/:id — detail
+- POST /api/products — create (protected)
+- PUT /api/products/:id — update (protected)
+- DELETE /api/products/:id — delete (protected)
 
-## 1. Adding Admin Contact to Listing Details Pages
+Businesses
+- GET /api/businesses
+- GET /api/businesses/:id
+- POST/PUT/DELETE (protected)
 
-First, I'll add a button to contact the campus admin in both the product and business detail pages. We'll use the admin's website/link field.
+Gigs & Bids
+- GET /api/gigs
+- GET /api/gigs/:id
+- POST /api/bids (create bid)
+- GET /api/bids (seller/buyer views)
 
-```typescriptreact project="campus-marketplace"
-...
-```
+Cart & Orders
+- GET /api/cart
+- POST /api/cart (add)
+- DELETE /api/cart/:itemId
+- POST /api/orders/buy-now
+- POST /api/orders (create checkout)
+- GET /api/orders/:id
 
-## Important Notes about the Implementation
+Wallet & Transactions
+- GET /api/wallet
+- POST /api/wallet/deposit
+- POST /api/wallet/webhook — Paystack webhook (raw body expected)
+- GET /api/transactions
 
-### 1. Admin Contact Button
+Messaging & Notifications
+- GET /api/messages
+- POST /api/messages
+- POST /api/push/subscribe
 
-- The admin contact button is added to both product and business detail pages
-- It uses the admin's website field as the link
-- It only appears if there's an admin with a website field for that campus
-- The button is styled to stand out but not distract from the main UI
+Search & Sitemap
+- GET /api/search
+- GET /sitemap.xml
+- GET /robots.txt
 
+Admin
+- /api/admin/* — admin routes for moderation, stats and management
 
-### 2. Dashboard Fixes
+Telegram & WhatsApp
+- /api/telegram/*
+- /api/whatsapp/*
 
-- I've improved the error handling in the user dashboard to fix the "Failed to load your listings" error
-- Using `Promise.allSettled` ensures that even if one API call fails, the other can still succeed
-- Added proper error messages and fallbacks
+Notes: This README lists the primary endpoints. See `mysource_backend/routes/` for full route maps and controller details.
 
+---
 
-### 3. Telegram Bot Setup with ngrok
+## Environment variables
 
-To properly connect your Telegram bot, you need to:
+Create `.env` in `mysource_backend/` and `mysource_frontend/` as needed. Common backend variables:
 
-1. **Set up the webhook on your backend** (not frontend). The key points are:
+- PORT=5000
+- NODE_ENV=development
+- CORS_ORIGIN=https://mysource.ng
+- API_BASE_URL=https://mysource.ng (used for sitemap)
+- JWT_SECRET=your_jwt_secret
+- JWT_EXPIRES_IN=7d
+- DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME (or DATABASE_URL)
+- FRONTEND_URL=http://localhost:3000
+- MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS (SMTP settings)
+- UPLOAD_DIR=uploads
+- ENABLE_TELEGRAM=true|false
+- TELEGRAM_TOKEN=your_bot_token
+- TELEGRAM_USE_POLLING=true|false
+- PAYSTACK_SECRET (if using Paystack)
+- SENTRY_DSN (optional)
+- NODE_APP_INSTANCE or other envs per config
 
-1. Run your backend server locally
-2. Use ngrok to expose your backend (`ngrok http 5000`)
-3. Set the webhook using the ngrok URL + your endpoint path (`/api/telegram/webhook`)
+---
 
+## Local setup
 
+Prerequisites:
+- Node.js >= 18, npm
+- MySQL (or compatible) running
+- Optional: ngrok for webhook testing
 
-2. **Environment Variables**:
+Backend
+1. cd mysource_backend
+2. npm install
+3. Create `.env` with the values above
+4. Run DB migrations:
+   - npx sequelize db:migrate
+   - (or run migration scripts defined in package.json)
+5. Start server:
+   - Development: npm run dev
+   - Production: npm start
+6. API available at http://localhost:5000
 
-1. Make sure `ENABLE_TELEGRAM=true` and `TELEGRAM_USE_POLLING=false` when using webhooks
-2. Set your bot token and username in the .env file
+Frontend
+1. cd mysource_frontend
+2. npm install
+3. Create `.env` for frontend variables (FRONTEND_URL, API_BASE_URL)
+4. Start:
+   - npm run dev (or npm start depending on package.json)
+5. Frontend available at http://localhost:3000
 
+---
 
+## Database & migrations
 
-3. **Testing**:
+- Migrations live in `mysource_backend/migrations/`
+- Models are in `mysource_backend/models/`
+- Use Sequelize CLI:
+  - npx sequelize db:migrate
+  - npx sequelize db:migrate:undo
+- Ensure DB credentials in `.env` are correct.
 
-1. Users should be able to link their accounts in the profile section
-2. Notifications should be sent to users via Telegram
-3. Users should be able to search and post via Telegram commands
+---
 
+## Telegram bot & webhooks
 
+- To use webhooks: set ENABLE_TELEGRAM=true and TELEGRAM_USE_POLLING=false.
+- Expose local server with ngrok: ngrok http 5000
+- Set webhook: https://api.telegram.org/bot<TELEGRAM_TOKEN>/setWebhook?url=<NGROK_URL>/api/telegram/webhook
 
+Or use polling (TELEGRAM_USE_POLLING=true) — bot starts on app boot.
 
+---
 
-The webhook must point to your backend because that's where the Telegram controller logic is implemented. The frontend just provides the UI for users to link their accounts.
+## Tests & logging
 
+- Logs saved to `mysource_backend/logs/`
+- Add unit tests in controllers/utils and run via your test runner (not included by default)
+- Use logger utilities in `utils/logger.js`
 
-curl -X POST "https://api.telegram.org/bot<YOUR_TOKEN>/setWebhook?url=<YOUR_BACKEND_URL>/api/telegram/webhook"
+---
+
+## Deployment notes
+
+- Build frontend and serve via CDN or static site hosting
+- Backend: use process manager (PM2) or containerize with Docker
+- Ensure env vars are set in production, enable HTTPS, set CORS_ORIGIN
+- Use secure storage for JWT_SECRET and mail credentials
+- For high availability, run DB on managed service and configure backups
+
+---
+
+## Contributing
+
+1. Fork the repo (https://github.com/Irehh/Campus-Marketplace-Mysource.git)
+2. Create feature branch
+3. Run tests and lint
+4. Submit pull request with clear description
+
+---
+
+## Maintainer & contact
+
+Repository owner: irehh  
+For issues, open an issue on GitHub.
+
+---
+
+## License
+
+Open source (choose a license file). Add LICENSE in repo.
