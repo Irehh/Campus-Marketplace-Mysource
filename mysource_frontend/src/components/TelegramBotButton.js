@@ -11,7 +11,7 @@ const TelegramBotButton = () => {
   if (!isAuthenticated || !botUsername) return null
 
   const handleOpenTelegramBot = () => {
-    window.open(`https://t.me/${botUsername}`, "_blank")
+    window.open(`google.com`, "_blank")
   }
 
   return (
@@ -23,7 +23,7 @@ const TelegramBotButton = () => {
       aria-label="Open Telegram Bot"
     >
       <div className="relative">
-      <FiTerminal className="text-xl" />
+      <FiWhatsapp className="text-xl" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
       </div>
     </button>

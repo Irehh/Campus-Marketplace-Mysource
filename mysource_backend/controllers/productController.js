@@ -369,3 +369,42 @@ exports.getProductsByIds = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch products' });
   }
 };
+
+// Get product preview for social media sharing with OG tags
+exports.getProductPreview = async (req, res) => {
+  const { id } = req.params;
+  const { generatePreviewHTML } = require('../utils/ogTagsGenerator');
+
+  try {
+    const product = await Product.findOne({
+      where: { 
+        id,
+        isDisabled: false
+      },
+      include: [
+        { model: Image },
+        {
+          model: User,
+          attributes: ['id', 'name'],
+        },
+      ],
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Get the first image if available
+    const imageUrl = product.Images && product.Images.length > 0 
+      ? product.Images[0].url 
+      : null;
+
+    // Generate and send HTML with OG tags
+    const html = generatePreviewHTML(product, imageUrl);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('Error generating product preview:', error);
+    res.status(500).json({ message: 'Failed to generate product preview' });
+  }
+};

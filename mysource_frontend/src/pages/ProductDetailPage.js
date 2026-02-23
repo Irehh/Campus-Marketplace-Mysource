@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet";
 import api from "../utils/api"; // Use api.js with axios
 import { formatCurrency } from "../utils/format";
 import { useAuth } from "../contexts/AuthContext";
@@ -242,7 +243,37 @@ const ProductDetailPage = () => {
   const isOwner = user && product.userId === user.id;
   const timeAgo = formatDistanceToNow(new Date(product.createdAt), { addSuffix: true });
 
+  // Prepare data for meta tags
+  const productTitle = product.description?.split('\n')[0] || 'Product';
+  const productDescription = product.description?.replace(/\n+/g, ' ').substring(0, 160) || 'Check out this product on Campus Marketplace';
+  const productImage = product.Images && product.Images.length > 0 ? product.Images[0].url : '';
+  const productUrl = `${window.location.origin}/products/${product.id}`;
+
   return (
+    <>
+      <Helmet>
+        <title>{productTitle} - Campus Marketplace</title>
+        <meta name="description" content={productDescription} />
+        
+        {/* Open Graph tags for social media sharing */}
+        <meta property="og:title" content={productTitle} />
+        <meta property="og:description" content={productDescription} />
+        {productImage && <meta property="og:image" content={productImage} />}
+        <meta property="og:url" content={productUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:site_name" content="Campus Marketplace" />
+        
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={productTitle} />
+        <meta name="twitter:description" content={productDescription} />
+        {productImage && <meta name="twitter:image" content={productImage} />}
+        
+        {/* Additional meta tags */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="canonical" href={productUrl} />
+      </Helmet>
+      
     <div className="container mx-auto px-2 py-2 max-w-4xl">
       {product.isDisabled && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-md">
@@ -533,6 +564,7 @@ const ProductDetailPage = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

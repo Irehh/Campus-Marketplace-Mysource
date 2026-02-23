@@ -243,6 +243,8 @@ const Turnstile = ({
     300050: "Internal error occurred",
     300060: "Network timeout",
     300070: "Invalid response format",
+    400020: "Invalid site key or domain not configured in Turnstile",
+    400022: "Invalid or mismatched site key domain",
   }
 
   // Check if Turnstile should be disabled

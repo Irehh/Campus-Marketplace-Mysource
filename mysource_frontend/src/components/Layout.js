@@ -8,6 +8,7 @@ import PwaInstallPrompt from "./PwaInstallPrompt"
 import MobileNavigation from "./MobileNavigation"
 import TelegramBotButton from "./TelegramBotButton"
 import SocialMediaButtons from "./SocialMediaButtons"
+import ScrollToTop from "./ScrollToTop"
 import { useAuth } from "../contexts/AuthContext"
 
 const Layout = () => {
@@ -15,6 +16,7 @@ const Layout = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollToTop />
       <Navbar />
       <EventMarquee />
       <div className="container mx-auto px-4 py-4 flex-grow max-w-6xl mb-16 md:mb-0">

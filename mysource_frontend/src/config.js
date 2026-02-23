@@ -88,6 +88,10 @@ export const SOCIAL_MEDIA_LINKS = {
     whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
   },
+  uniport: {
+    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    telegram: "https://t.me/+GwOjGSPTticwNTM0",
+  },
 }
 
 // Gig categories

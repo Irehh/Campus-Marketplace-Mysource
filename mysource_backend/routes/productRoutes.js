@@ -7,6 +7,7 @@ const {
   deleteProduct,
   getUserProducts,
   getProductsByIds,
+  getProductPreview,
 } = require('../controllers/productController');
 const { authenticate, optionalAuth } = require('../middleware/authMiddleware');
 
@@ -14,6 +15,8 @@ const router = express.Router();
 
 router.get('/', optionalAuth, getProducts);
 router.get('/user', authenticate, getUserProducts);
+// Social media preview route (must be before /:id route)
+router.get('/:id/preview', getProductPreview);
 router.get('/:id', optionalAuth, getProductById);
 
 router.post(

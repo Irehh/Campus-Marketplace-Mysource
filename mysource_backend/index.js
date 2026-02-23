@@ -55,16 +55,16 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req, res, next) => {
-  if (
-    process.env.NODE_ENV === "production" &&
-    !req.secure &&
-    req.get("X-Forwarded-Proto") !== "https"
-  ) {
-    return res.redirect(`https://${req.get("host")}${req.url}`);
-  }
-  next(); // Pass control to the next middleware
-});
+// app.use((req, res, next) => {
+//   if (
+//     process.env.NODE_ENV === "production" &&
+//     !req.secure &&
+//     req.get("X-Forwarded-Proto") !== "https"
+//   ) {
+//     return res.redirect(`https://${req.get("host")}${req.url}`);
+//   }
+//   next(); // Pass control to the next middleware
+// });
 
 // Optional: Customize Morgan logging (only log errors, not all requests)
 app.use(
