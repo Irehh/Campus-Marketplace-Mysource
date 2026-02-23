@@ -11,7 +11,7 @@ const TelegramBotButton = () => {
   if (!isAuthenticated || !botUsername) return null
 
   const handleOpenTelegramBot = () => {
-    window.open(`google.com`, "_blank")
+    window.open(`https://wa.me/2348104441382?text=Hello,%20I%20want%20to%20buy%20or%20sell.%20I%20will%20save%20your%20number%20as%20mysource%20agent.`, "_blank")
   }
 
   return (
@@ -20,7 +20,7 @@ const TelegramBotButton = () => {
       className={`fixed z-50 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg 
                  transition-all duration-300 transform hover:scale-110 focus:outline-none
                  ${isMobile ? "bottom-20 right-4 p-3" : "bottom-6 right-6 p-4"}`}
-      aria-label="Open Telegram Bot"
+      aria-label="Open WhatsApp"
     >
       <div className="relative">
       <FaWhatsapp className="text-xl" />
