@@ -1,5 +1,5 @@
 
-import { FiTerminal } from "react-icons/fi"
+import { FaWhatsapp } from "react-icons/fa"
 import { useMobile } from "../hooks/useMobile"
 import { useAuth } from "../contexts/AuthContext"
 
@@ -23,7 +23,7 @@ const TelegramBotButton = () => {
       aria-label="Open Telegram Bot"
     >
       <div className="relative">
-      <FiWhatsapp className="text-xl" />
+      <FaWhatsapp className="text-xl" />
         <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
       </div>
     </button>
