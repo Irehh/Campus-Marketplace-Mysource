@@ -172,7 +172,7 @@ const HomePage = () => {
             <h4 className="text-sm font-semibold mb-1 text-green-800">
               Connect
             </h4>
-            <p className="text-xs text-gray-600">Message sellers or buyers.</p>
+            <p className="text-xs text-gray-600">Message admin("recommended") or sellers.</p>
           </div>
           <div className="flex flex-col items-center text-center">
             <div className="bg-lime-100 w-10 h-10 rounded-full flex items-center justify-center mb-2">
