@@ -73,7 +73,7 @@ export const BUSINESS_CATEGORIES = [
 export const SOCIAL_MEDIA_LINKS = {
   // Default links (used when no campus is selected)
   default: {
-    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    whatsapp: "https://wa.me/2348075889260",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
     twitter: "https://x.com/mysource_ng",
     facebook: "https://web.facebook.com/groups/745670956863374",
@@ -81,15 +81,15 @@ export const SOCIAL_MEDIA_LINKS = {
   },
   // Campus-specific links
   unn: {
-    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    whatsapp: "https://wa.me/2348075889260",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
   },
   uniben: {
-    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    whatsapp: "https://wa.me/2348075889260",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
   },
   uniport: {
-    whatsapp: "https://chat.whatsapp.com/LUZmDZlti5k9VhvtnjvC0t",
+    whatsapp: "https://wa.me/2348075889260",
     telegram: "https://t.me/+GwOjGSPTticwNTM0",
   },
 }
