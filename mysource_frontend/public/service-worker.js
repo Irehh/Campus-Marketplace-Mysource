@@ -3,6 +3,9 @@
 const VERSION = "BUILD_VERSION_PLACEHOLDER"; // This will be replaced during build
 const BUILD_HASH = "BUILD_HASH_PLACEHOLDER"; // This will be replaced during build
 
+// Critical versions that force mandatory updates
+const CRITICAL_VERSIONS = []
+
 // Cache names with version
 const STATIC_CACHE_NAME = "campus-marketplace-static-v" + VERSION
 const IMAGES_CACHE_NAME = "campus-marketplace-images-v" + VERSION
@@ -62,11 +65,11 @@ self.addEventListener("activate", (event) => {
         return self.clients.claim()
       })
       .then(() => {
-        // Notify all clients about the new version
+        // Notify all clients about activation
         return self.clients.matchAll().then((clients) => {
           clients.forEach((client) => {
             client.postMessage({
-              type: "NEW_VERSION_AVAILABLE",
+              type: "SW_ACTIVATED",
               version: VERSION,
               buildHash: BUILD_HASH,
             })
@@ -99,7 +102,14 @@ const checkForVersionUpdate = async () => {
       const versionInfo = await response.json()
       if (versionInfo.version !== VERSION) {
         console.log("[Service Worker] New version detected:", versionInfo.version, "Current:", VERSION)
-        return versionInfo
+        
+        // Check if it's a critical/mandatory update
+        const isMandatory = CRITICAL_VERSIONS.includes(versionInfo.version) || versionInfo.mandatory === true
+        
+        return {
+          ...versionInfo,
+          isMandatory,
+        }
       }
     }
   } catch (error) {
@@ -294,7 +304,7 @@ self.addEventListener("message", (event) => {
   }
 })
 
-// Periodic version check (every 30 minutes)
+// Periodic version check (every 6 hours)
 setInterval(
   () => {
     checkForVersionUpdate().then((versionInfo) => {
@@ -303,7 +313,10 @@ setInterval(
           clients.forEach((client) => {
             client.postMessage({
               type: "NEW_VERSION_AVAILABLE",
-              versionInfo,
+              version: versionInfo.version,
+              isMandatory: versionInfo.isMandatory,
+              buildHash: versionInfo.buildHash,
+              message: versionInfo.message,
               currentVersion: VERSION,
             })
           })
@@ -311,8 +324,8 @@ setInterval(
       }
     })
   },
-  30 * 60 * 1000,
-) // 30 minutes
+  6 * 60 * 60 * 1000,
+) // 6 hours
 
 // Error handling
 self.addEventListener("error", (event) => {

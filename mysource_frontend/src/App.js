@@ -40,6 +40,8 @@ import AdminRoute from "./components/AdminRoute"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { clearApiCaches, checkForNewVersion } from "./utils/cacheBuster"
 import DevTools from "./components/DevTools"
+import PWAUpdatePrompt from "./components/PWAUpdatePrompt"
+import useServiceWorkerUpdate from "./hooks/useServiceWorkerUpdate"
 import GigsPage from "./pages/GigsPage"
 import GigDetailPage from "./pages/GigDetailPage"
 import CreateGigPage from "./pages/CreateGigPage"
@@ -58,6 +60,15 @@ import SellerOrdersPage from "./pages/SellerOrdersPage"
 function App() {
   const { user, isAuthenticated } = useAuth()
   const [showCampusSelection, setShowCampusSelection] = useState(false)
+
+  // PWA Update Hook
+  const {
+    updateAvailable,
+    isMandatory,
+    newVersion,
+    updateNow,
+    dismiss,
+  } = useServiceWorkerUpdate()
 
   //Clear API caches on app start
   useEffect(() => {
@@ -94,6 +105,16 @@ function App() {
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <ErrorBoundary>
         {showCampusSelection && <RequiredCampusSelection onComplete={() => setShowCampusSelection(false)} />}
+        
+        {/* PWA Update Prompt - Mandatory or Optional */}
+        <PWAUpdatePrompt
+          updateAvailable={updateAvailable}
+          isMandatory={isMandatory}
+          newVersion={newVersion}
+          onUpdate={updateNow}
+          onDismiss={dismiss}
+        />
+        
         {/* Offline Indicator */}
         <OfflineIndicator />
 

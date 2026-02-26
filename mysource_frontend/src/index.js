@@ -5,12 +5,15 @@ import App from "./App"
 import { BrowserRouter } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import { Toaster } from "react-hot-toast"
-// import { registerServiceWorker } from "./utils/pushNotifications"
 import { FavoritesProvider } from "./contexts/FavoritesContext"
+import { PWAProvider } from "./contexts/PWAContext"
 import ErrorBoundary from "./components/ErrorBoundary"
-import { unregister } from './serviceWorkerRegistration';
+import { registerServiceWorker } from './serviceWorkerRegistration'
 
-unregister();
+// Register the service worker
+if (process.env.NODE_ENV === 'production') {
+  registerServiceWorker()
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root"))
 root.render(
@@ -18,10 +21,12 @@ root.render(
     <ErrorBoundary>
       <BrowserRouter>
         <AuthProvider>
-          <FavoritesProvider>
-            <App />
-            <Toaster position="top-right" />
-          </FavoritesProvider>
+          <PWAProvider>
+            <FavoritesProvider>
+              <App />
+              <Toaster position="top-right" />
+            </FavoritesProvider>
+          </PWAProvider>
         </AuthProvider>
       </BrowserRouter>
     </ErrorBoundary>

@@ -1,0 +1,12 @@
+{
+  "version": "1.8.0",
+  "buildHash": "v1-8-0",
+  "releaseDate": "2026-02-26",
+  "mandatory": false,
+  "message": "Bug fixes and improvements",
+  "changelog": [
+    "Security improvements",
+    "Performance optimization",
+    "Bug fixes"
+  ]
+}
