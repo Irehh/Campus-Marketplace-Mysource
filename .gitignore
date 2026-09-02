@@ -13,3 +13,7 @@ mysource_backend/package-lock.json
 mysource_frontend/package-lock.
 /mysource_backend/.htaccess
 /mysource_frontend/.htaccess
+
+.env
+.env.*
+!.env.example

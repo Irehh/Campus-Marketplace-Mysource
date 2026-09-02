@@ -261,7 +261,7 @@ app.get("*", (req, res) => {
 app.use(errorHandler);
 
 // Start the Telegram bot if configured
-if (process.env.ENABLE_TELEGRAM === "true") {
+if (process.env.ENABLE_TELEGRAM === "false") {
   let bot;
   try {
     bot = startBot();

@@ -1,0 +1,56 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: campus-mysql
+    restart: unless-stopped
+
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    ports:
+      - "3306:3306"
+
+
+  backend:
+    build:
+      context: ./mysource_backend
+
+    container_name: campus-backend
+    restart: unless-stopped
+
+    env_file:
+      - ./mysource_backend/.env.docker
+
+    ports:
+      - "5000:5000"
+
+    depends_on:
+      - mysql
+
+
+  frontend:
+    build:
+      context: ./mysource_frontend
+
+    container_name: campus-frontend
+    restart: unless-stopped
+
+    env_file:
+      - ./mysource_backend/.env.docker
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
+
+volumes:
+  mysql_data:
